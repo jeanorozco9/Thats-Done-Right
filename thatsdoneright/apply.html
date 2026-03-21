@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Apply to Work With Us — That's Done Right</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:     #2e7d32;
+  --green-dark:#1b5e20;
+  --green-tint:#e8f5e9;
+  --dark:      #1c1c1c;
+  --dark-mid:  #3a3a3a;
+  --text-mid:  #666;
+  --text-lite: #999;
+  --white:     #fff;
+  --off-white: #faf9f7;
+  --border:    #e8e2dc;
+  --red:       #c62828;
+  --display:   'Oswald', sans-serif;
+  --body:      'Source Sans 3', sans-serif;
+  --script:    'Pacifico', cursive;
+  --radius:    10px;
+}
+
+body { font-family: var(--body); background: var(--off-white); color: var(--dark); }
+
+/* NAV */
+nav {
+  background: var(--dark);
+  padding: 0 1.5rem;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-logo { font-family: var(--script); font-size: 1.4rem; color: var(--green); text-decoration: none; }
+.nav-back {
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  text-decoration: none;
+}
+.nav-back:hover { color: var(--white); }
+
+/* HERO */
+.hero {
+  background: var(--dark);
+  padding: 3rem 1.5rem 4rem;
+  text-align: center;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-family: var(--display);
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #81c784;
+  background: rgba(46,125,50,0.15);
+  border: 1px solid rgba(46,125,50,0.3);
+  padding: .3rem .9rem;
+  border-radius: 100px;
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 700;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: .5rem;
+}
+
+.hero h1 span { color: var(--green); }
+
+.hero-sub {
+  font-size: .95rem;
+  color: rgba(255,255,255,0.5);
+  max-width: 440px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* PERKS */
+.perks {
+  background: var(--green);
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.perk-num {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+
+.perk-label {
+  font-family: var(--display);
+  font-size: .6rem;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-top: 3px;
+}
+
+/* FORM */
+.form-wrap {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.form-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+}
+
+.form-card-header {
+  background: var(--green);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.form-card-header-icon {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.form-card-header-title {
+  font-family: var(--display);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.form-card-header-sub {
+  font-size: .68rem;
+  color: rgba(255,255,255,0.65);
+  margin-top: 2px;
+}
+
+.form-body { padding: 1.75rem 1.5rem; }
+
+.field { margin-bottom: 1.1rem; }
+
+label {
+  display: block;
+  font-family: var(--display);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dark-mid);
+  margin-bottom: .4rem;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+  width: 100%;
+  padding: .75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .92rem;
+  font-family: var(--body);
+  color: var(--dark);
+  background: var(--off-white);
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+  background: var(--white);
+}
+
+textarea { resize: vertical; min-height: 90px; }
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+
+@media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+
+.section-label {
+  font-family: var(--display);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-lite);
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 1.5rem 0 1rem;
+}
+
+.section-label::before,
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.field-error {
+  display: none;
+  font-size: .72rem;
+  color: var(--red);
+  margin-top: .3rem;
+  font-weight: 500;
+}
+.field-error.show { display: block; }
+
+.btn-submit {
+  width: 100%;
+  padding: .9rem;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--display);
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  margin-top: .5rem;
+}
+
+.btn-submit:hover { background: var(--green-dark); transform: translateY(-1px); }
+.btn-submit:disabled { background: #aaa; transform: none; cursor: not-allowed; }
+
+/* SUCCESS */
+.success-panel {
+  display: none;
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.success-panel.show { display: block; }
+.success-icon { font-size: 3rem; margin-bottom: .75rem; }
+.success-title {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--dark);
+  margin-bottom: .5rem;
+}
+.success-msg { font-size: .9rem; color: var(--text-mid); line-height: 1.6; }
+
+/* FOOTER */
+footer {
+  background: #111;
+  padding: 1.5rem;
+  text-align: center;
+  border-top: 3px solid var(--green);
+}
+.footer-logo { font-family: var(--script); font-size: 1.4rem; color: var(--green); margin-bottom: .3rem; }
+.footer-text { font-size: .72rem; color: rgba(255,255,255,0.25); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">That's Done Right</a>
+  <a href="/" class="nav-back">← Back to site</a>
+</nav>
+
+<div class="hero">
+  <div class="hero-eyebrow">Now Hiring in Houston</div>
+  <h1>Work With <span>That's Done Right</span></h1>
+  <p class="hero-sub">Join our network of local lawn care professionals. We handle the customers — you handle the work.</p>
+</div>
+
+<div class="perks">
+  <div>
+    <div class="perk-num">We</div>
+    <div class="perk-label">Handle the Marketing</div>
+  </div>
+  <div>
+    <div class="perk-num">You</div>
+    <div class="perk-label">Set Your Schedule</div>
+  </div>
+  <div>
+    <div class="perk-num">More</div>
+    <div class="perk-label">Lawn Jobs, Less Work</div>
+  </div>
+  <div>
+    <div class="perk-num">Weekly</div>
+    <div class="perk-label">Payouts</div>
+  </div>
+</div>
+
+<div class="form-wrap">
+  <div class="form-card">
+    <div class="form-card-header">
+      <div class="form-card-header-icon">🌿</div>
+      <div>
+        <div class="form-card-header-title">Contractor Application</div>
+        <div class="form-card-header-sub">Takes less than 2 minutes · We review within 48 hours</div>
+      </div>
+    </div>
+
+    <div class="form-body" id="formBody">
+
+      <!-- Personal Info -->
+      <div class="section-label">Personal Info</div>
+
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="cName" placeholder="John Smith" autocomplete="name"/>
+        <div class="field-error" id="nameErr">Please enter your name</div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="cEmail" placeholder="john@email.com" autocomplete="email"/>
+          <div class="field-error" id="emailErr">Please enter a valid email</div>
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="tel" id="cPhone" placeholder="(713) 555-0123" autocomplete="tel"/>
+          <div class="field-error" id="phoneErr">Please enter your phone</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>City</label>
+          <input type="text" id="cCity" placeholder="Humble"/>
+          <div class="field-error" id="cityErr">Please enter your city</div>
+        </div>
+        <div class="field">
+          <label>Zip Code</label>
+          <input type="text" id="cZip" placeholder="77338" maxlength="5"/>
+          <div class="field-error" id="zipErr">Please enter your zip</div>
+        </div>
+      </div>
+
+      <!-- Experience -->
+      <div class="section-label">Experience & Equipment</div>
+
+      <div class="field">
+        <label>Years of Lawn Care Experience</label>
+        <select id="cExperience">
+          <option value="">Select...</option>
+          <option value="less than 1 year">Less than 1 year</option>
+          <option value="1-2 years">1–2 years</option>
+          <option value="3-5 years">3–5 years</option>
+          <option value="5+ years">5+ years</option>
+        </select>
+        <div class="field-error" id="expErr">Please select your experience</div>
+      </div>
+
+      <div class="field">
+        <label>Equipment You Own</label>
+        <textarea id="cEquipment" placeholder="e.g. 48&quot; zero turn, push mower, weed eater, blower..."></textarea>
+        <div class="field-error" id="equipErr">Please describe your equipment</div>
+      </div>
+
+      <!-- Availability -->
+      <div class="section-label">Availability</div>
+
+      <div class="field">
+        <label>When are you available to work?</label>
+        <select id="cAvailability">
+          <option value="">Select...</option>
+          <option value="Weekdays only">Weekdays only</option>
+          <option value="Weekends only">Weekends only</option>
+          <option value="Weekdays and weekends">Weekdays and weekends</option>
+          <option value="Flexible">Flexible — whenever needed</option>
+        </select>
+        <div class="field-error" id="availErr">Please select your availability</div>
+      </div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitApplication()">
+        Submit Application →
+      </button>
+
+    </div>
+
+    <!-- Success -->
+    <div class="success-panel" id="successPanel">
+      <div class="success-icon">🎉</div>
+      <div class="success-title">Application Received!</div>
+      <div class="success-msg">
+        Thanks for applying! We review every application within 48 hours.<br/>
+        We'll reach out to you by phone or email if you're a good fit.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">That's Done Right</div>
+  <div class="footer-text">Licensed & Insured · Humble, TX · © 2026 That's Done Right LLC</div>
+</footer>
+
+<script>
+const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+
+function showErr(id, show) {
+  document.getElementById(id).classList.toggle('show', show);
+}
+
+async function submitApplication() {
+  const name        = document.getElementById('cName').value.trim();
+  const email       = document.getElementById('cEmail').value.trim();
+  const phone       = document.getElementById('cPhone').value.trim();
+  const city        = document.getElementById('cCity').value.trim();
+  const zip         = document.getElementById('cZip').value.trim();
+  const experience  = document.getElementById('cExperience').value;
+  const equipment   = document.getElementById('cEquipment').value.trim();
+  const availability= document.getElementById('cAvailability').value;
+
+  // Validate
+  let ok = true;
+  showErr('nameErr',  !name);         if (!name) ok = false;
+  showErr('emailErr', !email.includes('@')); if (!email.includes('@')) ok = false;
+  showErr('phoneErr', phone.replace(/\D/g,'').length < 10); if (phone.replace(/\D/g,'').length < 10) ok = false;
+  showErr('cityErr',  !city);         if (!city) ok = false;
+  showErr('zipErr',   zip.length < 5); if (zip.length < 5) ok = false;
+  showErr('expErr',   !experience);   if (!experience) ok = false;
+  showErr('equipErr', !equipment);    if (!equipment) ok = false;
+  showErr('availErr', !availability); if (!availability) ok = false;
+  if (!ok) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/contractors', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ name, email, phone, city, zip, experience, equipment, availability, status: 'pending' })
+    });
+
+    document.getElementById('formBody').style.display = 'none';
+    document.getElementById('successPanel').classList.add('show');
+
+  } catch(e) {
+    console.error('Submit error:', e);
+    btn.textContent = 'Submit Application →';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

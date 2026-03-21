@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Contractor Portal — That's Done Right</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2e7d32;--green-dark:#1b5e20;--green-tint:#e8f5e9;
+  --dark:#1c1c1c;--dark-mid:#3a3a3a;--text-mid:#666;--text-lite:#999;
+  --white:#fff;--off-white:#faf9f7;--border:#e8e2dc;--red:#c62828;--yellow:#f57f17;
+  --display:'Oswald',sans-serif;--body:'Source Sans 3',sans-serif;--script:'Pacifico',cursive;--radius:10px;
+}
+body{font-family:var(--body);background:var(--off-white);color:var(--dark);min-height:100vh}
+nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:var(--script);font-size:1.4rem;color:var(--green)}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.nav-contractor{font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;color:rgba(255,255,255,0.6)}
+.nav-contractor span{color:var(--white)}
+.btn-logout{font-family:var(--display);font-size:.65rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:.35rem .8rem;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:none;border-radius:6px;cursor:pointer}
+.btn-logout:hover{background:rgba(255,255,255,0.15);color:var(--white)}
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark)}
+.login-card{background:var(--white);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.4);text-align:center}
+.login-logo{font-family:var(--script);font-size:2rem;color:var(--green);margin-bottom:.2rem}
+.login-sub{font-family:var(--display);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:2rem}
+.login-card label{display:block;font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--dark-mid);margin-bottom:.4rem;text-align:left}
+.login-card input{width:100%;padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.95rem;font-family:var(--body);margin-bottom:1rem;outline:none}
+.login-card input:focus{border-color:var(--green)}
+.login-btn{width:100%;padding:.85rem;background:var(--green);color:var(--white);border:none;border-radius:var(--radius);font-family:var(--display);font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.login-btn:hover{background:var(--green-dark)}
+.login-btn:disabled{background:#aaa;cursor:not-allowed}
+.login-success{display:none;background:var(--green-tint);border:1px solid #c8e6c9;border-radius:var(--radius);padding:1rem;margin-top:1rem;font-size:.85rem;color:var(--green);line-height:1.5}
+.login-error{color:var(--red);font-size:.8rem;margin-top:.75rem;display:none}
+#dashboard{display:none}
+.page-header{background:var(--white);border-bottom:1px solid var(--border);padding:1.25rem 1.5rem}
+.page-header-title{font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dark)}
+.page-header-sub{font-size:.82rem;color:var(--text-mid);margin-top:2px}
+.stats-row{display:flex;gap:1rem;padding:1.25rem 1.5rem;flex-wrap:wrap}
+.stat-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;flex:1;min-width:110px;text-align:center}
+.stat-num{font-family:var(--display);font-size:1.8rem;font-weight:700;color:var(--dark);line-height:1}
+.stat-num.green{color:var(--green)}
+.stat-num.yellow{color:var(--yellow)}
+.stat-label{font-family:var(--display);font-size:.58rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-lite);margin-top:4px}
+.jobs-wrap{padding:0 1.5rem 3rem}
+.section-title{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:1rem;margin-top:1.5rem;display:flex;align-items:center;gap:.75rem}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.job-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem;transition:box-shadow .15s}
+.job-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.job-card.today{border-left:4px solid var(--green)}
+.job-card.upcoming{border-left:4px solid var(--yellow)}
+.job-card.completed{border-left:4px solid #ccc;opacity:.7}
+.job-card.unscheduled{border-left:4px solid #e0e0e0}
+.job-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;gap:1rem}
+.job-address{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);letter-spacing:.3px;text-transform:uppercase}
+.job-badge{display:inline-flex;align-items:center;font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.3rem .75rem;border-radius:100px;white-space:nowrap;flex-shrink:0}
+.badge-today{background:var(--green-tint);color:var(--green)}
+.badge-upcoming{background:#fff8e1;color:var(--yellow)}
+.badge-done{background:#f5f5f5;color:#999}
+.badge-unscheduled{background:#f5f5f5;color:#bbb}
+.job-meta{display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem}
+.job-meta-item{display:flex;flex-direction:column}
+.job-meta-label{font-family:var(--display);font-size:.58rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:2px}
+.job-meta-val{font-size:.88rem;font-weight:500;color:var(--dark)}
+.job-notes{font-size:.82rem;color:var(--text-mid);background:var(--off-white);border-radius:6px;padding:.6rem .85rem;margin-bottom:.75rem;line-height:1.5}
+.job-actions{display:flex;gap:.5rem;flex-wrap:wrap}
+.btn-complete{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.55rem 1.1rem;background:var(--green);color:var(--white);border:none;border-radius:8px;cursor:pointer;transition:background .15s}
+.btn-complete:hover{background:var(--green-dark)}
+.photo-upload-area{display:none;margin-top:.75rem;padding:1rem;border:2px dashed var(--border);border-radius:var(--radius);text-align:center;background:var(--off-white)}
+.photo-upload-area.show{display:block}
+.photo-upload-area input[type="file"]{display:none}
+.photo-label{display:inline-block;font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.6rem 1.2rem;background:var(--dark);color:var(--white);border-radius:8px;cursor:pointer;margin-bottom:.5rem}
+.photo-preview{width:100%;max-height:200px;object-fit:cover;border-radius:8px;margin-bottom:.5rem;display:none}
+.btn-submit-photo{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.6rem 1.2rem;background:var(--green);color:var(--white);border:none;border-radius:8px;cursor:pointer;display:none}
+.empty-state{text-align:center;padding:3rem;color:var(--text-lite)}
+.empty-icon{font-size:2.5rem;margin-bottom:.5rem}
+.empty-msg{font-family:var(--display);font-size:.8rem;letter-spacing:1px;text-transform:uppercase}
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:480px){.stats-row{gap:.5rem}.stat-card{padding:.75rem;min-width:80px}.jobs-wrap{padding:0 1rem 3rem}.job-card{padding:1rem}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">That's Done Right</div>
+    <div class="login-sub">Contractor Portal</div>
+    <label>Your Email Address</label>
+    <input type="email" id="emailInput" placeholder="john@email.com" autocomplete="email" onkeydown="if(event.key==='Enter') sendMagicLink()"/>
+    <button class="login-btn" id="loginBtn" onclick="sendMagicLink()">Send Login Link</button>
+    <div class="login-success" id="loginSuccess">
+      ✅ Check your email! We sent you a secure login link.<br/>
+      <span style="font-size:.8rem;color:#555;">Click the link in your email to access your jobs.</span>
+    </div>
+    <div class="login-error" id="loginError">No approved contractor account found for that email.</div>
+  </div>
+</div>
+
+<div id="dashboard">
+  <nav>
+    <div class="nav-logo">That's Done Right</div>
+    <div class="nav-right">
+      <div class="nav-contractor">Welcome, <span id="contractorName"></span></div>
+      <button class="btn-logout" onclick="logout()">Log Out</button>
+    </div>
+  </nav>
+  <div class="page-header">
+    <div class="page-header-title">My Jobs</div>
+    <div class="page-header-sub" id="pageHeaderSub">Loading your schedule...</div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num green" id="statToday">—</div><div class="stat-label">Today</div></div>
+    <div class="stat-card"><div class="stat-num yellow" id="statUpcoming">—</div><div class="stat-label">Upcoming</div></div>
+    <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Jobs</div></div>
+    <div class="stat-card"><div class="stat-num green" id="statCompleted">—</div><div class="stat-label">Completed</div></div>
+  </div>
+  <div class="jobs-wrap" id="jobsWrap">
+    <div class="empty-state"><span class="spinner"></span> Loading jobs...</div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+const NOTIFY_CLIENT_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-client";
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentContractor = null;
+
+// Check if returning from magic link or accept/decline link
+window.addEventListener('load', async () => {
+  const params     = new URLSearchParams(window.location.search);
+  const action     = params.get('action');
+  const leadId     = params.get('lead');
+  const contractorId = params.get('contractor');
+
+  // Handle accept/decline from email link
+  if (action && leadId && contractorId) {
+    // Clear URL params
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (action === 'decline') {
+      await fetch(NOTIFY_CLIENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: parseInt(leadId), action: 'decline' })
+      });
+      // Show declined message
+      document.getElementById('loginScreen').innerHTML = `
+        <div class="login-card">
+          <div class="login-logo">That's Done Right</div>
+          <div style="text-align:center;padding:1rem 0;">
+            <div style="font-size:3rem;margin-bottom:.75rem;">✅</div>
+            <div style="font-family:var(--display);font-size:1rem;font-weight:700;text-transform:uppercase;margin-bottom:.5rem;">Job Declined</div>
+            <div style="font-size:.85rem;color:#666;line-height:1.6;">We'll assign this job to another contractor.<br/>Thank you for letting us know!</div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    if (action === 'accept') {
+      // Store accept params and require login to set date/time
+      sessionStorage.setItem('pendingAccept', JSON.stringify({ leadId, contractorId }));
+    }
+  }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) await loadContractorAndJobs(session.user.email);
+});
+
+async function sendMagicLink() {
+  const email = document.getElementById('emailInput').value.trim().toLowerCase();
+  if (!email.includes('@')) return;
+
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Checking...';
+  btn.disabled = true;
+  document.getElementById('loginError').style.display = 'none';
+
+  try {
+    // Verify they are an approved contractor first
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/contractors?email=eq.${encodeURIComponent(email)}&status=eq.approved&select=id,name`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const contractors = await res.json();
+
+    if (!contractors.length) {
+      document.getElementById('loginError').style.display = 'block';
+      btn.textContent = 'Send Login Link';
+      btn.disabled = false;
+      return;
+    }
+
+    // Send magic link
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/contractor.html` }
+    });
+
+    if (error) throw error;
+
+    document.getElementById('loginSuccess').style.display = 'block';
+    btn.textContent = 'Link Sent!';
+
+  } catch(e) {
+    console.error('Magic link error:', e);
+    btn.textContent = 'Send Login Link';
+    btn.disabled = false;
+  }
+}
+
+async function loadContractorAndJobs(email) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/contractors?email=eq.${encodeURIComponent(email)}&status=eq.approved&select=id,name`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const contractors = await res.json();
+    if (!contractors.length) { logout(); return; }
+
+    currentContractor = contractors[0];
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('contractorName').textContent = currentContractor.name.split(' ')[0];
+    loadJobs();
+  } catch(e) { console.error('Load contractor error:', e); }
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  currentContractor = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('emailInput').value = '';
+  document.getElementById('loginBtn').textContent = 'Send Login Link';
+  document.getElementById('loginBtn').disabled = false;
+  document.getElementById('loginSuccess').style.display = 'none';
+}
+
+async function loadJobs() {
+  try {
+    // Only fetch safe columns — no price, no email, no phone
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url&order=scheduled_date.asc.nullslast`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const jobs = await res.json();
+
+    const today       = new Date().toISOString().split('T')[0];
+    const todayJobs   = jobs.filter(j => j.scheduled_date === today && j.status !== 'completed');
+    const upcoming    = jobs.filter(j => j.scheduled_date > today && j.status !== 'completed');
+    const unscheduled = jobs.filter(j => !j.scheduled_date && j.status !== 'completed');
+    const completed   = jobs.filter(j => j.status === 'completed');
+
+    document.getElementById('statToday').textContent     = todayJobs.length;
+    document.getElementById('statUpcoming').textContent  = upcoming.length;
+    document.getElementById('statTotal').textContent     = jobs.length;
+    document.getElementById('statCompleted').textContent = completed.length;
+    document.getElementById('pageHeaderSub').textContent =
+      `${jobs.length} job${jobs.length !== 1 ? 's' : ''} assigned to you`;
+
+    let html = '';
+    if (todayJobs.length)   { html += `<div class="section-title">Today</div>`; todayJobs.forEach(j => html += renderJob(j, 'today')); }
+    if (upcoming.length)    { html += `<div class="section-title">Upcoming</div>`; upcoming.forEach(j => html += renderJob(j, 'upcoming')); }
+    if (unscheduled.length) { html += `<div class="section-title">Not Yet Scheduled</div>`; unscheduled.forEach(j => html += renderJob(j, 'unscheduled')); }
+    if (completed.length)   { html += `<div class="section-title">Completed</div>`; completed.forEach(j => html += renderJob(j, 'completed')); }
+    if (!jobs.length) html = `<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-msg">No jobs assigned yet</div></div>`;
+
+    document.getElementById('jobsWrap').innerHTML = html;
+  } catch(e) { console.error('Load jobs error:', e); }
+}
+
+function renderJob(job, type) {
+  const freqLabel = job.frequency === 'weekly' ? 'Weekly' : job.frequency === 'twice' ? 'Twice a Month' : 'One Time';
+  const dateStr   = job.scheduled_date ? new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }) : 'Not scheduled yet';
+  const timeStr   = job.scheduled_time || '—';
+  const badgeClass = type === 'today' ? 'badge-today' : type === 'upcoming' ? 'badge-upcoming' : type === 'completed' ? 'badge-done' : 'badge-unscheduled';
+  const badgeLabel = type === 'today' ? '🟢 Today' : type === 'upcoming' ? '🟡 Upcoming' : type === 'completed' ? '✓ Done' : '⏳ Unscheduled';
+
+  // Determine what actions to show based on contractor_status
+  let actions = '';
+
+  if (type === 'completed') {
+    actions = `<div style="font-size:.82rem;color:#999;">✓ Job completed${job.photo_url ? ' · Photo submitted' : ''}</div>`;
+  } else if (!job.scheduled_date) {
+    // No date set yet — show schedule picker
+    actions = `
+      <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:8px;padding:1rem;margin-top:.5rem;">
+        <div style="font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#f57f17;margin-bottom:.75rem;">📅 Set Your Availability</div>
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.75rem;">
+          <div style="flex:1;min-width:140px;">
+            <label style="font-family:var(--display);font-size:.62rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:.3rem;">Date</label>
+            <input type="date" id="schedDate-${job.id}" style="width:100%;padding:.6rem .75rem;border:2px solid #e8e2dc;border-radius:8px;font-size:.9rem;outline:none;font-family:var(--body);" min="${new Date().toISOString().split('T')[0]}"/>
+          </div>
+          <div style="flex:1;min-width:120px;">
+            <label style="font-family:var(--display);font-size:.62rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#666;display:block;margin-bottom:.3rem;">Time</label>
+            <input type="time" id="schedTime-${job.id}" style="width:100%;padding:.6rem .75rem;border:2px solid #e8e2dc;border-radius:8px;font-size:.9rem;outline:none;font-family:var(--body);"/>
+          </div>
+        </div>
+        <button class="btn-complete" onclick="acceptAndSchedule(${job.id})">✅ Confirm Schedule</button>
+      </div>`;
+  } else {
+    // Has date — show complete button
+    actions = `
+      <div class="job-actions">
+        <button class="btn-complete" onclick="markComplete(${job.id})">📸 Mark Complete</button>
+      </div>
+      <div class="photo-upload-area" id="photoArea-${job.id}">
+        <div style="font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);margin-bottom:.75rem;">Upload a photo of the completed job</div>
+        <img id="photoPreview-${job.id}" class="photo-preview"/>
+        <label class="photo-label" for="photoInput-${job.id}">📷 Choose Photo</label>
+        <input type="file" id="photoInput-${job.id}" accept="image/*" capture="environment" onchange="previewPhoto(${job.id})"/>
+        <br/>
+        <button class="btn-submit-photo" id="photoSubmitBtn-${job.id}" onclick="submitPhoto(${job.id})">Submit & Complete Job</button>
+      </div>`;
+  }
+
+  return `<div class="job-card ${type}" id="job-${job.id}">
+    <div class="job-header">
+      <div class="job-address">${job.address || '—'}</div>
+      <span class="job-badge ${badgeClass}">${badgeLabel}</span>
+    </div>
+    <div class="job-meta">
+      <div class="job-meta-item"><div class="job-meta-label">Customer</div><div class="job-meta-val">${job.name ? job.name.split(' ')[0] : '—'}</div></div>
+      <div class="job-meta-item"><div class="job-meta-label">Date</div><div class="job-meta-val">${dateStr}</div></div>
+      <div class="job-meta-item"><div class="job-meta-label">Time</div><div class="job-meta-val">${timeStr}</div></div>
+      <div class="job-meta-item"><div class="job-meta-label">Frequency</div><div class="job-meta-val">${freqLabel}</div></div>
+    </div>
+    ${job.job_notes ? `<div class="job-notes">📝 ${job.job_notes}</div>` : ''}
+    ${actions}
+  </div>`;
+}
+
+async function acceptAndSchedule(jobId) {
+  const date = document.getElementById(`schedDate-${jobId}`).value;
+  const time = document.getElementById(`schedTime-${jobId}`).value;
+
+  if (!date || !time) {
+    alert('Please select both a date and time.');
+    return;
+  }
+
+  try {
+    const res = await fetch(NOTIFY_CLIENT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        lead_id: jobId,
+        action: 'accept',
+        scheduled_date: date,
+        scheduled_time: time
+      })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      await loadJobs();
+    }
+  } catch(e) {
+    console.error('Accept schedule error:', e);
+  }
+}
+
+function markComplete(jobId) {
+  document.getElementById(`photoArea-${jobId}`).classList.add('show');
+  document.getElementById(`job-${jobId}`).scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function previewPhoto(jobId) {
+  const input = document.getElementById(`photoInput-${jobId}`);
+  const preview = document.getElementById(`photoPreview-${jobId}`);
+  const btn = document.getElementById(`photoSubmitBtn-${jobId}`);
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; btn.style.display = 'inline-block'; };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+async function submitPhoto(jobId) {
+  const btn = document.getElementById(`photoSubmitBtn-${jobId}`);
+  const input = document.getElementById(`photoInput-${jobId}`);
+  if (!input.files || !input.files[0]) return;
+
+  btn.textContent = 'Uploading...';
+  btn.disabled = true;
+
+  try {
+    const file = input.files[0];
+    const filename = `job-${jobId}-${Date.now()}.${file.name.split('.').pop()}`;
+
+    // 1. Upload photo to Supabase Storage
+    const { error: uploadError } = await sb.storage.from('job-photos').upload(filename, file, { contentType: file.type, upsert: true });
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = sb.storage.from('job-photos').getPublicUrl(filename);
+
+    // 2. Mark job as completed with photo URL
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ status: 'completed', photo_url: publicUrl }),
+    });
+
+    btn.textContent = 'Sending invoice...';
+
+    // 3. Auto-trigger invoice — sends email + text to customer
+    await fetch('https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_id: jobId }),
+    });
+
+    await loadJobs();
+
+  } catch(e) {
+    console.error('Submit photo error:', e);
+    btn.textContent = 'Submit & Complete Job';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

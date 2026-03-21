@@ -1,0 +1,1938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>That's Done Right – Lawn Care in Houston</title>
+
+<script>
+  const GOOGLE_API_KEY = "AIzaSyDL_EhUV8nG2f1fDr2i0mKSzNVEkx_osKI";
+  const TEST_MODE = false;
+  const SUPABASE_URL   = "https://djigwfatupycyfozivuu.supabase.co";
+  const STRIPE_PK      = "pk_test_51TBhcQ1YZ3NkPG1oxIlRYXQ8IJl2U1IohEgsv4bgvTVCW6HMqFABlaUKjqbFaDJMFvHcVQRzcUz3Gf2CWI2Hhy1400FTQC5Bua";
+  const SETUP_INTENT_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/create-setup-intent";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<script src="https://js.stripe.com/v3/"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red:        #2e7d32;
+  --red-dark:   #1b5e20;
+  --red-lite:   #43a047;
+  --red-tint:   #f1f8e9;
+  --dark:       #1C1C1C;
+  --dark-mid:   #3A3A3A;
+  --text-mid:   #666666;
+  --text-lite:  #999999;
+  --white:      #FFFFFF;
+  --off-white:  #FAF9F7;
+  --border:     #E8E2DC;
+  --green:      #2D7A3A;
+  --green-tint: #EEF7EF;
+  --shadow:     0 2px 20px rgba(0,0,0,0.08);
+  --shadow-lg:  0 12px 48px rgba(0,0,0,0.14);
+  --radius:     10px;
+  --script:     'Pacifico', cursive;
+  --display:    'Oswald', sans-serif;
+  --body:       'Source Sans 3', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--body); background: var(--white); color: var(--dark); min-height: 100vh; }
+
+/* ── NAV ── */
+nav {
+  background: var(--dark);
+  padding: 0 1.5rem;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.nav-script {
+  font-family: var(--script);
+  font-size: 1.4rem;
+  color: var(--red);
+  line-height: 1;
+  letter-spacing: -.5px;
+}
+
+.nav-divider {
+  width: 1px;
+  height: 18px;
+  background: #444;
+}
+
+.nav-sub {
+  font-family: var(--display);
+  font-size: .65rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-badge {
+  font-family: var(--display);
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  background: var(--red);
+  color: var(--white);
+  padding: .3rem .7rem;
+  border-radius: 100px;
+}
+
+.nav-phone {
+  font-family: var(--display);
+  font-size: .8rem;
+  font-weight: 600;
+  color: var(--white);
+  text-decoration: none;
+  letter-spacing: .5px;
+}
+
+@media (max-width: 480px) {
+  .nav-badge { display: none; }
+  .nav-phone { font-size: .75rem; }
+}
+
+/* ── HERO ── */
+.hero {
+  background: var(--dark);
+  padding: 3.5rem 1.5rem 7rem;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 40px,
+    rgba(255,255,255,0.015) 40px,
+    rgba(255,255,255,0.015) 41px
+  );
+  pointer-events: none;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: rgba(46,125,50,0.15);
+  border: 1px solid rgba(46,125,50,0.3);
+  color: #81c784;
+  font-family: var(--display);
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: .35rem 1rem;
+  border-radius: 100px;
+  margin-bottom: 1.5rem;
+}
+
+.hero-logo {
+  font-family: var(--script);
+  font-size: clamp(2.8rem, 9vw, 5rem);
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: .25rem;
+  text-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+}
+
+.hero-tagline {
+  font-family: var(--display);
+  font-size: clamp(.7rem, 2vw, .85rem);
+  font-weight: 500;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 1.25rem;
+}
+
+.hero-sub {
+  font-size: .95rem;
+  color: rgba(255,255,255,0.55);
+  max-width: 440px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* ── QUOTE CARD ── */
+.quote-card-wrap {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 2;
+}
+
+.quote-card {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.28);
+  overflow: visible;
+  margin-bottom: -3.5rem;
+}
+
+.quote-card-header {
+  background: var(--red);
+  padding: .9rem 1.5rem;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.qch-icon {
+  width: 34px;
+  height: 34px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.qch-title {
+  font-family: var(--display);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.qch-sub {
+  font-size: .65rem;
+  color: rgba(255,255,255,0.65);
+  margin-top: 2px;
+}
+
+.quote-card-body { padding: 1.5rem; }
+
+/* ── FORM ── */
+.field { margin-bottom: 1rem; }
+
+label {
+  display: block;
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dark-mid);
+  margin-bottom: .4rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"] {
+  width: 100%;
+  padding: .75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .95rem;
+  font-family: var(--body);
+  color: var(--dark);
+  background: var(--off-white);
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+}
+
+input:focus {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(46,125,50,0.1);
+  background: var(--white);
+}
+
+.field-hint {
+  font-size: .75rem;
+  color: var(--text-lite);
+  margin-top: .35rem;
+}
+
+.field-hint a { color: var(--red); text-decoration: none; }
+.field-hint a:hover { text-decoration: underline; }
+
+.field-error {
+  display: none;
+  font-size: .72rem;
+  color: #c62828;
+  margin-top: .3rem;
+  font-weight: 500;
+}
+.field-error.show { display: block; }
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 420px) { .row2 { grid-template-columns: 1fr; } }
+
+/* ── DETAILS QUESTIONS ── */
+.details-section { display: none; animation: fadeUp .3s ease; }
+.details-section.show { display: block; }
+
+.question-title {
+  font-family: var(--display);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--dark);
+  margin-bottom: .75rem;
+  margin-top: 1.25rem;
+}
+
+.option-grid {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  margin-bottom: .25rem;
+}
+
+.option-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: .65rem .5rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  font-family: var(--body);
+  font-size: .82rem;
+  color: var(--dark);
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  line-height: 1.3;
+}
+
+.option-btn:hover { border-color: var(--red); }
+.option-btn.selected { border-color: var(--red); background: var(--red); color: var(--white); }
+.option-btn .opt-icon { font-size: 1.4rem; display: block; margin-bottom: .3rem; }
+
+.detail-textarea {
+  width: 100%;
+  padding: .75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .92rem;
+  font-family: var(--body);
+  color: var(--dark);
+  background: var(--off-white);
+  outline: none;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color .15s;
+}
+
+.detail-textarea:focus { border-color: var(--red); background: var(--white); }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%;
+  padding: .85rem 1.5rem;
+  background: var(--red);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--display);
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  margin-bottom: .5rem;
+}
+
+.btn-primary:hover { background: var(--red-dark); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+
+.btn-ghost {
+  width: 100%;
+  padding: .7rem 1.5rem;
+  background: transparent;
+  color: var(--text-mid);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--display);
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.btn-ghost:hover { border-color: var(--dark); color: var(--dark); }
+
+/* ── AUTOCOMPLETE ── */
+.ac-wrap { position: relative; }
+
+.ac-list {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  overflow: hidden;
+}
+
+.ac-list.open { display: block; }
+
+.ac-item {
+  padding: .75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  font-size: .88rem;
+  color: var(--dark);
+  transition: background .12s;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.ac-item:last-child { border-bottom: none; }
+.ac-item:hover { background: var(--red-tint); }
+.ac-item-pin { color: var(--red); font-size: .9rem; }
+.ac-item-main { font-weight: 500; }
+
+/* ── STATUS BANNERS ── */
+.banner {
+  display: none;
+  border-radius: var(--radius);
+  padding: .75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: .82rem;
+  font-weight: 500;
+  align-items: flex-start;
+  gap: .5rem;
+  animation: fadeUp .25s ease;
+}
+
+.banner.show { display: flex; }
+
+.banner-green {
+  background: var(--green-tint);
+  border: 1px solid #b8ddb8;
+  color: #1a5c1a;
+}
+
+/* ── MANUAL SECTION ── */
+.manual-section { display: none; animation: fadeUp .3s ease; }
+.manual-section.show { display: block; }
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-lite);
+  margin: 1rem 0 .75rem;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── LOADING ── */
+.loading-row {
+  display: none;
+  align-items: center;
+  gap: .75rem;
+  padding: .75rem 0;
+  font-size: .85rem;
+  color: var(--text-mid);
+}
+
+.loading-row.show { display: flex; }
+
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--red);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── RESULT PANEL ── */
+.result-panel { display: none; animation: fadeUp .3s ease; }
+.result-panel.show { display: block; }
+
+/* Frequency buttons */
+.freq-btn {
+  font-family: var(--display);
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  padding: .5rem 1.1rem;
+  border-radius: 100px;
+  border: 2px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.freq-btn:hover { border-color: var(--red); color: var(--red); }
+.freq-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+
+/* Price block */
+.price-block {
+  text-align: center;
+  padding: 1.25rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 1rem;
+}
+
+.price-label {
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-mid);
+  margin-bottom: .25rem;
+}
+
+.price-amount {
+  font-family: var(--display);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1;
+  margin-bottom: .25rem;
+}
+
+.price-amount sup {
+  font-size: 1.4rem;
+  font-weight: 600;
+  vertical-align: super;
+  color: var(--red);
+}
+
+.price-sub {
+  font-size: .75rem;
+  color: var(--text-lite);
+}
+
+/* Stats */
+.stats-row {
+  display: flex;
+  gap: .5rem;
+  margin-bottom: 1rem;
+}
+
+.stat-box {
+  flex: 1;
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .6rem .5rem;
+  text-align: center;
+}
+
+.stat-label {
+  font-family: var(--display);
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-lite);
+  margin-bottom: .2rem;
+}
+
+.stat-val {
+  font-family: var(--display);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+/* Includes box */
+.includes-box {
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .9rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.includes-title {
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--dark-mid);
+  margin-bottom: .6rem;
+}
+
+.includes-list { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; }
+
+.includes-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  color: var(--dark-mid);
+}
+
+.check-icon {
+  width: 16px; height: 16px;
+  background: var(--green);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .55rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── UNAVAILABLE ── */
+.unavailable-panel { display: none; animation: fadeUp .3s ease; }
+.unavailable-panel.show { display: block; }
+
+.unavail-box {
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: .75rem;
+}
+
+.unavail-emoji { font-size: 2rem; margin-bottom: .5rem; }
+
+.unavail-title {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--dark);
+  margin-bottom: .4rem;
+  letter-spacing: .5px;
+}
+
+.unavail-msg {
+  font-size: .82rem;
+  color: var(--text-mid);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.waitlist-row {
+  display: flex;
+  gap: .5rem;
+}
+
+.waitlist-input {
+  flex: 1;
+  padding: .65rem .9rem;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-size: .88rem;
+  font-family: var(--body);
+  outline: none;
+}
+
+.waitlist-input:focus { border-color: var(--red); }
+
+.btn-waitlist {
+  padding: .65rem 1.1rem;
+  background: var(--dark);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--display);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s;
+}
+
+.btn-waitlist:hover { background: var(--red); }
+
+.waitlist-success {
+  display: none;
+  font-size: .82rem;
+  color: var(--green);
+  font-weight: 500;
+  margin-top: .5rem;
+}
+
+.waitlist-success.show { display: block; }
+
+/* ── BELOW HERO ── */
+.below-hero {
+  background: var(--off-white);
+  padding-top: 5rem;
+}
+
+/* Trust bar */
+.trust-bar {
+  background: var(--red);
+  padding: 1.25rem 1.5rem;
+}
+
+.trust-inner {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+}
+
+.trust-item-num {
+  font-family: var(--display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1;
+}
+
+.trust-item-label {
+  font-family: var(--display);
+  font-size: .62rem;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+  margin-top: 3px;
+}
+
+/* How it works */
+.how-section {
+  padding: 3.5rem 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  font-weight: 700;
+  color: var(--dark);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-bottom: .4rem;
+}
+
+.section-title span { color: var(--red); }
+
+.section-sub {
+  font-size: .9rem;
+  color: var(--text-mid);
+  margin-bottom: 2rem;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+@media (max-width: 800px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .steps { grid-template-columns: 1fr; } }
+
+.step-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 1.25rem;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--red);
+}
+
+.step-num {
+  font-family: var(--display);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--red);
+  line-height: 1;
+  margin-bottom: .5rem;
+  opacity: .15;
+  position: absolute;
+  top: .75rem;
+  right: 1rem;
+}
+
+.step-title {
+  font-family: var(--display);
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--dark);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  margin-bottom: .4rem;
+}
+
+.step-desc {
+  font-size: .82rem;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+/* Zones */
+.zones-section {
+  background: var(--dark);
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.zones-section .section-title { color: var(--white); }
+.zones-section .section-sub { color: rgba(255,255,255,0.45); }
+
+.zones-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.zone-pill {
+  font-family: var(--display);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: .45rem 1rem;
+  border-radius: 100px;
+}
+
+.zone-pill.active {
+  background: var(--red);
+  color: var(--white);
+}
+
+.zone-pill.coming {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.45);
+}
+
+/* ── FOOTER ── */
+footer {
+  background: #111;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  border-top: 3px solid var(--red);
+}
+
+.footer-logo {
+  font-family: var(--script);
+  font-size: 1.8rem;
+  color: var(--red);
+  margin-bottom: .4rem;
+}
+
+.footer-text {
+  font-size: .75rem;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: .5px;
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <div class="nav-logo">
+    <span class="nav-script">That's Done Right</span>
+    <div class="nav-divider"></div>
+    <span class="nav-sub">Lawn Service</span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge">Now Serving Humble</div>
+    <a href="tel:7135550100" class="nav-phone">📞 (713) 555-0100</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    ⚡ Instant Quote &nbsp;·&nbsp; No Contracts &nbsp;·&nbsp; No Salespeople
+  </div>
+  <div class="hero-logo">That's Done Right</div>
+  <div class="hero-tagline">Lawn Service · Houston, TX</div>
+  <p class="hero-sub">
+    Enter your address — we'll check your area and give you an exact price instantly. No calling around. No waiting.
+  </p>
+
+  <!-- ── QUOTE CARD ── -->
+  <div class="quote-card-wrap">
+    <div class="quote-card">
+
+      <div class="quote-card-header">
+        <div class="qch-icon">📍</div>
+        <div>
+          <div class="qch-title">Get Your Instant Price</div>
+          <div class="qch-sub">Powered by Google Places · All Houston suburbs</div>
+        </div>
+      </div>
+
+      <div class="quote-card-body">
+
+        <!-- Address -->
+        <div class="field">
+          <label>Your Property Address</label>
+          <div class="ac-wrap">
+            <input type="text" id="addressInput"
+              placeholder="Start typing your address..."
+              autocomplete="off" />
+            <div class="ac-list" id="acList"></div>
+          </div>
+          <div class="field-hint" id="addrHint">e.g. 1234 Oak St, Humble TX 77338</div>
+          <div id="confirmedAddr" style="display:none;margin-top:12px;background:var(--green-tint);border:2px solid var(--green);border-radius:var(--radius);padding:1rem 1.25rem;">
+            <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:.4rem;">✔ Please Confirm Your Address</div>
+            <div id="confirmedAddrText" style="font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--dark);letter-spacing:.3px;line-height:1.3;"></div>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading-row" id="loadingRow">
+          <div class="spinner"></div>
+          Checking your service area...
+        </div>
+
+        <!-- Zone OK banner -->
+        <div class="banner banner-green" id="zoneOkBanner">
+          <span>✅</span>
+          <span id="zoneOkText"></span>
+        </div>
+
+        <!-- Name + Email capture -->
+        <div class="manual-section" id="contactCaptureSection">
+          <div class="section-divider">Your Details</div>
+          <div class="field">
+            <label>Full Name</label>
+            <input type="text" id="earlyName" placeholder="John Smith" autocomplete="name" />
+            <div class="field-error" id="earlyNameError">Please enter your name</div>
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="earlyEmail" placeholder="john@email.com" autocomplete="email" />
+            <div class="field-error" id="earlyEmailError">Please enter a valid email</div>
+          </div>
+          <button class="btn-primary" onclick="submitEarlyContact()">
+            Get My Instant Price →
+          </button>
+        </div>
+
+        <!-- Address map confirmation -->
+        <div class="manual-section" id="mapConfirmSection">
+          <div class="section-divider">Double Check Your Address</div>
+          <div id="mapConfirmImg" style="width:100%;border-radius:10px;overflow:hidden;margin-bottom:.75rem;border:1px solid var(--border);"></div>
+          <div style="display:flex;align-items:center;gap:.5rem;padding:.65rem .9rem;background:var(--off-white);border:1px solid var(--border);border-radius:8px;margin-bottom:1rem;">
+            <span style="font-size:1.1rem;">📍</span>
+            <span id="mapConfirmAddr" style="font-size:.88rem;font-weight:600;color:var(--dark);"></span>
+          </div>
+          <div style="display:flex;gap:.75rem;">
+            <button class="btn-ghost" style="flex:1;" onclick="editAddress()">← Edit</button>
+            <button class="btn-primary" style="flex:2;" onclick="confirmAddress()">Looks Good →</button>
+          </div>
+        </div>
+
+        <!-- Details questions -->
+        <div class="details-section" id="detailsSection">
+          <div class="section-divider">A Few Quick Questions</div>
+
+          <!-- Q1: Preferred date -->
+          <div class="question-title">1. When do you want your lawn cut?</div>
+          <input type="date" id="prefDate" style="width:100%;padding:.7rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.92rem;font-family:var(--body);outline:none;background:var(--off-white);margin-bottom:.25rem;" />
+
+          <!-- Q2: Outdoor pets -->
+          <div class="question-title">2. Do you have outdoor pets?</div>
+          <div class="option-grid" data-group="pets">
+            <button class="option-btn" onclick="selectOpt(this,'pets')"><span class="opt-icon">🐕</span>Dog</button>
+            <button class="option-btn" onclick="selectOpt(this,'pets')"><span class="opt-icon">🐈</span>Cat</button>
+            <button class="option-btn" onclick="selectOpt(this,'pets')"><span class="opt-icon">🐾</span>No Pet</button>
+          </div>
+
+          <!-- Q3: Last cut -->
+          <div class="question-title">3. When was your last cut?</div>
+          <div class="option-grid" data-group="lastcut">
+            <button class="option-btn" onclick="selectOpt(this,'lastcut')"><span class="opt-icon">🌱</span>1 Week Ago</button>
+            <button class="option-btn" onclick="selectOpt(this,'lastcut')"><span class="opt-icon">🌿</span>2 Weeks Ago</button>
+            <button class="option-btn" onclick="selectOpt(this,'lastcut')"><span class="opt-icon">🌾</span>3+ Weeks Ago</button>
+          </div>
+
+          <!-- Q4: Mowing detail level -->
+          <div class="question-title">4. Level of detail you're expecting?</div>
+          <div class="option-grid" data-group="detail">
+            <button class="option-btn" onclick="selectOpt(this,'detail')"><span class="opt-icon">💲</span>Just knock it down</button>
+            <button class="option-btn" onclick="selectOpt(this,'detail')"><span class="opt-icon">💲💲💲</span>I want it perfect</button>
+          </div>
+
+          <!-- Q5: Additional services -->
+          <div class="question-title">5. Interested in any additional yard work?</div>
+          <div class="option-grid" id="servicesGrid" style="flex-wrap:wrap;">
+            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🌳</span>Shrub Pruning</button>
+            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🌿</span>Weed Removal</button>
+            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🍂</span>Leaf Removal</button>
+            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🪴</span>Mulching</button>
+            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🚫</span>None</button>
+          </div>
+
+          <!-- Q6: Special notes -->
+          <div class="question-title">6. Anything your lawn pro should know?</div>
+          <textarea id="lawnNotes" class="detail-textarea" placeholder="e.g. Fence gate is small, dog in backyard, avoid flower beds..."></textarea>
+
+          <button class="btn-primary" style="margin-top:1rem;" onclick="submitDetails()">
+            See My Instant Price →
+          </button>
+        </div>
+
+        <!-- Manual size entry -->
+        <div class="manual-section" id="manualSection">
+          <div class="section-divider">Property Size</div>
+          <div class="row2">
+            <div class="field">
+              <label>Lot Size <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb">(sq ft)</span></label>
+              <input type="number" id="lotSize" placeholder="e.g. 8,500" min="500" />
+              <div class="field-hint">
+                Find free at <a href="https://public.hcad.org" target="_blank">HCAD.org</a>
+              </div>
+              <div class="field-error" id="lotError">Please enter a valid lot size</div>
+            </div>
+            <div class="field">
+              <label>Home Size <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb">(sq ft)</span></label>
+              <input type="number" id="homeSize" placeholder="e.g. 1,800" min="200" />
+              <div class="field-hint">Ground floor only</div>
+              <div class="field-error" id="homeError">Please enter a valid home size</div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="calculateQuote()">
+            Calculate My Price →
+          </button>
+        </div>
+
+        <!-- Result -->
+        <div class="result-panel" id="resultPanel">
+
+          <!-- Frequency selector -->
+          <div style="margin-bottom:1.25rem;">
+            <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);margin-bottom:.65rem;text-align:center;">How often would you like service?</div>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;">
+              <button class="freq-btn active" id="freq-weekly" onclick="selectFreq('weekly')">Weekly</button>
+              <button class="freq-btn" id="freq-twice" onclick="selectFreq('twice')">Twice a Month</button>
+              <button class="freq-btn" id="freq-once" onclick="selectFreq('once')">Once a Month</button>
+            </div>
+          </div>
+
+          <div class="price-block">
+            <div class="price-label">Your Price Per Visit</div>
+            <div class="price-amount"><sup>$</sup><span id="priceNum">--</span></div>
+            <div class="price-sub">Flat rate · No hidden fees · Pay after service</div>
+          </div>
+
+          <div class="stats-row">
+            <div class="stat-box">
+              <div class="stat-label">Lot</div>
+              <div class="stat-val" id="statLot">--</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Home</div>
+              <div class="stat-val" id="statHome">--</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Lawn</div>
+              <div class="stat-val" id="statLawn">--</div>
+            </div>
+          </div>
+
+          <div class="includes-box">
+            <div class="includes-title">✓ Every Visit Includes</div>
+            <div class="includes-list">
+              <div class="includes-item"><div class="check-icon">✓</div> Mow front & back</div>
+              <div class="includes-item"><div class="check-icon">✓</div> Edge sidewalks</div>
+              <div class="includes-item"><div class="check-icon">✓</div> Blow clippings</div>
+              <div class="includes-item"><div class="check-icon">✓</div> Vetted contractor</div>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="handleBook()">
+            📅 Book This Visit
+          </button>
+          <button class="btn-ghost" onclick="goBackToDetails()">← Change Options</button>
+          <button class="btn-ghost" onclick="resetAll()">Try Another Address</button>
+        </div>
+
+        <!-- Contact capture panel -->
+        <div class="result-panel" id="contactPanel">
+          <div style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:.25rem;text-align:center;letter-spacing:.5px;text-transform:uppercase;">Almost There!</div>
+          <div style="font-size:.85rem;color:var(--text-mid);text-align:center;margin-bottom:1.25rem;">Enter your details and we'll lock in your visit.</div>
+
+          <div class="field" style="margin-bottom:.75rem;">
+            <label>Full Name</label>
+            <input type="text" id="contactName" placeholder="John Smith" autocomplete="name" />
+            <div class="field-error" id="nameError">Please enter your name</div>
+          </div>
+          <div class="field" style="margin-bottom:.75rem;">
+            <label>Email</label>
+            <input type="email" id="contactEmail" placeholder="john@email.com" autocomplete="email" />
+            <div class="field-error" id="emailError">Please enter a valid email</div>
+          </div>
+          <div class="field" style="margin-bottom:.75rem;">
+            <label>Phone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb">(for reminders)</span></label>
+            <input type="tel" id="contactPhone" placeholder="(713) 555-0123" autocomplete="tel" />
+            <div class="field-error" id="phoneError">Please enter a valid phone number</div>
+          </div>
+
+          <div id="contactSummary" style="background:var(--off-white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--radius);padding:.75rem 1rem;font-size:.82rem;color:var(--text-mid);margin-bottom:1.25rem;"></div>
+
+          <button class="btn-primary" onclick="submitLead()" id="submitBtn">
+            Confirm & Continue to Payment →
+          </button>
+          <button class="btn-ghost" onclick="hide('contactPanel');show('resultPanel');">← Back</button>
+        </div>
+
+        <!-- Card payment panel -->
+        <div class="result-panel" id="cardPanel">
+          <div style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:.25rem;text-align:center;letter-spacing:.5px;text-transform:uppercase;">Save Your Card</div>
+          <div style="font-size:.82rem;color:var(--text-mid);text-align:center;margin-bottom:1.25rem;line-height:1.6;">
+            No charge today — your card will only be charged after the job is completed.
+          </div>
+
+          <div id="cardSummary" style="background:var(--off-white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--radius);padding:.75rem 1rem;font-size:.82rem;color:var(--text-mid);margin-bottom:1.25rem;"></div>
+
+          <div class="field" style="margin-bottom:1.25rem;">
+            <label>Card Details</label>
+            <div id="cardElement" style="padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);background:var(--off-white);"></div>
+            <div id="cardError" style="color:#c62828;font-size:.75rem;margin-top:.4rem;display:none;"></div>
+          </div>
+
+          <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:var(--radius);padding:.75rem 1rem;font-size:.78rem;color:#2e7d32;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:.5rem;">
+            <span>🔒</span>
+            <span>Your card is saved securely by Stripe. You will <strong>not</strong> be charged until after your lawn is serviced. If you don't pay within 24 hours of receiving your invoice, your card on file will be charged automatically.</span>
+          </div>
+
+          <button class="btn-primary" onclick="submitCard()" id="cardSubmitBtn">
+            Save Card & Confirm Booking →
+          </button>
+          <button class="btn-ghost" onclick="hide('cardPanel');show('contactPanel');">← Back</button>
+        </div>
+
+        <!-- Booking confirmed panel -->
+        <div class="result-panel" id="confirmedPanel">
+          <div style="text-align:center;padding:1.5rem 0;">
+            <div style="font-family:var(--script);font-size:2.5rem;color:var(--red);margin-bottom:.75rem;">Done Right!</div>
+            <div style="font-family:var(--display);font-size:.9rem;font-weight:700;color:var(--dark);margin-bottom:.5rem;letter-spacing:.5px;text-transform:uppercase;">You're on the schedule!</div>
+            <div style="font-size:.85rem;color:var(--text-mid);line-height:1.6;margin-bottom:1.5rem;">We'll reach out within 24 hours to confirm your first visit.<br>Check your email for details.</div>
+            <button class="btn-ghost" onclick="resetAll()">Done</button>
+          </div>
+        </div>
+
+        <!-- Not serviceable -->
+        <div class="unavailable-panel" id="unavailablePanel">
+          <div class="unavail-box">
+            <div class="unavail-emoji">🚧</div>
+            <div class="unavail-title">Not in Our Area Yet</div>
+            <div class="unavail-msg" id="unavailMsg"></div>
+            <div class="waitlist-row">
+              <input type="email" class="waitlist-input" id="waitlistEmail" placeholder="your@email.com" />
+              <button class="btn-waitlist" onclick="joinWaitlist()">Notify Me</button>
+            </div>
+            <div class="waitlist-success" id="waitlistSuccess">
+              ✅ You're on the list! We'll email you when we launch in your area.
+            </div>
+          </div>
+          <button class="btn-ghost" onclick="resetAll()">← Try Another Address</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BELOW HERO ── -->
+<div class="below-hero">
+
+  <!-- Trust bar -->
+  <div class="trust-bar">
+    <div class="trust-inner">
+      <div>
+        <div class="trust-item-num">$0</div>
+        <div class="trust-item-label">Hidden Fees</div>
+      </div>
+      <div>
+        <div class="trust-item-num">72hr</div>
+        <div class="trust-item-label">First Visit</div>
+      </div>
+      <div>
+        <div class="trust-item-num">100%</div>
+        <div class="trust-item-label">Guaranteed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="how-section">
+    <div class="section-title">How It <span>Works</span></div>
+    <div class="section-sub">Getting your lawn done right takes less than 2 minutes</div>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-title">Enter Your Address</div>
+        <div class="step-desc">We check your area and pull up your property info automatically from public records.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-title">Get Your Price</div>
+        <div class="step-desc">Instant flat-rate pricing based on your exact lawn size. No estimates. No surprises.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-title">We Show Up</div>
+        <div class="step-desc">A vetted, insured local contractor shows up and gets it done right.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-title">Pay After Service</div>
+        <div class="step-desc">You'll receive an email with a secure link to pay by credit card — only after the job is done.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service area -->
+  <div class="zones-section">
+    <div class="section-title" style="color:var(--white);">Our Service <span>Area</span></div>
+    <div class="section-sub" style="color:rgba(255,255,255,0.4);margin-bottom:1.5rem;">Growing across Houston — one neighborhood at a time</div>
+    <div class="zones-grid">
+      <span class="zone-pill active">✓ Humble</span>
+      <span class="zone-pill active">✓ Katy</span>
+      <span class="zone-pill coming">The Woodlands — July 2025</span>
+      <span class="zone-pill coming">Pearland — Coming Soon</span>
+      <span class="zone-pill coming">Sugar Land — Coming Soon</span>
+      <span class="zone-pill coming">Spring — Coming Soon</span>
+      <span class="zone-pill coming">Cypress — Coming Soon</span>
+      <span class="zone-pill coming">League City — Coming Soon</span>
+    </div>
+  </div>
+
+
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logo">That's Done Right</div>
+  <div class="footer-text">Licensed & Insured · Humble, TX · © 2026 That's Done Right LLC</div>
+  <div style="margin-top:.75rem;">
+    <a href="/apply.html" style="font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,1);text-decoration:none;">
+      Are you a lawn care contractor? Apply to join our team →
+    </a>
+  </div>
+</footer>
+
+<script>
+const ZONES = [
+  { name: "Humble",        zips: ["77338","77339","77346","77347","77396"], active: true },
+  { name: "Katy",          zips: ["77449","77450","77494","77493"],         active: true },
+  { name: "The Woodlands", zips: ["77380","77381","77382","77384","77385"], active: false, launch: "July 2025" },
+  { name: "Pearland",      zips: ["77581","77584","77588"],                 active: false },
+  { name: "Sugar Land",    zips: ["77478","77479","77496","77498"],         active: false },
+  { name: "Spring",        zips: ["77373","77379","77388"],                 active: false },
+  { name: "Cypress",       zips: ["77410","77429","77433"],                 active: false },
+  { name: "League City",   zips: ["77573","77574"],                        active: false },
+];
+
+const DEMO = [
+  { label: "1234 Humble Oak Dr, Humble TX 77338",        zip: "77338" },
+  { label: "567 Atascocita Rd, Humble TX 77346",         zip: "77346" },
+  { label: "890 FM 1960 W, Humble TX 77339",             zip: "77339" },
+  { label: "321 Cinco Ranch Blvd, Katy TX 77450",        zip: "77450" },
+  { label: "654 Woodlands Pkwy, The Woodlands TX 77381", zip: "77381" },
+  { label: "987 Broadway St, Pearland TX 77581",         zip: "77581" },
+];
+
+function checkZone(zip) {
+  const z = ZONES.find(z => z.zips.includes(zip));
+  if (!z)       return { ok: false, msg: "We don't service this area yet — but we're growing! Leave your email and we'll notify you when we arrive." };
+  if (z.active) return { ok: true, name: z.name };
+  const l = z.launch ? ` We're targeting ${z.launch}.` : "";
+  return { ok: false, name: z.name, msg: `Sorry, we don't service ${z.name} yet — we're working on it!${l}` };
+}
+
+function calcPrice(lawn) {
+  const r = lawn < 2000 ? .0085 : lawn < 4000 ? .007 : lawn < 7000 ? .0058 : lawn < 12000 ? .0048 : .004;
+  return Math.round(Math.max(30, Math.min(175, lawn * r)));
+}
+
+let currentZip = null;
+let suppressInput = false;
+
+async function getAutocompleteSuggestions(input) {
+  const res = await fetch("https://places.googleapis.com/v1/places:autocomplete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Goog-Api-Key": GOOGLE_API_KEY },
+    body: JSON.stringify({
+      input,
+      includedRegionCodes: ["us"],
+      locationRestriction: {
+        rectangle: {
+          low:  { latitude: 29.4, longitude: -96.0 },
+          high: { latitude: 30.2, longitude: -94.8 }
+        }
+      }
+    })
+  });
+  const data = await res.json();
+  return data.suggestions || [];
+}
+
+async function getZipFromPlaceId(placeId) {
+  const cleanId = placeId.replace(/^places\//, "");
+  const res = await fetch(`https://places.googleapis.com/v1/places/${cleanId}`, {
+    headers: { "X-Goog-Api-Key": GOOGLE_API_KEY, "X-Goog-FieldMask": "addressComponents" }
+  });
+  const data = await res.json();
+  if (!data.addressComponents) return null;
+  const zipComp = data.addressComponents.find(c =>
+    c.types && (c.types.includes("postal_code") || c.types.includes("postal_code_prefix"))
+  );
+  return zipComp ? (zipComp.shortText || zipComp.longText) : null;
+}
+
+let debounce;
+document.getElementById("addressInput").addEventListener("input", function() {
+  if (suppressInput) return;
+  const v = this.value.trim();
+  clearTimeout(debounce);
+  if (v.length === 0) { resetResults(); closeAC(); return; }
+  if (v.length < 4) { closeAC(); return; }
+
+  debounce = setTimeout(async () => {
+    if (TEST_MODE || GOOGLE_API_KEY === "YOUR_GOOGLE_API_KEY") {
+      renderAC(DEMO.filter(d => d.label.toLowerCase().includes(v.toLowerCase()))
+        .map(d => ({ label: d.label, zip: d.zip })));
+      return;
+    }
+    try {
+      const suggestions = await getAutocompleteSuggestions(v);
+      if (!suggestions.length) { closeAC(); return; }
+      renderAC(suggestions.map(s => ({ label: s.placePrediction.text.text, placeId: s.placePrediction.placeId })));
+    } catch(e) {
+      console.error("Autocomplete error:", e);
+      closeAC();
+    }
+  }, 300);
+});
+
+document.addEventListener("click", e => { if (!e.target.closest(".ac-wrap")) closeAC(); });
+
+function renderAC(items) {
+  const list = document.getElementById("acList");
+  if (!items.length) { closeAC(); return; }
+  list.innerHTML = items.map((item, i) => `
+    <div class="ac-item" onclick="selectItem(${i})">
+      <span class="ac-item-pin">📍</span>
+      <div class="ac-item-text"><div class="ac-item-main">${item.label}</div></div>
+    </div>`).join("");
+  list._items = items;
+  list.classList.add("open");
+}
+
+function closeAC() { document.getElementById("acList").classList.remove("open"); }
+
+async function selectItem(i) {
+  const list = document.getElementById("acList");
+  const item = list._items[i];
+  suppressInput = true;
+  document.getElementById("addressInput").value = item.label;
+  suppressInput = false;
+  closeAC();
+
+  if (item.zip) {
+    setLoading(true);
+    setTimeout(() => { setLoading(false); resolve(item.zip); }, 400);
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const zip = await getZipFromPlaceId(item.placeId);
+    setLoading(false);
+    if (zip) {
+      const rawAddr = document.getElementById("addressInput").value;
+      const cleanAddr = rawAddr.replace(/,?\s*USA$/, '').replace(/,?\s*United States$/, '');
+      document.getElementById("confirmedAddrText").textContent = cleanAddr + ' ' + zip;
+      // Don't show address confirmation yet — will show after map loads
+      resolve(zip);
+    } else {
+      document.getElementById('unavailMsg').textContent = "We couldn't verify your service area. Please select a full address from the dropdown.";
+      show('unavailablePanel');
+    }
+  } catch(e) {
+    console.error("Place details error:", e);
+    setLoading(false);
+    document.getElementById('unavailMsg').textContent = "We couldn't verify your service area. Please try again.";
+    show('unavailablePanel');
+  }
+}
+
+async function lookupProperty(address) {
+  let streetAddr = address.split(',')[0].trim().toUpperCase();
+  const suffixes = {
+    ' STREET': ' ST', ' AVENUE': ' AVE', ' BOULEVARD': ' BLVD',
+    ' DRIVE': ' DR', ' ROAD': ' RD', ' LANE': ' LN',
+    ' COURT': ' CT', ' CIRCLE': ' CIR', ' PLACE': ' PL',
+    ' TRAIL': ' TRL', ' WAY': ' WAY', ' PARKWAY': ' PKWY',
+    ' HIGHWAY': ' HWY', ' FREEWAY': ' FWY', ' EXPRESSWAY': ' EXPY',
+    ' TERRACE': ' TER', ' PASS': ' PASS', ' BEND': ' BND',
+  };
+  for (const [full, abbr] of Object.entries(suffixes)) {
+    if (streetAddr.endsWith(full)) { streetAddr = streetAddr.slice(0, -full.length) + abbr; break; }
+  }
+  const exactUrl = SUPABASE_URL + "/rest/v1/properties?address=eq." + encodeURIComponent(streetAddr) + "&select=lot_sqft,bld_sqft&limit=1";
+  const parts = streetAddr.split(' ');
+  const fuzzyUrl = SUPABASE_URL + "/rest/v1/properties?address=like." + encodeURIComponent(parts[0] + ' ' + (parts[1] || '') + '%') + "&select=lot_sqft,bld_sqft&limit=1";
+  try {
+    let resp = await fetch(exactUrl, { headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY } });
+    let data = await resp.json();
+    if (data && data.length > 0) return data[0];
+    resp = await fetch(fuzzyUrl, { headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY } });
+    data = await resp.json();
+    if (data && data.length > 0) return data[0];
+  } catch(e) { console.error("Supabase lookup error:", e); }
+  return null;
+}
+
+function resolve(zip) {
+  currentZip = zip;
+  const zone = checkZone(zip);
+  if (zone.ok) {
+    // First show name/email capture — store address lookup for after
+    setLoading(true);
+    const rawAddr = document.getElementById("addressInput").value;
+    // Pre-fetch property data in background while user fills name/email
+    lookupProperty(rawAddr).then(prop => {
+      setLoading(false);
+      window.cachedProp = prop;
+      // Show the contact capture section
+      document.getElementById('zoneOkText').textContent = `Great news — we service ${zone.name}! One quick step before your price.`;
+      show('zoneOkBanner');
+      document.getElementById('contactCaptureSection').classList.add('show');
+      document.getElementById('contactCaptureSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }).catch(() => {
+      setLoading(false);
+      window.cachedProp = null;
+      document.getElementById('zoneOkText').textContent = `Great news — we service ${zone.name}! One quick step before your price.`;
+      show('zoneOkBanner');
+      document.getElementById('contactCaptureSection').classList.add('show');
+    });
+  } else {
+    document.getElementById('unavailMsg').textContent = zone.msg;
+    show('unavailablePanel');
+  }
+}
+
+function submitEarlyContact() {
+  const name  = document.getElementById('earlyName').value.trim();
+  const email = document.getElementById('earlyEmail').value.trim();
+  let ok = true;
+
+  document.getElementById('earlyNameError').classList.remove('show');
+  document.getElementById('earlyEmailError').classList.remove('show');
+
+  if (!name)  { document.getElementById('earlyNameError').classList.add('show'); ok = false; }
+  if (!email.includes('@')) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
+  if (!ok) return;
+
+  // Store name/email for later use in lead capture
+  window.earlyName  = name;
+  window.earlyEmail = email;
+
+  // Save partial lead to Supabase immediately
+  fetch(SUPABASE_URL + '/rest/v1/leads', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Prefer': 'return=representation'
+    },
+    body: JSON.stringify({
+      name,
+      email,
+      address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
+      zip: currentZip,
+      status: 'started',
+      manual_size_entry: !window.sizeAutoFilled
+    })
+  }).then(r => r.json()).then(data => {
+    if (data && data[0]) window.earlyLeadId = data[0].id;
+  }).catch(e => console.error('Early lead save error:', e));
+
+  // Hide contact capture, show map confirmation
+  document.getElementById('contactCaptureSection').classList.remove('show');
+  showMapConfirm();
+}
+
+function showMapConfirm() {
+  const rawAddr = document.getElementById('confirmedAddrText').textContent ||
+                  document.getElementById('addressInput').value.replace(/,?\s*USA$/, '').replace(/,?\s*United States$/, '');
+
+  // Build Google Maps Static API satellite image URL
+  const encodedAddr = encodeURIComponent(rawAddr);
+  const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${encodedAddr}&zoom=19&size=600x300&maptype=satellite&markers=color:red%7C${encodedAddr}&key=${GOOGLE_API_KEY}`;
+
+  document.getElementById('mapConfirmImg').innerHTML =
+    `<img src="${mapUrl}" style="width:100%;display:block;" alt="Satellite view of your property"/>`;
+  document.getElementById('mapConfirmAddr').textContent = rawAddr;
+  document.getElementById('mapConfirmSection').classList.add('show');
+  // Now show the confirmed address box
+  document.getElementById('confirmedAddr').style.display = 'block';
+  document.getElementById('mapConfirmSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function editAddress() {
+  // Go back to address input
+  document.getElementById('mapConfirmSection').classList.remove('show');
+  hide('zoneOkBanner');
+  document.getElementById('confirmedAddr').style.display = 'none';
+  document.getElementById('addressInput').value = '';
+  document.getElementById('earlyName').value = '';
+  document.getElementById('earlyEmail').value = '';
+  window.earlyName = null;
+  window.earlyEmail = null;
+  window.cachedProp = null;
+  document.getElementById('addressInput').focus();
+}
+
+function confirmAddress() {
+  document.getElementById('mapConfirmSection').classList.remove('show');
+
+  // Show details questions next
+  document.getElementById('detailsSection').classList.add('show');
+  const _today = new Date();
+  const _maxDate = new Date(_today);
+  _maxDate.setDate(_today.getDate() + 30);
+  const _todayStr = _today.toISOString().split('T')[0];
+  const _maxStr   = _maxDate.toISOString().split('T')[0];
+  const _pf = document.getElementById('prefDate');
+  _pf.min   = _todayStr;
+  _pf.max   = _maxStr;
+  _pf.value = '';
+  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Single-select option groups
+function selectOpt(btn, group) {
+  btn.closest('.option-grid').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// Multi-select for services
+function toggleService(btn) {
+  if (btn.textContent.includes('None')) {
+    btn.closest('.option-grid').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  } else {
+    btn.closest('.option-grid').querySelectorAll('.option-btn').forEach(b => {
+      if (b.textContent.includes('None')) b.classList.remove('selected');
+    });
+    btn.classList.toggle('selected');
+  }
+}
+
+function submitDetails() {
+  const prefDate = document.getElementById('prefDate').value;
+  const pets     = document.querySelector('[data-group="pets"] .selected')?.textContent.trim() || '';
+  const lastCut  = document.querySelector('[data-group="lastcut"] .selected')?.textContent.trim() || '';
+  const detail   = document.querySelector('[data-group="detail"] .selected')?.textContent.trim() || '';
+  console.log('Detail selected:', detail);
+  const services = [...document.querySelectorAll('#servicesGrid .selected')].map(b => b.textContent.trim()).join(', ');
+  const notes    = document.getElementById('lawnNotes').value.trim();
+
+  window.lawnDetails = { prefDate, pets, lastCut, detail, services, notes };
+
+  // Save details to existing lead
+  if (window.earlyLeadId) {
+    fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + window.earlyLeadId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        job_notes: [pets, lastCut, detail, services, notes].filter(Boolean).join(' | '),
+        scheduled_date: prefDate || null
+      })
+    }).catch(e => console.error('Details update error:', e));
+  }
+
+  // Hide details, show price
+  document.getElementById('detailsSection').classList.remove('show');
+
+  const prop = window.cachedProp;
+  if (prop && prop.lot_sqft > 0) {
+    document.getElementById('lotSize').value = prop.lot_sqft;
+    document.getElementById('homeSize').value = prop.bld_sqft || 0;
+    document.getElementById('addrHint').textContent = '✔ Property size auto-filled from public records';
+    document.getElementById('addrHint').style.color = 'var(--green)';
+    window.sizeAutoFilled = true;
+    calculateQuote();
+  } else {
+    showManual();
+  }
+}
+
+function showManual(hint) {
+  document.getElementById('manualSection').classList.add('show');
+  window.sizeAutoFilled = false;
+  if (hint) {
+    const h = document.getElementById('addrHint');
+    h.textContent = hint;
+    h.style.color = '#e65100';
+  }
+}
+
+function setLoading(on) { document.getElementById('loadingRow').classList.toggle('show', on); }
+
+function selectFreq(freq) {
+  window.currentFreq = freq;
+  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('freq-' + freq).classList.add('active');
+  updatePrice();
+}
+
+function updatePrice() {
+  if (!window.basePrice) return;
+  let price = window.basePrice;
+  if (window.currentFreq === 'twice')  price = Math.round(price * 1.10);
+  if (window.currentFreq === 'once')   price = Math.round(price * 1.20);
+  document.getElementById('priceNum').textContent = price;
+}
+
+function calculateQuote() {
+  const lot  = parseFloat(document.getElementById('lotSize').value);
+  const home = parseFloat(document.getElementById('homeSize').value);
+  let ok = true;
+
+  if (isNaN(lot) || lot < 500) { document.getElementById('lotError').classList.add('show'); document.getElementById('lotSize').style.borderColor = '#c62828'; ok = false; }
+  if (isNaN(home) || home < 200 || home >= lot) { document.getElementById('homeError').classList.add('show'); document.getElementById('homeSize').style.borderColor = '#c62828'; ok = false; }
+  if (!ok) return;
+
+  const lawn  = lot - home;
+  let price = calcPrice(lawn);
+
+  // Add $10 if customer selected "I want it perfect"
+  if (window.lawnDetails && window.lawnDetails.detail && window.lawnDetails.detail.toLowerCase().includes('perfect')) {
+    price = price + 10;
+  }
+
+  window.basePrice = price;
+  window.currentFreq = 'weekly';
+  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('freq-weekly').classList.add('active');
+  updatePrice();
+  document.getElementById('statLot').textContent  = lot.toLocaleString()  + ' sqft';
+  document.getElementById('statHome').textContent = home.toLocaleString() + ' sqft';
+  document.getElementById('statLawn').textContent = lawn.toLocaleString() + ' sqft';
+
+  document.getElementById('manualSection').classList.remove('show');
+  hide('zoneOkBanner');
+  show('resultPanel');
+  document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function joinWaitlist() {
+  const email = document.getElementById('waitlistEmail').value.trim();
+  if (!email.includes('@')) { document.getElementById('waitlistEmail').style.borderColor = '#c62828'; return; }
+  document.getElementById('waitlistSuccess').classList.add('show');
+  document.getElementById('waitlistEmail').style.display = 'none';
+  document.querySelector('.btn-waitlist').style.display  = 'none';
+}
+
+function goBackToDetails() {
+  hide('resultPanel');
+  document.getElementById('detailsSection').classList.add('show');
+  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function handleBook() {
+  const price = document.getElementById('priceNum').textContent;
+  const freq  = { weekly: 'Weekly', twice: 'Twice a Month', once: 'Once a Month' }[window.currentFreq || 'weekly'];
+  const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
+  document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
+
+  // Pre-fill name and email from early capture
+  if (window.earlyName)  document.getElementById('contactName').value  = window.earlyName;
+  if (window.earlyEmail) document.getElementById('contactEmail').value = window.earlyEmail;
+
+  hide('resultPanel');
+  show('contactPanel');
+  document.getElementById('contactPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function submitLead() {
+  const name  = document.getElementById('contactName').value.trim();
+  const email = document.getElementById('contactEmail').value.trim();
+  const phone = document.getElementById('contactPhone').value.trim();
+  let ok = true;
+
+  document.getElementById('nameError').classList.remove('show');
+  document.getElementById('emailError').classList.remove('show');
+  document.getElementById('phoneError').classList.remove('show');
+
+  if (!name)  { document.getElementById('nameError').classList.add('show'); ok = false; }
+  if (!email.includes('@')) { document.getElementById('emailError').classList.add('show'); ok = false; }
+  if (phone.replace(/\D/g,'').length < 10) { document.getElementById('phoneError').classList.add('show'); ok = false; }
+  if (!ok) return;
+
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const leadData = {
+    name, email, phone,
+    address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
+    zip: currentZip,
+    frequency: window.currentFreq || 'weekly',
+    price: parseInt(document.getElementById('priceNum').textContent),
+    status: 'started',
+    manual_size_entry: !window.sizeAutoFilled
+  };
+
+  try {
+    if (window.earlyLeadId) {
+      // Update existing lead — don't create a duplicate
+      await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + window.earlyLeadId, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+        body: JSON.stringify(leadData)
+      });
+      window.currentLeadId = window.earlyLeadId;
+    } else {
+      // No early lead — create new one
+      const res = await fetch(SUPABASE_URL + '/rest/v1/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=representation' },
+        body: JSON.stringify(leadData)
+      });
+      const data = await res.json();
+      if (data && data[0]) window.currentLeadId = data[0].id;
+    }
+  } catch(e) { console.error('Lead save error:', e); }
+
+  // Go to card panel
+  const price = document.getElementById('priceNum').textContent;
+  const freq  = { weekly: 'Weekly', twice: 'Twice a Month', once: 'Once a Month' }[window.currentFreq || 'weekly'];
+  const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
+  document.getElementById('cardSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit — No charge today`;
+
+  hide('contactPanel');
+  show('cardPanel');
+  document.getElementById('cardPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // Initialize Stripe card element
+  initStripeCard();
+}
+
+let stripeInstance = null;
+let cardElement    = null;
+let currentLeadId  = null;
+
+function initStripeCard() {
+  if (stripeInstance) return; // Already initialized
+  stripeInstance = Stripe(STRIPE_PK);
+  const elements = stripeInstance.elements();
+  cardElement = elements.create('card', {
+    style: {
+      base: {
+        fontFamily: 'Source Sans 3, sans-serif',
+        fontSize: '16px',
+        color: '#1c1c1c',
+        '::placeholder': { color: '#999' }
+      }
+    }
+  });
+  cardElement.mount('#cardElement');
+  cardElement.on('change', e => {
+    const err = document.getElementById('cardError');
+    if (e.error) { err.textContent = e.error.message; err.style.display = 'block'; }
+    else { err.style.display = 'none'; }
+  });
+}
+
+async function submitCard() {
+  const btn = document.getElementById('cardSubmitBtn');
+  btn.textContent = 'Saving card...';
+  btn.disabled = true;
+
+  try {
+    const name  = document.getElementById('contactName').value.trim();
+    const email = document.getElementById('contactEmail').value.trim();
+
+    // Get or use existing lead ID
+    const leadId = window.currentLeadId || window.earlyLeadId;
+
+    // Create setup intent via Edge Function
+    const res = await fetch(SETUP_INTENT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_id: leadId, name, email })
+    });
+    const { client_secret, customer_id } = await res.json();
+
+    // Confirm card setup with Stripe
+    const { setupIntent, error } = await stripeInstance.confirmCardSetup(client_secret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: { name, email }
+      }
+    });
+
+    if (error) {
+      document.getElementById('cardError').textContent = error.message;
+      document.getElementById('cardError').style.display = 'block';
+      btn.textContent = 'Save Card & Confirm Booking →';
+      btn.disabled = false;
+      return;
+    }
+
+    // Save payment method ID to lead
+    await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        stripe_customer_id:     customer_id,
+        stripe_payment_method_id: setupIntent.payment_method,
+        status: 'booked'
+      })
+    });
+
+    // Show confirmed
+    hide('cardPanel');
+    show('confirmedPanel');
+    document.getElementById('confirmedPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  } catch(e) {
+    console.error('Card submit error:', e);
+    btn.textContent = 'Save Card & Confirm Booking →';
+    btn.disabled = false;
+  }
+}
+
+function show(id) { document.getElementById(id).classList.add('show'); }
+function hide(id) { document.getElementById(id).classList.remove('show'); }
+
+
+
+function resetResults() {
+  document.getElementById('confirmedAddr').style.display = 'none';
+  ['zoneOkBanner','unavailablePanel','resultPanel','contactPanel','cardPanel','confirmedPanel'].forEach(hide);
+  stripeInstance = null; cardElement = null;
+  document.getElementById('contactCaptureSection').classList.remove('show');
+  document.getElementById('mapConfirmSection').classList.remove('show');
+  document.getElementById('manualSection').classList.remove('show');
+  document.getElementById('lotError').classList.remove('show');
+  document.getElementById('homeError').classList.remove('show');
+  document.getElementById('lotSize').style.borderColor  = '';
+  document.getElementById('homeSize').style.borderColor = '';
+}
+
+function resetAll() {
+  document.getElementById('addressInput').value = '';
+  document.getElementById('lotSize').value  = '';
+  document.getElementById('homeSize').value = '';
+  document.getElementById('earlyName').value  = '';
+  document.getElementById('earlyEmail').value = '';
+  document.getElementById('lawnNotes').value  = '';
+  document.getElementById('contactCaptureSection').classList.remove('show');
+  document.getElementById('detailsSection').classList.remove('show');
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  window.earlyName    = null;
+  window.earlyEmail   = null;
+  window.earlyLeadId  = null;
+  window.cachedProp   = null;
+  window.lawnDetails  = null;
+  document.getElementById('waitlistEmail').value = '';
+  document.getElementById('addrHint').textContent = 'e.g. 1234 Oak St, Humble TX 77338';
+  document.getElementById('addrHint').style.color = '';
+  document.getElementById('waitlistSuccess').classList.remove('show');
+  document.getElementById('waitlistEmail').style.display = '';
+  document.querySelector('.btn-waitlist') && (document.querySelector('.btn-waitlist').style.display = '');
+  resetResults();
+  currentZip = null;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

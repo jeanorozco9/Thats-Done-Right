@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>That's Done Right — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green:     #2e7d32;
+  --green-mid: #43a047;
+  --green-tint:#e8f5e9;
+  --dark:      #1c1c1c;
+  --dark-mid:  #3a3a3a;
+  --text-mid:  #666;
+  --text-lite: #999;
+  --white:     #fff;
+  --off-white: #faf9f7;
+  --border:    #e8e2dc;
+  --red:       #c62828;
+  --display:   'Oswald', sans-serif;
+  --body:      'Source Sans 3', sans-serif;
+}
+
+body { font-family: var(--body); background: var(--off-white); color: var(--dark); min-height: 100vh; }
+
+/* LOGIN */
+#loginScreen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--dark);
+}
+
+.login-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  text-align: center;
+}
+
+.login-logo {
+  font-family: 'Pacifico', cursive;
+  font-size: 1.8rem;
+  color: var(--green);
+  margin-bottom: .25rem;
+}
+
+.login-sub {
+  font-family: var(--display);
+  font-size: .65rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-lite);
+  margin-bottom: 2rem;
+}
+
+.login-card input {
+  width: 100%;
+  padding: .75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  font-size: .95rem;
+  font-family: var(--body);
+  margin-bottom: .75rem;
+  outline: none;
+  text-align: center;
+  letter-spacing: 3px;
+}
+
+.login-card input:focus { border-color: var(--green); }
+
+.login-btn {
+  width: 100%;
+  padding: .8rem;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--display);
+  font-size: .9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.login-btn:hover { background: #1b5e20; }
+.login-error { color: var(--red); font-size: .8rem; margin-top: .5rem; display: none; }
+
+/* DASHBOARD */
+#dashboard { display: none; }
+
+nav {
+  background: var(--dark);
+  padding: 0 1.5rem;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-title {
+  font-family: var(--display);
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+.nav-title span { color: var(--green); }
+
+.nav-actions { display: flex; gap: .75rem; align-items: center; }
+
+.btn-sm {
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: .4rem .9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-export { background: var(--green); color: var(--white); }
+.btn-export:hover { background: #1b5e20; }
+.btn-logout  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+.btn-logout:hover { background: rgba(255,255,255,0.15); color: var(--white); }
+
+/* STATS */
+.stats-bar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-num {
+  font-family: var(--display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1;
+}
+
+.stat-num.green { color: var(--green); }
+
+.stat-label {
+  font-family: var(--display);
+  font-size: .6rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-lite);
+  margin-top: 2px;
+}
+
+/* TABLE */
+.table-wrap {
+  padding: 1.5rem;
+  overflow-x: auto;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: .75rem;
+}
+
+.table-title {
+  font-family: var(--display);
+  font-size: .85rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--dark);
+}
+
+.filter-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+.filter-btn {
+  font-family: var(--display);
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: .3rem .75rem;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.filter-btn.active { background: var(--green); color: var(--white); border-color: var(--green); }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--white);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  font-size: .85rem;
+}
+
+thead {
+  background: var(--dark);
+}
+
+th {
+  font-family: var(--display);
+  font-size: .62rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.6);
+  padding: .75rem 1rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  color: var(--dark);
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--off-white); }
+
+.badge {
+  display: inline-block;
+  font-family: var(--display);
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: .2rem .6rem;
+  border-radius: 100px;
+}
+
+.badge-started  { background: #fff3e0; color: #e65100; }
+.badge-booked   { background: var(--green-tint); color: var(--green); }
+.badge-weekly   { background: #e3f2fd; color: #1565c0; }
+.badge-twice    { background: #f3e5f5; color: #6a1b9a; }
+.badge-once     { background: #fce4ec; color: #880e4f; }
+.badge-invoiced { background: #e3f2fd; color: #0d47a1; }
+.badge-completed{ background: #e8f5e9; color: #1b5e20; }
+.badge-paid     { background: #1b5e20; color: #fff; }
+.badge-paid     { background: #1b5e20; color: #fff; }
+.badge-paid     { background: #1b5e20; color: #fff; }
+.badge-paid     { background: #1b5e20; color: #fff; }
+
+.price-cell {
+  font-family: var(--display);
+  font-weight: 700;
+  color: var(--green);
+  font-size: .95rem;
+}
+
+.date-cell { color: var(--text-mid); font-size: .8rem; }
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-lite);
+}
+
+.empty-state-icon { font-size: 2rem; margin-bottom: .5rem; }
+.empty-state-msg { font-family: var(--display); font-size: .8rem; letter-spacing: 1px; text-transform: uppercase; }
+
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-mid);
+  font-size: .9rem;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin-right: .5rem;
+  vertical-align: middle;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.refresh-btn {
+  font-family: var(--display);
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--green);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.refresh-btn:hover { text-decoration: underline; }
+
+.contractor-select {
+  font-family: var(--display);
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  padding: .3rem .5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--white);
+  color: var(--dark);
+  cursor: pointer;
+  width: 100%;
+  min-width: 120px;
+}
+
+.contractor-select:focus { outline: none; border-color: var(--green); }
+.contractor-select.assigned { border-color: var(--green); color: var(--green); }
+
+@media (max-width: 600px) {
+  .stats-bar { gap: 1rem; }
+  .table-wrap { padding: 1rem .75rem; }
+  th, td { padding: .65rem .75rem; }
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">That's Done Right</div>
+    <div class="login-sub">Admin Dashboard</div>
+    <input type="password" id="passInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">Enter</button>
+    <div class="login-error" id="loginError">Incorrect password</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <nav>
+    <div class="nav-title"><span>That's Done Right</span> &nbsp;·&nbsp; Leads</div>
+    <div class="nav-actions">
+      <button class="btn-sm btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn-sm btn-logout" onclick="logout()">Log Out</button>
+    </div>
+  </nav>
+
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-num green" id="statTotal">—</div>
+      <div class="stat-label">Total Leads</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statBooked">—</div>
+      <div class="stat-label">Booked</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statRevenue">—</div>
+      <div class="stat-label">Est. Monthly Revenue</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="statAvg">—</div>
+      <div class="stat-label">Avg Price / Visit</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <div class="table-title" id="tableTitle">All Leads</div>
+        <button class="refresh-btn" id="refreshBtn" onclick="loadLeads()">↻ Refresh</button>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" id="filterAll" onclick="showLeads(this)">All Leads</button>
+        <button class="filter-btn" onclick="setFilter('started', this)">Pending</button>
+        <button class="filter-btn" onclick="setFilter('booked', this)">Booked</button>
+        <button class="filter-btn" id="contractorsTab" onclick="showContractors(this)" style="margin-left:.5rem;border-color:#1c1c1c;color:#1c1c1c;font-weight:700;">🌿 Contractors</button>
+      </div>
+    </div>
+
+    <div id="tableContainer">
+      <div class="loading-state"><span class="spinner"></span> Loading leads...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
+const FUNCTION_URL          = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice";
+const NOTIFY_CONTRACTOR_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-contractor";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+const ADMIN_PASS = "kike";
+
+// Loaded dynamically from Supabase contractors table
+let CONTRACTORS = [{ id: 0, name: "Unassigned" }];
+
+let allLeads = [];
+let currentFilter = 'all';
+
+async function login() {
+  const pass = document.getElementById('passInput').value;
+  if (pass === ADMIN_PASS) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    await loadContractors();
+    await loadLeads();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+  }
+}
+
+function logout() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('passInput').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+async function loadContractors() {
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/contractors?status=eq.approved&select=id,name&order=name.asc',
+      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+    );
+    const data = await res.json();
+    if (data && data.length) {
+      CONTRACTORS = [{ id: 0, name: "Unassigned" }, ...data];
+    }
+  } catch(e) {
+    console.error('Load contractors error:', e);
+  }
+}
+
+async function loadLeads() {
+  document.getElementById('tableContainer').innerHTML =
+    '<div class="loading-state"><span class="spinner"></span> Loading leads...</div>';
+
+  try {
+    // Make sure contractors are loaded first
+    if (CONTRACTORS.length <= 1) await loadContractors();
+
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/leads?select=*&order=created_at.desc',
+      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+    );
+    allLeads = await res.json();
+    updateStats();
+    renderTable();
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load leads</div></div>';
+  }
+}
+
+function updateStats() {
+  const total   = allLeads.length;
+  const booked  = allLeads.filter(l => l.status === 'booked').length;
+  const paid    = allLeads.filter(l => l.status === 'paid').length;
+  const prices  = allLeads.filter(l => l.price > 0).map(l => l.price);
+  const avg     = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
+
+  // Estimate monthly: weekly=4x, twice=2x, once=1x per month
+  const monthly = allLeads.reduce((sum, l) => {
+    const mult = l.frequency === 'weekly' ? 4 : l.frequency === 'twice' ? 2 : 1;
+    return sum + (l.price || 0) * mult;
+  }, 0);
+
+  document.getElementById('statTotal').textContent   = total;
+  // Show paid count next to booked
+  document.getElementById('statBooked').textContent  = booked + (paid ? ` (+${paid} paid)` : '');
+  document.getElementById('statBooked').textContent  = booked;
+  document.getElementById('statRevenue').textContent = monthly ? '$' + monthly.toLocaleString() : '—';
+  document.getElementById('statAvg').textContent     = avg ? '$' + avg : '—';
+}
+
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const leads = currentFilter === 'all'
+    ? allLeads
+    : allLeads.filter(l => l.status === currentFilter || (currentFilter === 'booked' && l.status === 'invoiced'));
+
+  if (!leads.length) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-msg">No leads yet</div></div>';
+    return;
+  }
+
+  const rows = leads.map(l => {
+    const date = l.created_at
+      ? new Date(l.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+      : '—';
+    const freqBadge = l.frequency === 'weekly' ? 'badge-weekly'
+                    : l.frequency === 'twice'  ? 'badge-twice'
+                    : 'badge-once';
+    const freqLabel = l.frequency === 'weekly' ? 'Weekly'
+                    : l.frequency === 'twice'  ? 'Twice/Mo'
+                    : 'Once/Mo';
+    const statusBadge = l.status === 'booked'    ? 'badge-booked'
+                      : l.status === 'invoiced'  ? 'badge-invoiced'
+                      : l.status === 'completed' ? 'badge-completed'
+                      : l.status === 'paid'      ? 'badge-paid'
+                      : 'badge-started';
+    const statusLabel = l.status === 'booked'    ? 'Booked'
+                      : l.status === 'invoiced'  ? 'Invoiced'
+                      : l.status === 'completed' ? 'Completed'
+                      : l.status === 'paid'      ? '💰 Paid'
+                      : 'Pending';
+
+    const invoiceBtn = (l.status === 'booked')
+      ? `<button onclick="sendInvoice(${l.id})" style="margin-top:4px;font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.3rem .7rem;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;">Send Invoice</button>`
+      : '';
+
+    const photoCell = l.photo_url
+      ? `<a href="${l.photo_url}" target="_blank">
+           <img src="${l.photo_url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" title="View photo"/>
+         </a>`
+      : '<span style="font-size:.75rem;color:var(--text-lite);">—</span>';
+
+    return `<tr>
+      <td class="date-cell">${date}</td>
+      <td><strong>${l.name || '—'}</strong></td>
+      <td>${l.email ? `<a href="mailto:${l.email}" style="color:var(--green);text-decoration:none;">${l.email}</a>` : '—'}</td>
+      <td>${l.phone ? `<a href="tel:${l.phone}" style="color:var(--dark);text-decoration:none;">${l.phone}</a>` : '—'}</td>
+      <td style="max-width:180px;font-size:.8rem;color:var(--text-mid);">${l.address || '—'}</td>
+      <td>${l.zip || '—'}</td>
+      <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
+      <td class="price-cell">${l.price ? '$' + l.price : '—'}</td>
+      <td>${photoCell}</td>
+      <td>
+        <select class="contractor-select ${l.contractor_id ? 'assigned' : ''}"
+          onchange="assignContractor(${l.id}, this.value)">
+          ${CONTRACTORS.map(c => `<option value="${c.id}" ${(c.id === 0 && !l.contractor_id) || (c.id > 0 && l.contractor_id == c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
+        </select>
+      </td>
+      <td><span class="badge ${statusBadge}">${statusLabel}</span>${invoiceBtn}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableContainer').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Zip</th>
+          <th>Frequency</th>
+          <th>Price</th>
+          <th>Photo</th>
+          <th>Contractor</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function assignContractor(leadId, contractorId) {
+  try {
+    const cid = parseInt(contractorId);
+    console.log('Assigning contractor:', cid, 'to lead:', leadId);
+    // Store null for unassigned, real id for assigned
+    const updates = { contractor_id: cid > 0 ? cid : null };
+
+    // If assigning a real contractor, flip status to booked
+    if (cid > 0) {
+      const lead = allLeads.find(l => l.id === leadId);
+      if (lead && lead.status === 'started') {
+        updates.status = 'booked';
+      }
+    }
+
+    const res = await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(updates)
+    });
+    console.log('Patch status:', res.status, 'updates sent:', JSON.stringify(updates));
+
+    // Notify contractor of new job offer
+    if (cid > 0) {
+      try {
+        await fetch(NOTIFY_CONTRACTOR_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lead_id: leadId, contractor_id: cid })
+        });
+      } catch(notifyErr) {
+        console.error('Notify contractor error (assignment still saved):', notifyErr);
+      }
+    }
+
+    // Update local allLeads array directly — no need to refetch
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) {
+      lead.contractor_id = cid > 0 ? cid : null;
+      if (updates.status) lead.status = updates.status;
+    }
+
+    renderTable();
+  } catch(e) {
+    console.error('Assign contractor error:', e);
+  }
+}
+
+async function sendInvoice(leadId) {
+  if (!confirm('Send invoice to this customer?')) return;
+  try {
+    const res = await fetch(FUNCTION_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPABASE_KEY
+      },
+      body: JSON.stringify({ lead_id: leadId })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      alert('Invoice sent successfully!');
+      loadLeads();
+    } else {
+      alert('Error: ' + (data.error || 'Unknown error'));
+    }
+  } catch(e) {
+    alert('Failed to send invoice: ' + e.message);
+  }
+}
+
+function showLeads(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'All Leads';
+  document.getElementById('refreshBtn').onclick = loadLeads;
+  currentFilter = 'all';
+  renderTable();
+}
+
+async function showContractors(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'Contractors';
+  document.getElementById('refreshBtn').onclick = () => showContractors(btn);
+
+  document.getElementById('tableContainer').innerHTML =
+    '<div class="loading-state"><span class="spinner"></span> Loading contractors...</div>';
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/contractors?select=*&order=created_at.desc',
+      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+    );
+    const contractors = await res.json();
+
+    if (!contractors.length) {
+      document.getElementById('tableContainer').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">🌿</div><div class="empty-state-msg">No applications yet</div></div>';
+      return;
+    }
+
+    const rows = contractors.map(c => {
+      const date = c.created_at
+        ? new Date(c.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+        : '—';
+      const statusBadge = c.status === 'approved' ? 'badge-booked'
+                        : c.status === 'rejected'  ? 'badge-started'
+                        : 'badge-weekly';
+      const statusLabel = c.status === 'approved' ? 'Approved'
+                        : c.status === 'rejected'  ? 'Rejected'
+                        : 'Pending';
+
+      const actions = c.status === 'pending' ? `
+        <button onclick="updateContractor(${c.id}, 'approved')"
+          style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.3rem .7rem;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;margin-right:4px;">
+          Approve
+        </button>
+        <button onclick="updateContractor(${c.id}, 'rejected')"
+          style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.3rem .7rem;background:#c62828;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+          Reject
+        </button>` : `<span class="badge ${statusBadge}">${statusLabel}</span>`;
+
+      return `<tr>
+        <td class="date-cell">${date}</td>
+        <td><strong>${c.name || '—'}</strong></td>
+        <td>${c.email ? `<a href="mailto:${c.email}" style="color:var(--green);text-decoration:none;">${c.email}</a>` : '—'}</td>
+        <td>${c.phone ? `<a href="tel:${c.phone}" style="color:var(--dark);text-decoration:none;">${c.phone}</a>` : '—'}</td>
+        <td>${c.city || '—'}</td>
+        <td>${c.zip || '—'}</td>
+        <td style="font-size:.8rem;color:var(--text-mid);max-width:140px;">${c.experience || '—'}</td>
+        <td style="font-size:.8rem;color:var(--text-mid);max-width:160px;">${c.availability || '—'}</td>
+        <td style="font-size:.8rem;color:var(--text-mid);max-width:200px;">${c.equipment || '—'}</td>
+        <td>${actions}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('tableContainer').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>City</th>
+            <th>Zip</th>
+            <th>Experience</th>
+            <th>Availability</th>
+            <th>Equipment</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load contractors</div></div>';
+  }
+}
+
+async function updateContractor(id, status) {
+  try {
+    await fetch(SUPABASE_URL + '/rest/v1/contractors?id=eq.' + id, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({ status })
+    });
+    // Reload contractors view and also refresh CONTRACTORS list
+    await loadContractors();
+    showContractors(document.getElementById('contractorsTab'));
+  } catch(e) {
+    console.error('Update contractor error:', e);
+  }
+}
+
+function exportCSV() {
+  if (!allLeads.length) return;
+  const headers = ['Date','Name','Email','Phone','Address','Zip','Frequency','Price','Status'];
+  const rows = allLeads.map(l => [
+    l.created_at ? new Date(l.created_at).toLocaleDateString() : '',
+    l.name || '', l.email || '', l.phone || '',
+    l.address || '', l.zip || '', l.frequency || '',
+    l.price || '', l.status || ''
+  ].map(v => `"${v}"`).join(','));
+
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tdr-leads-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
