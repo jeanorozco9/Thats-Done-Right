@@ -272,6 +272,21 @@ async function loadJobs() {
     if (!jobs.length) html = `<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-msg">No jobs assigned yet</div></div>`;
 
     document.getElementById('jobsWrap').innerHTML = html;
+
+    // If contractor arrived via email approve link, scroll to that job
+    const pending = sessionStorage.getItem('pendingAccept');
+    if (pending) {
+      sessionStorage.removeItem('pendingAccept');
+      try {
+        const { leadId } = JSON.parse(pending);
+        const card = document.getElementById('job-' + leadId);
+        if (card) {
+          setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300);
+          card.style.outline = '3px solid var(--green)';
+          setTimeout(() => { card.style.outline = ''; }, 3000);
+        }
+      } catch(e) { /* ignore */ }
+    }
   } catch(e) { console.error('Load jobs error:', e); }
 }
 

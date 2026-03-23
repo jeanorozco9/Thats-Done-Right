@@ -1759,7 +1759,7 @@ async function submitLead() {
     address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
-    price: parseInt(document.getElementById('priceNum').textContent),
+    price: (() => { let p = window.basePrice || 0; if (window.currentFreq === 'twice') p = Math.round(p * 1.10); if (window.currentFreq === 'once') p = Math.round(p * 1.20); return p; })(),
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled
   };
@@ -1893,6 +1893,16 @@ function show(id) { document.getElementById(id).classList.add('show'); }
 function hide(id) { document.getElementById(id).classList.remove('show'); }
 
 
+
+// Set date picker limits: today → today+30 days
+(function() {
+  const toISO = d => d.toISOString().split('T')[0];
+  const today  = new Date();
+  const maxDay = new Date();
+  maxDay.setDate(today.getDate() + 30);
+  const el = document.getElementById('prefDate');
+  if (el) { el.min = toISO(today); el.max = toISO(maxDay); }
+})();
 
 function resetResults() {
   document.getElementById('confirmedAddr').style.display = 'none';
