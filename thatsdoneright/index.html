@@ -1515,27 +1515,6 @@ function submitEarlyContact() {
   window.earlyName  = name;
   window.earlyEmail = email;
 
-  // Save partial lead to Supabase immediately
-  fetch(SUPABASE_URL + '/rest/v1/leads', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Prefer': 'return=representation'
-    },
-    body: JSON.stringify({
-      name,
-      email,
-      address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
-      zip: currentZip,
-      status: 'started',
-      manual_size_entry: !window.sizeAutoFilled
-    })
-  }).then(r => r.json()).then(data => {
-    if (data && data[0]) window.earlyLeadId = data[0].id;
-  }).catch(e => console.error('Early lead save error:', e));
-
   // Hide contact capture, show map confirmation
   document.getElementById('contactCaptureSection').classList.remove('show');
   showMapConfirm();
@@ -1618,18 +1597,6 @@ function submitDetails() {
   const notes    = document.getElementById('lawnNotes').value.trim();
 
   window.lawnDetails = { prefDate, pets, lastCut, detail, services, notes };
-
-  // Save details to existing lead
-  if (window.earlyLeadId) {
-    fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + window.earlyLeadId, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({
-        job_notes: [pets, lastCut, detail, services, notes].filter(Boolean).join(' | '),
-        scheduled_date: prefDate || null
-      })
-    }).catch(e => console.error('Details update error:', e));
-  }
 
   // Hide details, show price
   document.getElementById('detailsSection').classList.remove('show');
@@ -1754,35 +1721,28 @@ async function submitLead() {
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
+  const ld = window.lawnDetails || {};
   const leadData = {
     name, email, phone,
     address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
     price: (() => { let p = window.basePrice || 0; if (window.currentFreq === 'twice') p = Math.round(p * 1.10); if (window.currentFreq === 'once') p = Math.round(p * 1.20); return p; })(),
+    job_notes: [ld.pets, ld.lastCut, ld.detail, ld.services, ld.notes].filter(Boolean).join(' | ') || null,
+    scheduled_date: ld.prefDate || null,
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled
   };
 
   try {
-    if (window.earlyLeadId) {
-      // Update existing lead — don't create a duplicate
-      await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + window.earlyLeadId, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
-        body: JSON.stringify(leadData)
-      });
-      window.currentLeadId = window.earlyLeadId;
-    } else {
-      // No early lead — create new one
-      const res = await fetch(SUPABASE_URL + '/rest/v1/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=representation' },
-        body: JSON.stringify(leadData)
-      });
-      const data = await res.json();
-      if (data && data[0]) window.currentLeadId = data[0].id;
-    }
+    // Always create a fresh complete lead with all data (phone, price, notes included)
+    const res = await fetch(SUPABASE_URL + '/rest/v1/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=representation' },
+      body: JSON.stringify(leadData)
+    });
+    const data = await res.json();
+    if (data && data[0]) window.currentLeadId = data[0].id;
   } catch(e) { console.error('Lead save error:', e); }
 
   // Go to card panel
@@ -1861,8 +1821,13 @@ async function submitCard() {
       return;
     }
 
-    // Save payment method ID to lead
-    await fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
+    // Show confirmed immediately — don't block on DB update
+    hide('cardPanel');
+    show('confirmedPanel');
+    document.getElementById('confirmedPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Save payment method + mark booked in background
+    fetch(SUPABASE_URL + '/rest/v1/leads?id=eq.' + leadId, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -1871,16 +1836,11 @@ async function submitCard() {
         'Prefer': 'return=minimal'
       },
       body: JSON.stringify({
-        stripe_customer_id:     customer_id,
-        stripe_payment_method_id: setupIntent.payment_method,
+        stripe_customer_id:       customer_id,
+        stripe_payment_method_id: setupIntent ? setupIntent.payment_method : null,
         status: 'booked'
       })
-    });
-
-    // Show confirmed
-    hide('cardPanel');
-    show('confirmedPanel');
-    document.getElementById('confirmedPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }).catch(e => console.error('Booking update error:', e));
 
   } catch(e) {
     console.error('Card submit error:', e);
@@ -1927,11 +1887,13 @@ function resetAll() {
   document.getElementById('contactCaptureSection').classList.remove('show');
   document.getElementById('detailsSection').classList.remove('show');
   document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-  window.earlyName    = null;
-  window.earlyEmail   = null;
-  window.earlyLeadId  = null;
-  window.cachedProp   = null;
-  window.lawnDetails  = null;
+  window.earlyName      = null;
+  window.earlyEmail     = null;
+  window.earlyLeadId    = null;
+  window.currentLeadId  = null;
+  window.cachedProp     = null;
+  window.lawnDetails    = null;
+  window.basePrice      = null;
   document.getElementById('waitlistEmail').value = '';
   document.getElementById('addrHint').textContent = 'e.g. 1234 Oak St, Humble TX 77338';
   document.getElementById('addrHint').style.color = '';

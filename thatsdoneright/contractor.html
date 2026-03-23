@@ -65,6 +65,10 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .job-meta-label{font-family:var(--display);font-size:.58rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:2px}
 .job-meta-val{font-size:.88rem;font-weight:500;color:var(--dark)}
 .job-notes{font-size:.82rem;color:var(--text-mid);background:var(--off-white);border-radius:6px;padding:.6rem .85rem;margin-bottom:.75rem;line-height:1.5}
+.note-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.5rem}
+.note-chip{display:inline-flex;align-items:center;font-size:.75rem;font-weight:500;color:var(--dark-mid);background:#f0f0f0;border-radius:100px;padding:.25rem .65rem;white-space:nowrap}
+.note-chip.pet{background:#fff3e0;color:#e65100}
+.note-custom{font-size:.83rem;color:var(--dark);background:#fffde7;border:1px solid #ffe082;border-radius:6px;padding:.55rem .8rem;line-height:1.5}
 .job-actions{display:flex;gap:.5rem;flex-wrap:wrap}
 .btn-complete{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.55rem 1.1rem;background:var(--green);color:var(--white);border:none;border-radius:8px;cursor:pointer;transition:background .15s}
 .btn-complete:hover{background:var(--green-dark)}
@@ -346,7 +350,28 @@ function renderJob(job, type) {
       <div class="job-meta-item"><div class="job-meta-label">Time</div><div class="job-meta-val">${timeStr}</div></div>
       <div class="job-meta-item"><div class="job-meta-label">Frequency</div><div class="job-meta-val">${freqLabel}</div></div>
     </div>
-    ${job.job_notes ? `<div class="job-notes">📝 ${job.job_notes}</div>` : ''}
+    ${job.job_notes ? (() => {
+      const parts = job.job_notes.split(' | ').map(s => s.trim()).filter(Boolean);
+      // Structured options are short (<= 40 chars) — free-text notes tend to be longer or last item
+      // Show all parts as chips; if last part doesn't look like a preset option, show it as a callout
+      const presetPatterns = /week ago|weeks ago|knock it down|want it perfect|shrub|weed|leaf|mulch|none|dog|cat|no pet/i;
+      const chips = [];
+      let customNote = '';
+      const hideFromContractor = /week ago|weeks ago|\bnone\b/i;
+      parts.forEach((p, i) => {
+        if (hideFromContractor.test(p)) return; // internal-only info
+        const isPet = /dog|cat|no pet/i.test(p);
+        if (i === parts.length - 1 && !presetPatterns.test(p)) {
+          customNote = p;
+        } else {
+          chips.push(`<span class="note-chip${isPet ? ' pet' : ''}">${p}</span>`);
+        }
+      });
+      return `<div style="margin-bottom:.75rem;">
+        ${chips.length ? `<div class="note-chips">${chips.join('')}</div>` : ''}
+        ${customNote ? `<div class="note-custom">📝 ${customNote}</div>` : ''}
+      </div>`;
+    })() : ''}
     ${actions}
   </div>`;
 }
