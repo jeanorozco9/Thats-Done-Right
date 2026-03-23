@@ -357,7 +357,9 @@ function renderJob(job, type) {
       const presetPatterns = /week ago|weeks ago|knock it down|want it perfect|shrub|weed|leaf|mulch|none|dog|cat|no pet/i;
       const chips = [];
       let customNote = '';
+      const hideFromContractor = /week ago|weeks ago|\bnone\b/i;
       parts.forEach((p, i) => {
+        if (hideFromContractor.test(p)) return; // internal-only info
         const isPet = /dog|cat|no pet/i.test(p);
         if (i === parts.length - 1 && !presetPatterns.test(p)) {
           customNote = p;
