@@ -904,9 +904,172 @@ footer {
   color: rgba(255,255,255,0.3);
   letter-spacing: .5px;
 }
+
+/* ── MY ACCOUNT TAB ── */
+.account-tab {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 300;
+  display: flex;
+  align-items: stretch;
+}
+
+.account-tab-btn {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 0 0 8px 8px;
+  padding: .85rem .45rem;
+  font-family: var(--display);
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s;
+  white-space: nowrap;
+}
+
+.account-tab-btn:hover { background: var(--green-dark); }
+
+.account-drawer {
+  position: fixed;
+  right: -300px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 280px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 14px 0 0 14px;
+  padding: 1.5rem 1.25rem;
+  box-shadow: -6px 0 28px rgba(0,0,0,0.12);
+  transition: right .3s cubic-bezier(.4,0,.2,1);
+  z-index: 299;
+}
+
+.account-drawer.open { right: 0; }
+
+.account-drawer-title {
+  font-family: var(--display);
+  font-size: .95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--dark);
+  margin-bottom: .35rem;
+}
+
+.account-drawer-sub {
+  font-size: .8rem;
+  color: var(--text-mid);
+  line-height: 1.5;
+  margin-bottom: 1.1rem;
+}
+
+.account-drawer-close {
+  position: absolute;
+  top: .75rem;
+  right: .75rem;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--text-lite);
+  line-height: 1;
+  padding: .2rem;
+}
+
+.btn-account-login {
+  display: block;
+  width: 100%;
+  padding: .75rem;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--display);
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  transition: background .15s;
+}
+
+.btn-account-login:hover { background: var(--green-dark); }
+
+/* ── FAQ ── */
+.faq-section {
+  background: var(--white);
+  padding: 3.5rem 1.5rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.faq-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.faq-q {
+  width: 100%;
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 1.1rem 0;
+  font-family: var(--display);
+  font-size: .92rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  color: var(--dark);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.faq-q:hover { color: var(--green); }
+
+.faq-icon {
+  font-size: 1.1rem;
+  color: var(--green);
+  flex-shrink: 0;
+  transition: transform .25s;
+  font-style: normal;
+}
+
+.faq-item.open .faq-icon { transform: rotate(45deg); }
+
+.faq-a {
+  display: none;
+  font-size: .88rem;
+  color: var(--text-mid);
+  line-height: 1.7;
+  padding-bottom: 1.1rem;
+}
+
+.faq-item.open .faq-a { display: block; }
 </style>
 </head>
 <body>
+
+<!-- ── MY ACCOUNT FLOATING TAB ── -->
+<div class="account-tab">
+  <button class="account-tab-btn" onclick="toggleAccountDrawer()" aria-label="My Account">My Account</button>
+</div>
+<div class="account-drawer" id="accountDrawer">
+  <button class="account-drawer-close" onclick="toggleAccountDrawer()" aria-label="Close">✕</button>
+  <div class="account-drawer-title">My Account</div>
+  <div class="account-drawer-sub">Already a customer? Log in to view your upcoming appointments and payment history.</div>
+  <a href="client.html" class="btn-account-login">Go to My Account →</a>
+</div>
 
 <!-- ── NAV ── -->
 <nav>
@@ -1265,6 +1428,52 @@ footer {
         <div class="step-title">Pay After Service</div>
         <div class="step-desc">You'll receive an email with a secure link to pay by credit card — only after the job is done.</div>
       </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div style="background:var(--white);padding:3.5rem 1.5rem 0;">
+    <div style="max-width:720px;margin:0 auto;text-align:center;margin-bottom:2rem;">
+      <div class="section-title">Frequently Asked <span>Questions</span></div>
+      <div class="section-sub">Everything you need to know about That's Done Right</div>
+    </div>
+  </div>
+  <div class="faq-section" style="padding-top:0;">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">How does That's Done Right work? <i class="faq-icon">+</i></button>
+      <div class="faq-a">It's very simple — just enter your address to create your lawn profile and accept the instant bid. A rated local lawn professional will be chosen by us to service your home. You pay online when the job is complete.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Who are these lawn care professionals? <i class="faq-icon">+</i></button>
+      <div class="faq-a">We do not let all vendors into the That's Done Right community — there is an approval process to become a That's Done Right partner, including: bank checks, pictures of past work, professional references, verification of equipment and experience, and acceptance of the That's Done Right quality standards.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What happens if I am not satisfied with the service? <i class="faq-icon">+</i></button>
+      <div class="faq-a">First, you don't pay until after you have confirmed the service is completed — That's Done Right does not charge your card up front. On top of that, all lawn mowings are backed by the That's Done Right guarantee. If something isn't right, you can dispute the service and your lawn mowing service is notified to make it right for you.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">How and when do I pay? <i class="faq-icon">+</i></button>
+      <div class="faq-a">You can pay securely with your That's Done Right account using the website when your lawn has been mowed to your satisfaction.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What if I have dogs? <i class="faq-icon">+</i></button>
+      <div class="faq-a">We are dog people too! In most cases your lawn professional can mow while your pets are present in the yard by exercising caution. You can let your bidders know in your special requests section during the signup process. If you will need to place your pets inside while the lawn company is mowing, we recommend adding that detail as well so the lawn company knows ahead of time.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">Do they bag the clippings? <i class="faq-icon">+</i></button>
+      <div class="faq-a">Most of the time, lawn care vendors do not bag clippings as a standard service and most lawn businesses do not offer bagging. The ones that do typically charge 3× the normal mowing rate for bagging and hauling off your grass clippings.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What happens if it rains on my service date? <i class="faq-icon">+</i></button>
+      <div class="faq-a">Typically the lawn mowing businesses in the That's Done Right community will move your maintenance date to the following day. If you experience 2–3 days of straight rain, this will cause a few days' delay — your That's Done Right lawn service will update the service date so you are always in the loop on when they are coming.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">What if I'm not home — how will I know the lawn got mowed? <i class="faq-icon">+</i></button>
+      <div class="faq-a">No worries — you don't have to be home. You will receive a photo of your completed lawn mowing via email. You also have 24 hours to make sure everything was done to your satisfaction before your card is charged.</div>
+    </div>
+    <div class="faq-item" style="border-bottom:none;">
+      <button class="faq-q" onclick="toggleFaq(this)">Is my yard too big or too small? <i class="faq-icon">+</i></button>
+      <div class="faq-a">No lawn is too big or too small. We price based on your exact lawn size, so you always get a fair rate.</div>
     </div>
   </div>
 
@@ -1876,6 +2085,14 @@ function resetResults() {
   document.getElementById('homeError').classList.remove('show');
   document.getElementById('lotSize').style.borderColor  = '';
   document.getElementById('homeSize').style.borderColor = '';
+}
+
+function toggleAccountDrawer() {
+  document.getElementById('accountDrawer').classList.toggle('open');
+}
+
+function toggleFaq(btn) {
+  btn.closest('.faq-item').classList.toggle('open');
 }
 
 function resetAll() {
