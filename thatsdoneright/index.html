@@ -1708,8 +1708,9 @@ function submitEarlyContact() {
   document.getElementById('earlyNameError').classList.remove('show');
   document.getElementById('earlyEmailError').classList.remove('show');
 
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!name)  { document.getElementById('earlyNameError').classList.add('show'); ok = false; }
-  if (!email.includes('@')) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
+  if (!validEmail.test(email)) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
   if (!ok) return;
 
   // Store name/email for later use in lead capture
@@ -1876,7 +1877,7 @@ function calculateQuote() {
 
 function joinWaitlist() {
   const email = document.getElementById('waitlistEmail').value.trim();
-  if (!email.includes('@')) { document.getElementById('waitlistEmail').style.borderColor = '#c62828'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { document.getElementById('waitlistEmail').style.borderColor = '#c62828'; return; }
   document.getElementById('waitlistSuccess').classList.add('show');
   document.getElementById('waitlistEmail').style.display = 'none';
   document.querySelector('.btn-waitlist').style.display  = 'none';
@@ -1914,7 +1915,8 @@ async function submitLead() {
   document.getElementById('phoneError').classList.remove('show');
 
   if (!name)  { document.getElementById('nameError').classList.add('show'); ok = false; }
-  if (!email.includes('@')) { document.getElementById('emailError').classList.add('show'); ok = false; }
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!validEmail.test(email)) { document.getElementById('emailError').classList.add('show'); ok = false; }
   if (phone.replace(/\D/g,'').length < 10) { document.getElementById('phoneError').classList.add('show'); ok = false; }
   if (!ok) return;
 
