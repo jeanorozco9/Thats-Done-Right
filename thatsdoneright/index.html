@@ -1182,26 +1182,8 @@ footer {
             <button class="option-btn" onclick="selectOpt(this,'lastcut')"><span class="opt-icon">🌾</span>3+ Weeks Ago</button>
           </div>
 
-          <!-- Q4: Mowing detail level -->
-          <div class="question-title">4. Level of detail you're expecting?</div>
-          <div class="option-grid" data-group="detail">
-            <button class="option-btn" onclick="selectOpt(this,'detail')"><span class="opt-icon">💲</span>Just knock it down</button>
-            <button class="option-btn" onclick="selectOpt(this,'detail')"><span class="opt-icon">💲💲💲</span>I want it perfect</button>
-          </div>
-
-          <!-- Q5: Additional services -->
-          <div class="question-title">5. Interested in any additional yard work?</div>
-          <div class="option-grid" id="servicesGrid" style="flex-wrap:wrap;">
-            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🌳</span>Shrub Pruning</button>
-            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🌿</span>Weed Removal</button>
-            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🍂</span>Leaf Removal</button>
-            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🪴</span>Mulching</button>
-            <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🚫</span>None</button>
-          </div>
-          <div style="font-size:.78rem;color:var(--text-mid);margin-top:.4rem;line-height:1.5;">💡 <em>These add-on services can be included later after your first mowing.</em></div>
-
-          <!-- Q6: Special notes -->
-          <div class="question-title">6. Anything your lawn pro should know?</div>
+          <!-- Q4: Special notes -->
+          <div class="question-title">4. Anything your lawn pro should know?</div>
           <textarea id="lawnNotes" class="detail-textarea" placeholder="e.g. Fence gate is small, dog in backyard, avoid flower beds..."></textarea>
 
           <button class="btn-primary" style="margin-top:1rem;" onclick="submitDetails()">
@@ -1776,26 +1758,11 @@ function selectOpt(btn, group) {
   btn.classList.add('selected');
 }
 
-// Multi-select for services
-function toggleService(btn) {
-  if (btn.textContent.includes('None')) {
-    btn.closest('.option-grid').querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-    btn.classList.add('selected');
-  } else {
-    btn.closest('.option-grid').querySelectorAll('.option-btn').forEach(b => {
-      if (b.textContent.includes('None')) b.classList.remove('selected');
-    });
-    btn.classList.toggle('selected');
-  }
-}
 
 function submitDetails() {
   const prefDate = document.getElementById('prefDate').value;
   const pets     = document.querySelector('[data-group="pets"] .selected')?.textContent.trim() || '';
   const lastCut  = document.querySelector('[data-group="lastcut"] .selected')?.textContent.trim() || '';
-  const detail   = document.querySelector('[data-group="detail"] .selected')?.textContent.trim() || '';
-  console.log('Detail selected:', detail);
-  const services = [...document.querySelectorAll('#servicesGrid .selected')].map(b => b.textContent.trim()).join(', ');
   const notes    = document.getElementById('lawnNotes').value.trim();
 
   // Validate date range (handles iOS Safari which doesn't enforce min/max)
@@ -1824,7 +1791,7 @@ function submitDetails() {
     dateErrEl.textContent = '';
   }
 
-  window.lawnDetails = { prefDate, pets, lastCut, detail, services, notes };
+  window.lawnDetails = { prefDate, pets, lastCut, notes };
 
   // Hide details, show price
   document.getElementById('detailsSection').classList.remove('show');
@@ -1880,11 +1847,6 @@ function calculateQuote() {
 
   const lawn  = lot - home;
   let price = calcPrice(lawn);
-
-  // Add $10 if customer selected "I want it perfect"
-  if (window.lawnDetails && window.lawnDetails.detail && window.lawnDetails.detail.toLowerCase().includes('perfect')) {
-    price = price + 10;
-  }
 
   window.basePrice = price;
   window.currentFreq = 'weekly';
@@ -1957,7 +1919,7 @@ async function submitLead() {
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
     price: (() => { let p = window.basePrice || 0; if (window.currentFreq === 'twice') p = Math.round(p * 1.10); if (window.currentFreq === 'once') p = Math.round(p * 1.20); return p; })(),
-    job_notes: [ld.pets, ld.lastCut, ld.detail, ld.services, ld.notes].filter(Boolean).join(' | ') || null,
+    job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
     scheduled_date: ld.prefDate || null,
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled
