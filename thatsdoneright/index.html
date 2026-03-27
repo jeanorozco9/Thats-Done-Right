@@ -1068,7 +1068,7 @@ footer {
     <span class="nav-sub">Lawn Service</span>
   </div>
   <div class="nav-right">
-    <div class="nav-badge">Now Serving Humble</div>
+    <div class="nav-badge">Now Serving Houston Area</div>
     <a href="client.html" class="nav-phone" style="background:var(--red);color:var(--white);padding:.35rem .85rem;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:var(--display);text-decoration:none;">My Account</a>
   </div>
 </nav>
@@ -1107,7 +1107,7 @@ footer {
               autocomplete="off" />
             <div class="ac-list" id="acList"></div>
           </div>
-          <div class="field-hint" id="addrHint">e.g. 1234 Oak St, Humble TX 77338</div>
+          <div class="field-hint" id="addrHint">e.g. 1234 Oak St, Houston TX 77084</div>
           <div id="confirmedAddr" style="display:none;margin-top:12px;background:var(--green-tint);border:2px solid var(--green);border-radius:var(--radius);padding:1rem 1.25rem;">
             <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:.4rem;">✔ Please Confirm Your Address</div>
             <div id="confirmedAddrText" style="font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--dark);letter-spacing:.3px;line-height:1.3;"></div>
@@ -1454,14 +1454,20 @@ footer {
     <div class="section-title" style="color:var(--white);">Our Service <span>Area</span></div>
     <div class="section-sub" style="color:rgba(255,255,255,0.4);margin-bottom:1.5rem;">Growing across Houston — one neighborhood at a time</div>
     <div class="zones-grid">
+      <span class="zone-pill active">✓ Houston</span>
       <span class="zone-pill active">✓ Humble</span>
       <span class="zone-pill active">✓ Katy</span>
-      <span class="zone-pill coming">The Woodlands — July 2025</span>
-      <span class="zone-pill coming">Pearland — Coming Soon</span>
-      <span class="zone-pill coming">Sugar Land — Coming Soon</span>
-      <span class="zone-pill coming">Spring — Coming Soon</span>
-      <span class="zone-pill coming">Cypress — Coming Soon</span>
-      <span class="zone-pill coming">League City — Coming Soon</span>
+      <span class="zone-pill active">✓ The Woodlands</span>
+      <span class="zone-pill active">✓ Pearland</span>
+      <span class="zone-pill active">✓ Sugar Land</span>
+      <span class="zone-pill active">✓ Spring</span>
+      <span class="zone-pill active">✓ Cypress</span>
+      <span class="zone-pill active">✓ League City</span>
+      <span class="zone-pill active">✓ Pasadena</span>
+      <span class="zone-pill active">✓ Baytown</span>
+      <span class="zone-pill active">✓ Missouri City</span>
+      <span class="zone-pill active">✓ Tomball</span>
+      <span class="zone-pill active">✓ Conroe</span>
     </div>
   </div>
 
@@ -1471,7 +1477,7 @@ footer {
 <!-- ── FOOTER ── -->
 <footer>
   <div class="footer-logo">That's Done Right</div>
-  <div class="footer-text">Licensed & Insured · Humble, TX · © 2026 That's Done Right LLC</div>
+  <div class="footer-text">Licensed & Insured · Houston Area, TX · © 2026 That's Done Right LLC</div>
   <div style="margin-top:.5rem;"><a href="tel:7135550100" style="font-family:var(--display);font-size:.78rem;font-weight:600;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:.5px;">📞 (713) 555-0100</a></div>
   <div style="margin-top:.75rem;">
     <a href="/apply.html" style="font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,1);text-decoration:none;">
@@ -1482,14 +1488,33 @@ footer {
 
 <script>
 const ZONES = [
+  { name: "Houston",       zips: [
+    "77001","77002","77003","77004","77005","77006","77007","77008","77009","77010",
+    "77011","77012","77013","77014","77015","77016","77017","77018","77019","77020",
+    "77021","77022","77023","77024","77025","77026","77027","77028","77029","77030",
+    "77031","77032","77033","77034","77035","77036","77037","77038","77039","77040",
+    "77041","77042","77043","77044","77045","77046","77047","77048","77049","77050",
+    "77051","77053","77054","77055","77056","77057","77058","77059","77060","77061",
+    "77062","77063","77064","77065","77066","77067","77068","77069","77070","77071",
+    "77072","77073","77074","77075","77076","77077","77078","77079","77080","77081",
+    "77082","77083","77084","77085","77086","77087","77088","77089","77090","77091",
+    "77092","77093","77094","77095","77096","77098","77099"
+  ], active: true },
   { name: "Humble",        zips: ["77338","77339","77346","77347","77396"], active: true },
   { name: "Katy",          zips: ["77449","77450","77494","77493"],         active: true },
-  { name: "The Woodlands", zips: ["77380","77381","77382","77384","77385"], active: false, launch: "July 2025" },
-  { name: "Pearland",      zips: ["77581","77584","77588"],                 active: false },
-  { name: "Sugar Land",    zips: ["77478","77479","77496","77498"],         active: false },
-  { name: "Spring",        zips: ["77373","77379","77388"],                 active: false },
-  { name: "Cypress",       zips: ["77410","77429","77433"],                 active: false },
-  { name: "League City",   zips: ["77573","77574"],                        active: false },
+  { name: "The Woodlands", zips: ["77380","77381","77382","77384","77385"], active: true },
+  { name: "Pearland",      zips: ["77581","77584","77588"],                 active: true },
+  { name: "Sugar Land",    zips: ["77478","77479","77496","77498"],         active: true },
+  { name: "Spring",        zips: ["77373","77379","77388"],                 active: true },
+  { name: "Cypress",       zips: ["77410","77429","77433"],                 active: true },
+  { name: "League City",   zips: ["77573","77574"],                        active: true },
+  { name: "Pasadena",      zips: ["77502","77503","77504","77505","77506"], active: true },
+  { name: "Friendswood",   zips: ["77546","77549"],                        active: true },
+  { name: "Baytown",       zips: ["77520","77521","77522","77523"],         active: true },
+  { name: "Missouri City",  zips: ["77459","77489"],                        active: true },
+  { name: "Stafford",      zips: ["77477"],                                active: true },
+  { name: "Tomball",       zips: ["77375","77377"],                        active: true },
+  { name: "Conroe",        zips: ["77301","77302","77303","77304","77305"], active: true },
 ];
 
 const DEMO = [
@@ -1665,14 +1690,14 @@ function resolve(zip) {
       setLoading(false);
       window.cachedProp = prop;
       // Show the contact capture section
-      document.getElementById('zoneOkText').textContent = `Great news — we service ${zone.name}! One quick step before your price.`;
+      document.getElementById('zoneOkText').textContent = `Great news — we service your area! One quick step before your price.`;
       show('zoneOkBanner');
       document.getElementById('contactCaptureSection').classList.add('show');
       document.getElementById('contactCaptureSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }).catch(() => {
       setLoading(false);
       window.cachedProp = null;
-      document.getElementById('zoneOkText').textContent = `Great news — we service ${zone.name}! One quick step before your price.`;
+      document.getElementById('zoneOkText').textContent = `Great news — we service your area! One quick step before your price.`;
       show('zoneOkBanner');
       document.getElementById('contactCaptureSection').classList.add('show');
     });
@@ -2094,7 +2119,7 @@ function resetAll() {
   window.lawnDetails    = null;
   window.basePrice      = null;
   document.getElementById('waitlistEmail').value = '';
-  document.getElementById('addrHint').textContent = 'e.g. 1234 Oak St, Humble TX 77338';
+  document.getElementById('addrHint').textContent = 'e.g. 1234 Oak St, Houston TX 77084';
   document.getElementById('addrHint').style.color = '';
   document.getElementById('waitlistSuccess').classList.remove('show');
   document.getElementById('waitlistEmail').style.display = '';
