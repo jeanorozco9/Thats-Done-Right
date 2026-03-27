@@ -1060,17 +1060,6 @@ footer {
 </head>
 <body>
 
-<!-- ── MY ACCOUNT FLOATING TAB ── -->
-<div class="account-tab">
-  <button class="account-tab-btn" onclick="toggleAccountDrawer()" aria-label="My Account">My Account</button>
-</div>
-<div class="account-drawer" id="accountDrawer">
-  <button class="account-drawer-close" onclick="toggleAccountDrawer()" aria-label="Close">✕</button>
-  <div class="account-drawer-title">My Account</div>
-  <div class="account-drawer-sub">Already a customer? Log in to view your upcoming appointments and payment history.</div>
-  <a href="client.html" class="btn-account-login">Go to My Account →</a>
-</div>
-
 <!-- ── NAV ── -->
 <nav>
   <div class="nav-logo">
@@ -1080,7 +1069,7 @@ footer {
   </div>
   <div class="nav-right">
     <div class="nav-badge">Now Serving Humble</div>
-    <a href="tel:7135550100" class="nav-phone">📞 (713) 555-0100</a>
+    <a href="client.html" class="nav-phone" style="background:var(--red);color:var(--white);padding:.35rem .85rem;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:var(--display);text-decoration:none;">My Account</a>
   </div>
 </nav>
 
@@ -1209,6 +1198,7 @@ footer {
             <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🪴</span>Mulching</button>
             <button class="option-btn" style="flex:0 0 calc(33% - .35rem);" onclick="toggleService(this)"><span class="opt-icon">🚫</span>None</button>
           </div>
+          <div style="font-size:.78rem;color:var(--text-mid);margin-top:.4rem;line-height:1.5;">💡 <em>These add-on services can be included later after your first mowing.</em></div>
 
           <!-- Q6: Special notes -->
           <div class="question-title">6. Anything your lawn pro should know?</div>
@@ -1500,6 +1490,7 @@ footer {
 <footer>
   <div class="footer-logo">That's Done Right</div>
   <div class="footer-text">Licensed & Insured · Humble, TX · © 2026 That's Done Right LLC</div>
+  <div style="margin-top:.5rem;"><a href="tel:7135550100" style="font-family:var(--display);font-size:.78rem;font-weight:600;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:.5px;">📞 (713) 555-0100</a></div>
   <div style="margin-top:.75rem;">
     <a href="/apply.html" style="font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,1);text-decoration:none;">
       Are you a lawn care contractor? Apply to join our team →
@@ -1717,8 +1708,9 @@ function submitEarlyContact() {
   document.getElementById('earlyNameError').classList.remove('show');
   document.getElementById('earlyEmailError').classList.remove('show');
 
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!name)  { document.getElementById('earlyNameError').classList.add('show'); ok = false; }
-  if (!email.includes('@')) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
+  if (!validEmail.test(email)) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
   if (!ok) return;
 
   // Store name/email for later use in lead capture
@@ -1885,7 +1877,7 @@ function calculateQuote() {
 
 function joinWaitlist() {
   const email = document.getElementById('waitlistEmail').value.trim();
-  if (!email.includes('@')) { document.getElementById('waitlistEmail').style.borderColor = '#c62828'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { document.getElementById('waitlistEmail').style.borderColor = '#c62828'; return; }
   document.getElementById('waitlistSuccess').classList.add('show');
   document.getElementById('waitlistEmail').style.display = 'none';
   document.querySelector('.btn-waitlist').style.display  = 'none';
@@ -1923,7 +1915,8 @@ async function submitLead() {
   document.getElementById('phoneError').classList.remove('show');
 
   if (!name)  { document.getElementById('nameError').classList.add('show'); ok = false; }
-  if (!email.includes('@')) { document.getElementById('emailError').classList.add('show'); ok = false; }
+  const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  if (!validEmail.test(email)) { document.getElementById('emailError').classList.add('show'); ok = false; }
   if (phone.replace(/\D/g,'').length < 10) { document.getElementById('phoneError').classList.add('show'); ok = false; }
   if (!ok) return;
 
