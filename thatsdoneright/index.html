@@ -47,14 +47,16 @@ body { font-family: var(--body); background: var(--white); color: var(--dark); m
 
 /* ── NAV ── */
 nav {
-  background: var(--dark);
+  background: transparent;
   padding: 0 1.5rem;
   height: 62px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  position: sticky;
+  position: absolute;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
@@ -67,7 +69,7 @@ nav {
 .nav-script {
   font-family: var(--script);
   font-size: 1.4rem;
-  color: var(--red);
+  color: #ffffff;
   line-height: 1;
   letter-spacing: -.5px;
 }
@@ -84,7 +86,7 @@ nav {
   font-weight: 500;
   letter-spacing: 2px;
   text-transform: uppercase;
-  color: #888;
+  color: #ffffff;
 }
 
 .nav-right {
@@ -121,7 +123,7 @@ nav {
 
 /* ── HERO ── */
 .hero {
-  background: var(--white);
+  background: url('backgroundg.png') center top / cover no-repeat;
   padding: 3.5rem 1.5rem 7rem;
   text-align: center;
   position: relative;
@@ -148,10 +150,10 @@ nav {
   gap: .4rem;
   background: rgba(46,125,50,0.15);
   border: 1px solid rgba(46,125,50,0.3);
-  color: #81c784;
+  color: #ffffff;
   font-family: var(--display);
-  font-size: .62rem;
-  font-weight: 600;
+  font-size: .85rem;
+  font-weight: 700;
   letter-spacing: 2px;
   text-transform: uppercase;
   padding: .35rem 1rem;
@@ -162,7 +164,7 @@ nav {
 .hero-logo {
   font-family: var(--script);
   font-size: clamp(2.8rem, 9vw, 5rem);
-  color: var(--red);
+  color: #FF8C00;
   line-height: 1;
   margin-bottom: .25rem;
   text-shadow: 3px 3px 0px rgba(0,0,0,0.3);
@@ -174,17 +176,17 @@ nav {
   font-weight: 500;
   letter-spacing: 4px;
   text-transform: uppercase;
-  color: #888;
+  color: #FF8C00;
   margin-bottom: 1.25rem;
 }
 
 .hero-sub {
-  font-size: .95rem;
-  color: #000000;
+  font-size: 1.15rem;
+  color: #ffffff;
   max-width: 440px;
   margin: 0 auto 2.5rem;
   line-height: 1.7;
-  font-weight: 300;
+  font-weight: 700;
 }
 
 /* ── QUOTE CARD ── */
@@ -227,8 +229,8 @@ nav {
 
 .qch-title {
   font-family: var(--display);
-  font-size: .82rem;
-  font-weight: 700;
+  font-size: .72rem;
+  font-weight: 400;
   color: var(--white);
   letter-spacing: .5px;
   text-transform: uppercase;
@@ -727,7 +729,7 @@ input:focus {
 /* ── BELOW HERO ── */
 .below-hero {
   background: var(--off-white);
-  padding-top: 5rem;
+  padding-top: 0;
 }
 
 /* Trust bar */
@@ -764,7 +766,7 @@ input:focus {
 
 /* How it works */
 .how-section {
-  padding: 3.5rem 1.5rem;
+  padding: 1.5rem 1.5rem;
   max-width: 800px;
   margin: 0 auto;
   text-align: center;
@@ -1080,18 +1082,14 @@ footer {
   </div>
   <div class="hero-logo">That's Done Right</div>
   <div class="hero-tagline">Lawn Service · Houston, TX</div>
-  <p class="hero-sub">
-    Enter your address — we'll check your area and give you an exact price instantly. No calling around. No waiting.
-  </p>
-
+  <br><br>
   <!-- ── QUOTE CARD ── -->
   <div class="quote-card-wrap">
     <div class="quote-card">
 
       <div class="quote-card-header">
-        <div class="qch-icon">📍</div>
         <div>
-          <div class="qch-title">Get Your Instant Price</div>
+          <div class="qch-title">Enter your address — we'll check your area and give you an exact price instantly. No calling around. No waiting.</div>
           <div class="qch-sub">Powered by Google Places · All Houston suburbs</div>
         </div>
       </div>
