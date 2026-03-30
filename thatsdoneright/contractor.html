@@ -83,7 +83,56 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .empty-msg{font-family:var(--display);font-size:.8rem;letter-spacing:1px;text-transform:uppercase}
 .spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.5rem}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:480px){.stats-row{gap:.5rem}.stat-card{padding:.75rem;min-width:80px}.jobs-wrap{padding:0 1rem 3rem}.job-card{padding:1rem}}
+
+/* Schedule header */
+.schedule-header{background:var(--white);border-bottom:1px solid var(--border);padding:1rem 1.5rem}
+.view-tabs{display:flex;background:#f0f0f0;border-radius:8px;padding:3px;margin-bottom:.85rem}
+.view-tab{flex:1;text-align:center;font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.45rem;border-radius:6px;border:none;background:none;cursor:pointer;color:var(--text-mid);transition:all .15s}
+.view-tab.active{background:var(--white);color:var(--dark);box-shadow:0 1px 4px rgba(0,0,0,0.12)}
+.date-nav{display:flex;align-items:center;gap:.5rem}
+.date-nav-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:.4rem .9rem;font-family:var(--display);font-size:.72rem;font-weight:600;cursor:pointer;color:var(--dark-mid);transition:background .12s}
+.date-nav-btn:hover{background:var(--off-white)}
+.date-nav-center{flex:1;text-align:center}
+.date-nav-label{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark)}
+.date-nav-sub{font-family:var(--display);font-size:.6rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-top:1px}
+
+/* Day timeline */
+.timeline{padding:1.25rem 1.5rem 3rem}
+.tl-row{display:flex;gap:.85rem;margin-bottom:.75rem;align-items:flex-start}
+.tl-line{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:18px}
+.tl-dot{width:13px;height:13px;border-radius:50%;background:var(--green);border:2px solid var(--white);box-shadow:0 0 0 2px var(--green);flex-shrink:0;margin-top:5px}
+.tl-dot.done{background:#ccc;box-shadow:0 0 0 2px #ccc}
+.tl-dot.pending{background:var(--yellow);box-shadow:0 0 0 2px var(--yellow)}
+.tl-dot.unscheduled{background:#ddd;box-shadow:0 0 0 2px #ddd}
+.tl-connector{flex:1;width:2px;background:var(--border);min-height:20px;margin-top:3px}
+
+/* Week view */
+.week-grid-wrap{padding:1rem 1rem 3rem;overflow-x:auto}
+.week-cols{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;min-width:480px}
+.week-col-header{text-align:center;margin-bottom:.35rem}
+.week-day-name{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite)}
+.week-day-num{font-family:var(--display);font-size:.95rem;font-weight:700;color:var(--dark);width:26px;height:26px;line-height:26px;border-radius:50%;margin:.2rem auto 0;text-align:center}
+.week-day-num.today{background:var(--green);color:var(--white)}
+.week-col-body{min-height:80px}
+.week-job-chip{background:var(--green-tint);border:1px solid #c8e6c9;border-radius:6px;padding:.2rem .4rem;font-size:.65rem;font-family:var(--display);font-weight:600;color:var(--green-dark);margin-bottom:.2rem;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block}
+.week-job-chip:hover{background:#c8e6c9}
+.week-job-chip.done{background:#f5f5f5;border-color:#e0e0e0;color:#999}
+
+/* Month view */
+.month-grid-wrap{padding:1rem 1rem 3rem}
+.month-cols{display:grid;grid-template-columns:repeat(7,1fr);gap:.25rem}
+.month-day-hdr{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);text-align:center;padding:.25rem 0}
+.month-cell{min-height:52px;padding:.3rem .35rem;border-radius:8px;background:var(--white);border:1px solid var(--border);cursor:pointer;transition:background .12s}
+.month-cell:hover{background:#f5f5f5}
+.month-cell.other-month{background:var(--off-white);border-color:#f0f0f0}
+.month-cell.today-cell{border-color:var(--green);border-width:2px}
+.month-day-label{font-family:var(--display);font-size:.72rem;font-weight:700;color:var(--dark)}
+.month-day-label.today-lbl{color:var(--green)}
+.month-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:.2rem}
+.month-dot{width:6px;height:6px;background:var(--green);border-radius:50%}
+.month-count{font-size:.6rem;font-family:var(--display);font-weight:700;color:var(--green);display:block}
+
+@media(max-width:480px){.stats-row{gap:.5rem}.stat-card{padding:.75rem;min-width:80px}.jobs-wrap{padding:0 1rem 3rem}.job-card{padding:1rem}.timeline{padding:1rem 1rem 3rem}}
 </style>
 </head>
 <body>
@@ -112,7 +161,7 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     </div>
   </nav>
   <div class="page-header">
-    <div class="page-header-title">My Jobs</div>
+    <div class="page-header-title">My Schedule</div>
     <div class="page-header-sub" id="pageHeaderSub">Loading your schedule...</div>
   </div>
   <div class="stats-row">
@@ -121,7 +170,23 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Jobs</div></div>
     <div class="stat-card"><div class="stat-num green" id="statCompleted">—</div><div class="stat-label">Completed</div></div>
   </div>
-  <div class="jobs-wrap" id="jobsWrap">
+  <div class="schedule-header">
+    <div class="view-tabs">
+      <button class="view-tab active" id="tab-day" onclick="switchView('day')">Day</button>
+      <button class="view-tab" id="tab-week" onclick="switchView('week')">Week</button>
+      <button class="view-tab" id="tab-month" onclick="switchView('month')">Month</button>
+    </div>
+    <div class="date-nav">
+      <button class="date-nav-btn" onclick="navigateDate(-1)">‹</button>
+      <div class="date-nav-center">
+        <div class="date-nav-label" id="dateNavLabel">—</div>
+        <div class="date-nav-sub" id="dateNavSub">—</div>
+      </div>
+      <button class="date-nav-btn" onclick="navigateDate(0)">Today</button>
+      <button class="date-nav-btn" onclick="navigateDate(1)">›</button>
+    </div>
+  </div>
+  <div id="scheduleWrap">
     <div class="empty-state"><span class="spinner"></span> Loading jobs...</div>
   </div>
 </div>
@@ -134,6 +199,10 @@ const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let currentContractor = null;
+let allJobs = [];
+let currentView = 'day';
+let currentViewDate = new Date();
+currentViewDate.setHours(0,0,0,0);
 
 // Check if returning from magic link or accept/decline link
 window.addEventListener('load', async () => {
@@ -258,7 +327,6 @@ async function loadJobs(scrollToId) {
     const today       = new Date().toISOString().split('T')[0];
     const todayJobs   = jobs.filter(j => j.scheduled_date === today && j.status !== 'completed');
     const upcoming    = jobs.filter(j => j.scheduled_date > today && j.status !== 'completed');
-    const unscheduled = jobs.filter(j => !j.scheduled_date && j.status !== 'completed');
     const completed   = jobs.filter(j => j.status === 'completed');
 
     document.getElementById('statToday').textContent     = todayJobs.length;
@@ -268,14 +336,8 @@ async function loadJobs(scrollToId) {
     document.getElementById('pageHeaderSub').textContent =
       `${jobs.length} job${jobs.length !== 1 ? 's' : ''} assigned to you`;
 
-    let html = '';
-    if (todayJobs.length)   { html += `<div class="section-title">Today</div>`; todayJobs.forEach(j => html += renderJob(j, 'today')); }
-    if (upcoming.length)    { html += `<div class="section-title">Upcoming</div>`; upcoming.forEach(j => html += renderJob(j, 'upcoming')); }
-    if (unscheduled.length) { html += `<div class="section-title">Not Yet Scheduled</div>`; unscheduled.forEach(j => html += renderJob(j, 'unscheduled')); }
-    if (completed.length)   { html += `<div class="section-title">Completed</div>`; completed.forEach(j => html += renderJob(j, 'completed')); }
-    if (!jobs.length) html = `<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-msg">No jobs assigned yet</div></div>`;
-
-    document.getElementById('jobsWrap').innerHTML = html;
+    allJobs = jobs;
+    renderSchedule();
 
     // Scroll to a specific job if requested (e.g. after assigning contractor_id)
     if (scrollToId) {
@@ -313,6 +375,163 @@ async function loadJobs(scrollToId) {
     }
   } catch(e) { console.error('Load jobs error:', e); }
 }
+
+// ── Schedule view helpers ──────────────────────────────────────────────────
+
+function toISO(d) { return d.toISOString().split('T')[0]; }
+
+function switchView(v) {
+  currentView = v;
+  ['day','week','month'].forEach(t => {
+    document.getElementById('tab-'+t).classList.toggle('active', t === v);
+  });
+  renderSchedule();
+}
+
+function navigateDate(dir) {
+  if (dir === 0) { currentViewDate = new Date(); currentViewDate.setHours(0,0,0,0); }
+  else if (currentView === 'day')   { currentViewDate.setDate(currentViewDate.getDate() + dir); }
+  else if (currentView === 'week')  { currentViewDate.setDate(currentViewDate.getDate() + dir * 7); }
+  else if (currentView === 'month') { currentViewDate.setMonth(currentViewDate.getMonth() + dir); }
+  renderSchedule();
+}
+
+function renderSchedule() {
+  if (currentView === 'day')   renderDayView();
+  else if (currentView === 'week')  renderWeekView();
+  else if (currentView === 'month') renderMonthView();
+}
+
+function updateDateNav(label, sub) {
+  document.getElementById('dateNavLabel').textContent = label;
+  document.getElementById('dateNavSub').textContent   = sub;
+}
+
+function renderDayView() {
+  const dateStr = toISO(currentViewDate);
+  const dayName = currentViewDate.toLocaleDateString('en-US', { weekday:'long' });
+  const dateLabel = currentViewDate.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+  const isToday = dateStr === toISO(new Date());
+  updateDateNav(dateLabel, isToday ? 'TODAY · ' + dayName.toUpperCase() : dayName.toUpperCase());
+
+  const dayJobs = allJobs.filter(j => j.scheduled_date === dateStr);
+  const unscheduled = allJobs.filter(j => !j.scheduled_date && j.status !== 'completed');
+
+  if (!dayJobs.length && !unscheduled.length) {
+    document.getElementById('scheduleWrap').innerHTML =
+      `<div class="timeline"><div class="empty-state"><div class="empty-icon">📅</div><div class="empty-msg">No jobs on this day</div></div></div>`;
+    return;
+  }
+
+  const rows = [...dayJobs, ...(isToday ? unscheduled : [])];
+  let html = '<div class="timeline">';
+  rows.forEach((job, i) => {
+    const isDone = job.status === 'completed';
+    const dotClass = isDone ? 'done' : job.scheduled_date ? (isToday ? '' : 'pending') : 'unscheduled';
+    const isLast = i === rows.length - 1;
+    const type = isDone ? 'completed' : !job.scheduled_date ? 'unscheduled' : isToday ? 'today' : 'upcoming';
+    html += `<div class="tl-row">
+      <div class="tl-line">
+        <div class="tl-dot ${dotClass}"></div>
+        ${!isLast ? '<div class="tl-connector"></div>' : ''}
+      </div>
+      <div style="flex:1;min-width:0;padding-bottom:${isLast?'0':'.5rem'}">
+        ${renderJob(job, type)}
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('scheduleWrap').innerHTML = html;
+}
+
+function renderWeekView() {
+  // Find Monday of current week
+  const d = new Date(currentViewDate);
+  const dow = d.getDay(); // 0=Sun
+  d.setDate(d.getDate() - ((dow + 6) % 7)); // shift to Monday
+  const monday = new Date(d);
+
+  const weekLabel = monday.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' – ' +
+    new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+6).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  updateDateNav(weekLabel, 'WEEK VIEW');
+
+  const days = Array.from({length:7}, (_,i) => {
+    const day = new Date(monday); day.setDate(monday.getDate()+i);
+    return day;
+  });
+  const todayStr = toISO(new Date());
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  let html = '<div class="week-grid-wrap"><div class="week-cols">';
+  days.forEach((day, i) => {
+    const ds = toISO(day);
+    const dayJobs = allJobs.filter(j => j.scheduled_date === ds);
+    const isToday = ds === todayStr;
+    html += `<div>
+      <div class="week-col-header">
+        <div class="week-day-name">${dayNames[i]}</div>
+        <div class="week-day-num${isToday ? ' today' : ''}">${day.getDate()}</div>
+      </div>
+      <div class="week-col-body">`;
+    if (dayJobs.length) {
+      dayJobs.forEach(j => {
+        const done = j.status === 'completed';
+        const addr = (j.address || '').split(',')[0];
+        html += `<span class="week-job-chip${done ? ' done' : ''}"
+          onclick="currentViewDate=new Date('${ds}T12:00:00');switchView('day')"
+          title="${j.address || ''}">
+          ${j.scheduled_time ? j.scheduled_time.substring(0,5)+' ' : ''}${addr}
+        </span>`;
+      });
+    } else {
+      html += `<div style="font-size:.65rem;color:var(--text-lite);text-align:center;padding:.5rem 0;">—</div>`;
+    }
+    html += `</div></div>`;
+  });
+  html += '</div></div>';
+  document.getElementById('scheduleWrap').innerHTML = html;
+}
+
+function renderMonthView() {
+  const year  = currentViewDate.getFullYear();
+  const month = currentViewDate.getMonth();
+  const monthLabel = currentViewDate.toLocaleDateString('en-US', { month:'long', year:'numeric' });
+  updateDateNav(monthLabel, 'MONTH VIEW');
+
+  const todayStr = toISO(new Date());
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month+1, 0);
+  // Pad to Monday start
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const totalCells  = Math.ceil((startOffset + lastDay.getDate()) / 7) * 7;
+
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  let html = '<div class="month-grid-wrap"><div class="month-cols">';
+  dayNames.forEach(d => { html += `<div class="month-day-hdr">${d}</div>`; });
+
+  for (let i = 0; i < totalCells; i++) {
+    const cellDate = new Date(year, month, 1 - startOffset + i);
+    const ds = toISO(cellDate);
+    const inMonth = cellDate.getMonth() === month;
+    const isToday = ds === todayStr;
+    const dayJobs = allJobs.filter(j => j.scheduled_date === ds);
+    const visibleDots = Math.min(dayJobs.length, 3);
+    html += `<div class="month-cell${!inMonth ? ' other-month' : ''}${isToday ? ' today-cell' : ''}"
+      onclick="currentViewDate=new Date('${ds}T12:00:00');switchView('day')">
+      <div class="month-day-label${isToday ? ' today-lbl' : ''}">${cellDate.getDate()}</div>`;
+    if (dayJobs.length) {
+      html += `<div class="month-dots">`;
+      for (let k = 0; k < visibleDots; k++) html += `<div class="month-dot"></div>`;
+      html += `</div>`;
+      if (dayJobs.length > 3) html += `<span class="month-count">+${dayJobs.length}</span>`;
+    }
+    html += `</div>`;
+  }
+  html += '</div></div>';
+  document.getElementById('scheduleWrap').innerHTML = html;
+}
+
+// ── Job card renderer ──────────────────────────────────────────────────────
 
 function renderJob(job, type) {
   const freqLabel = job.frequency === 'weekly' ? 'Weekly' : job.frequency === 'twice' ? 'Twice a Month' : 'One Time';
