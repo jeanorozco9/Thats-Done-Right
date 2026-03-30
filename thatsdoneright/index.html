@@ -1533,8 +1533,8 @@ function checkZone(zip) {
 }
 
 function calcPrice(lawn) {
-  const r = lawn < 2000 ? .0085 : lawn < 4000 ? .007 : lawn < 7000 ? .0058 : lawn < 12000 ? .0048 : .004;
-  return Math.round(Math.max(30, Math.min(175, lawn * r)));
+  const effective = Math.max(lawn, 4000);
+  return Math.round(effective * 0.008);
 }
 
 let currentZip = null;

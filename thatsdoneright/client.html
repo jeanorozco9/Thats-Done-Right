@@ -73,7 +73,32 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .empty{text-align:center;padding:2rem;color:var(--text-lite);font-family:var(--display);font-size:.78rem;letter-spacing:1px;text-transform:uppercase}
 .spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem}
 @keyframes spin{to{transform:rotate(360deg)}}
-@media(max-width:480px){.content{padding:1rem 1rem 3rem}.plan-banner{flex-direction:column;align-items:flex-start}}
+
+/* Change plan */
+.plan-options{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.5rem}
+.plan-opt-btn{flex:1;min-width:130px;padding:.85rem 1rem;border:2px solid var(--border);border-radius:12px;background:var(--white);font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;text-align:center}
+.plan-opt-btn:hover{border-color:var(--green);background:var(--green-tint)}
+.plan-opt-btn.current{border-color:var(--green);background:var(--green-tint);color:var(--green-dark);pointer-events:none}
+.plan-opt-btn.current::after{content:' ✓';font-size:.7rem}
+.plan-change-note{font-size:.78rem;color:var(--text-mid);margin-top:.5rem;line-height:1.5}
+
+/* Confirmation modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-card{background:var(--white);border-radius:16px;padding:2rem 1.75rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.35);text-align:center}
+.modal-icon{font-size:2rem;margin-bottom:.75rem}
+.modal-title{font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem}
+.modal-body{font-size:.88rem;color:var(--text-mid);line-height:1.6;margin-bottom:1.5rem}
+.modal-body strong{color:var(--dark)}
+.modal-actions{display:flex;gap:.75rem}
+.modal-btn{flex:1;padding:.8rem;border:none;border-radius:10px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
+.modal-btn-confirm{background:var(--green);color:var(--white)}
+.modal-btn-confirm:hover{opacity:.85}
+.modal-btn-cancel{background:#f0f0f0;color:var(--dark-mid)}
+.modal-btn-cancel:hover{background:#e0e0e0}
+.modal-success{display:none;background:var(--green-tint);border:1px solid #c8e6c9;border-radius:10px;padding:.85rem 1rem;font-size:.85rem;color:var(--green);margin-top:1rem;line-height:1.5}
+
+@media(max-width:480px){.content{padding:1rem 1rem 3rem}.plan-banner{flex-direction:column;align-items:flex-start}.plan-options{flex-direction:column}}
 </style>
 </head>
 <body>
@@ -126,16 +151,43 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div class="section-title">Next Appointment</div>
     <div id="nextAppt"><div class="empty"><span class="spinner"></span> Loading...</div></div>
 
+    <div class="section-title">Change My Plan</div>
+    <div id="changePlanSection">
+      <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
+      <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
+      <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
+    </div>
+
     <div class="section-title">Service History</div>
     <div id="historyList"><div class="empty"><span class="spinner"></span> Loading...</div></div>
+  </div>
+</div>
+
+<!-- Confirmation modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-card">
+    <div class="modal-icon">🔄</div>
+    <div class="modal-title">Change Your Plan?</div>
+    <div class="modal-body" id="modalBody">Are you sure you want to change your plan?</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">No, Keep Current</button>
+      <button class="modal-btn modal-btn-confirm" id="modalConfirmBtn" onclick="confirmPlanChange()">Yes, Change It</button>
+    </div>
   </div>
 </div>
 
 <script>
 const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+const NOTIFY_CLIENT_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-client";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const FREQ_LABELS = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' };
+let activePlanLeadId   = null;
+let activePlanFreq     = null;
+let pendingFreq        = null;
+let activeContractorId = null;
 
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -186,7 +238,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -202,11 +254,19 @@ async function loadClientDashboard(email) {
 
     // Plan banner — use most recent booked or completed lead for plan info
     const planLead = leads.find(l => l.status === 'booked') || leads[0];
-    const freqLabel = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' }[planLead.frequency] || planLead.frequency;
+    const freqLabel = FREQ_LABELS[planLead.frequency] || planLead.frequency;
     document.getElementById('planFreq').textContent  = freqLabel;
     document.getElementById('planPrice').textContent = planLead.price ? `$${planLead.price}/visit` : '—';
     document.getElementById('planAddr').textContent  = planLead.address || '—';
     document.getElementById('planBanner').style.display = 'flex';
+
+    // Store for plan change
+    activePlanLeadId   = planLead.id;
+    activePlanFreq     = planLead.frequency;
+    activeContractorId = planLead.contractor_id || null;
+
+    // Render plan change options
+    renderPlanOptions(activePlanFreq);
 
     // Next appointment
     const next = leads.find(l => l.status === 'booked' && l.scheduled_date && l.scheduled_date >= today);
@@ -249,6 +309,91 @@ async function loadClientDashboard(email) {
     }
 
   } catch(e) { console.error('Dashboard load error:', e); }
+}
+
+function renderPlanOptions(currentFreq) {
+  const opts = [
+    { key: 'weekly', label: 'Weekly',        desc: 'Every week' },
+    { key: 'twice',  label: 'Twice a Month', desc: 'Every 2 weeks' },
+    { key: 'once',   label: 'One Time',       desc: 'Single visit' },
+  ];
+  document.getElementById('planOptions').innerHTML = opts.map(o => `
+    <button class="plan-opt-btn ${o.key === currentFreq ? 'current' : ''}"
+      onclick="${o.key === currentFreq ? '' : `openPlanModal('${o.key}')`}">
+      ${o.label}<br/><span style="font-size:.7rem;font-weight:400;opacity:.7;">${o.desc}</span>
+    </button>`).join('');
+}
+
+function openPlanModal(newFreq) {
+  pendingFreq = newFreq;
+  const from = FREQ_LABELS[activePlanFreq] || activePlanFreq;
+  const to   = FREQ_LABELS[newFreq] || newFreq;
+  document.getElementById('modalBody').innerHTML =
+    `Are you sure you want to switch from <strong>${from}</strong> to <strong>${to}</strong>?<br/>
+     <span style="font-size:.78rem;color:var(--text-lite);">This takes effect on your next visit.</span>`;
+  document.getElementById('confirmModal').classList.add('open');
+  document.getElementById('planChangeSuccess').style.display = 'none';
+}
+
+function closeModal() {
+  document.getElementById('confirmModal').classList.remove('open');
+  pendingFreq = null;
+}
+
+async function confirmPlanChange() {
+  if (!pendingFreq || !activePlanLeadId) return;
+  const btn = document.getElementById('modalConfirmBtn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  try {
+    // Update all booked leads for this client to new frequency
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?id=eq.${activePlanLeadId}`,
+      {
+        method: 'PATCH',
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ frequency: pendingFreq })
+      }
+    );
+
+    // Notify contractor if one is assigned
+    if (activeContractorId) {
+      const cRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/contractors?id=eq.${activeContractorId}&select=email,name`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const [contractor] = await cRes.json();
+      if (contractor?.email) {
+        await fetch(NOTIFY_CLIENT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'plan_change',
+            contractor_email: contractor.email,
+            contractor_name: contractor.name,
+            lead_id: activePlanLeadId,
+            old_frequency: activePlanFreq,
+            new_frequency: pendingFreq
+          })
+        }).catch(() => {});
+      }
+    }
+
+    // Update local state
+    activePlanFreq = pendingFreq;
+    document.getElementById('planFreq').textContent = FREQ_LABELS[activePlanFreq] || activePlanFreq;
+    renderPlanOptions(activePlanFreq);
+    closeModal();
+    document.getElementById('planChangeSuccess').style.display = 'block';
+
+  } catch(e) {
+    console.error('Plan change error:', e);
+    alert('Something went wrong. Please try again.');
+  } finally {
+    btn.textContent = 'Yes, Change It';
+    btn.disabled = false;
+  }
 }
 
 async function logout() {
