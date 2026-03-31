@@ -583,7 +583,7 @@ async function confirmDispute() {
       fetch(NOTIFY_CLIENT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'dispute', lead_id: leadId })
+        body: JSON.stringify({ action: 'dispute', lead_id: leadId, notify_admin: true })
       }).catch(() => {})
     ]);
     const dispBtn = document.getElementById(`disputeBtn-${leadId}`);
