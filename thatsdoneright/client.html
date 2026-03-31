@@ -256,7 +256,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,rating&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -305,6 +305,18 @@ async function loadClientDashboard(email) {
       document.getElementById('nextAppt').innerHTML = `<div class="empty">No upcoming appointments scheduled</div>`;
     }
 
+    // Fetch existing reviews for this client's completed leads
+    const completedIds = leads.filter(l => l.status === 'completed').map(l => l.id);
+    let reviewsByLeadId = {};
+    if (completedIds.length) {
+      const rvRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/service_reviews?lead_id=in.(${completedIds.join(',')})&select=lead_id,rating`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const reviews = await rvRes.json();
+      reviews.forEach(r => { reviewsByLeadId[r.lead_id] = r.rating; });
+    }
+
     // Service history
     const history = leads
       .filter(l => l.status === 'completed' && l.scheduled_date)
@@ -313,15 +325,16 @@ async function loadClientDashboard(email) {
     if (history.length) {
       document.getElementById('historyList').innerHTML = history.map(l => {
         const d = new Date(l.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' });
-        const ratingHtml = l.rating
-          ? `<div class="rate-prompt"><div class="rate-label">Your Rating</div><div class="stars">${[1,2,3,4,5].map(n=>`<span class="star${n<=l.rating?' lit':''}">★</span>`).join('')}</div></div>`
+        const existingRating = reviewsByLeadId[l.id];
+        const ratingHtml = existingRating
+          ? `<div class="rate-prompt"><div class="rate-label">Your Rating</div><div class="stars">${[1,2,3,4,5].map(n=>`<span class="star${n<=existingRating?' lit':''}">★</span>`).join('')}</div></div>`
           : `<div class="rate-prompt" id="ratePrompt-${l.id}">
               <div class="rate-label">How was this visit?</div>
               <div class="stars" id="stars-${l.id}">
                 ${[1,2,3,4,5].map(n=>`<button class="star" id="star-${l.id}-${n}"
                   onmouseover="hoverStars(${l.id},${n})"
-                  onmouseout="resetStars(${l.id},${l.rating||0})"
-                  onclick="submitRating(${l.id},${n})">★</button>`).join('')}
+                  onmouseout="resetStars(${l.id},0)"
+                  onclick="submitRating(${l.id},${n},${l.contractor_id||'null'})">★</button>`).join('')}
               </div>
               <div class="rate-thanks" id="rateThanks-${l.id}">Thanks for your feedback!</div>
             </div>`;
@@ -447,20 +460,23 @@ function resetStars(leadId, current) {
   }
 }
 
-async function submitRating(leadId, rating) {
-  // Disable stars immediately
+async function submitRating(leadId, rating, contractorId) {
+  // Lock stars immediately
   for (let i = 1; i <= 5; i++) {
     const s = document.getElementById(`star-${leadId}-${i}`);
     if (s) { s.onclick = null; s.onmouseover = null; s.onmouseout = null; s.classList.toggle('lit', i <= rating); }
   }
   document.getElementById(`rateThanks-${leadId}`).style.display = 'block';
 
+  const payload = { lead_id: leadId, rating };
+  if (contractorId) payload.contractor_id = contractorId;
+
   await fetch(
-    `${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`,
+    `${SUPABASE_URL}/rest/v1/service_reviews`,
     {
-      method: 'PATCH',
+      method: 'POST',
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ rating })
+      body: JSON.stringify(payload)
     }
   ).catch(e => console.error('Rating save error:', e));
 }
