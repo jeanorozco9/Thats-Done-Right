@@ -83,6 +83,24 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .membership-btn:hover{background:rgba(255,255,255,0.25)}
 .membership-panel{display:none;padding:1.25rem 1.5rem;background:var(--white);border-bottom:2px solid var(--green)}
 .membership-panel.open{display:block}
+.price-change-note{display:inline-block;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:.3rem .7rem;font-size:.78rem;color:#f57f17;margin-top:.5rem}
+
+/* Current bill */
+.bill-card{background:var(--white);border:2px solid #e53935;border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:.75rem}
+.bill-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}
+.bill-amount{font-family:var(--display);font-size:1.5rem;font-weight:700;color:#e53935}
+.bill-label{font-family:var(--display);font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e53935;opacity:.75;margin-bottom:2px}
+.bill-meta{font-size:.82rem;color:var(--text-mid);margin-bottom:.85rem}
+.btn-pay{font-family:var(--display);font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.65rem 1.5rem;background:#e53935;color:var(--white);border:none;border-radius:10px;cursor:pointer;transition:opacity .15s}
+.btn-pay:hover{opacity:.85}
+.btn-pay:disabled{background:#aaa;cursor:not-allowed}
+.pay-success{display:none;font-size:.82rem;color:var(--green);margin-top:.5rem}
+
+/* Dispute */
+.btn-dispute{font-family:var(--display);font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.35rem .8rem;background:none;color:#e53935;border:1px solid #e53935;border-radius:8px;cursor:pointer;transition:all .15s;margin-top:.5rem}
+.btn-dispute:hover{background:#fdecea}
+.dispute-countdown{font-size:.72rem;color:#e57373;margin-top:.3rem}
+.dispute-done{font-size:.78rem;color:#e53935;margin-top:.5rem;display:none}
 
 /* Empty states */
 .empty{text-align:center;padding:2rem;color:var(--text-lite);font-family:var(--display);font-size:.78rem;letter-spacing:1px;text-transform:uppercase}
@@ -176,12 +194,17 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div class="section-title">Next Appointment</div>
     <div id="nextAppt"><div class="empty"><span class="spinner"></span> Loading...</div></div>
 
+    <div id="billSection" style="display:none;">
+      <div class="section-title">Current Bill</div>
+      <div id="billList"></div>
+    </div>
+
     <div class="section-title">Service History</div>
     <div id="historyList"><div class="empty"><span class="spinner"></span> Loading...</div></div>
   </div>
 </div>
 
-<!-- Confirmation modal -->
+<!-- Plan change confirmation modal -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-card">
     <div class="modal-icon">🔄</div>
@@ -194,18 +217,36 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 </div>
 
+<!-- Dispute confirmation modal -->
+<div class="modal-overlay" id="disputeModal">
+  <div class="modal-card">
+    <div class="modal-icon">⚠️</div>
+    <div class="modal-title">Dispute This Service?</div>
+    <div class="modal-body" id="disputeModalBody">Are you sure you want to dispute this service? Our team will review and pause any pending charges.</div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-cancel" onclick="closeDisputeModal()">No, Cancel</button>
+      <button class="modal-btn" style="background:#e53935;color:var(--white);flex:1;padding:.8rem;border:none;border-radius:10px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;" id="disputeConfirmBtn" onclick="confirmDispute()">Yes, Dispute It</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
-const NOTIFY_CLIENT_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-client";
+const NOTIFY_CLIENT_URL  = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-client";
+const SEND_INVOICE_URL   = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice";
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const FREQ_LABELS = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' };
+const FREQ_LABELS       = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' };
+const FREQ_MULTIPLIERS  = { weekly: 1.0, twice: 1.10, once: 1.20 };
+
 let activePlanLeadId   = null;
 let activePlanFreq     = null;
+let activePlanPrice    = null;
 let pendingFreq        = null;
 let activeContractorId = null;
+let pendingDisputeId   = null;
 
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -281,6 +322,7 @@ async function loadClientDashboard(email) {
     // Store for plan change
     activePlanLeadId   = planLead.id;
     activePlanFreq     = planLead.frequency;
+    activePlanPrice    = planLead.price || 0;
     activeContractorId = planLead.contractor_id || null;
 
     // Render plan change options
@@ -306,7 +348,9 @@ async function loadClientDashboard(email) {
     }
 
     // Fetch existing reviews for this client's completed leads
-    const completedIds = leads.filter(l => l.status === 'completed').map(l => l.id);
+    const completedLeads = leads.filter(l => l.status === 'completed' && l.scheduled_date)
+                               .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
+    const completedIds = completedLeads.map(l => l.id);
     let reviewsByLeadId = {};
     if (completedIds.length) {
       const rvRes = await fetch(
@@ -317,15 +361,44 @@ async function loadClientDashboard(email) {
       reviews.forEach(r => { reviewsByLeadId[r.lead_id] = r.rating; });
     }
 
-    // Service history
-    const history = leads
-      .filter(l => l.status === 'completed' && l.scheduled_date)
-      .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
+    // Current bill — completed leads with payment_status != 'paid'
+    const unpaidLeads = leads.filter(l => l.status === 'completed' && l.price && l.payment_status !== 'paid');
+    if (unpaidLeads.length) {
+      document.getElementById('billSection').style.display = 'block';
+      document.getElementById('billList').innerHTML = unpaidLeads.map(l => {
+        const d = new Date((l.scheduled_date||today) + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+        return `<div class="bill-card">
+          <div class="bill-header">
+            <div>
+              <div class="bill-label">Amount Due</div>
+              <div class="bill-amount">$${l.price}</div>
+            </div>
+            <button class="btn-pay" id="payBtn-${l.id}" onclick="payBill(${l.id})">Pay Now</button>
+          </div>
+          <div class="bill-meta">Service on ${d} · ${l.address || ''}</div>
+          <div class="pay-success" id="paySuccess-${l.id}">Payment submitted successfully!</div>
+        </div>`;
+      }).join('');
+    }
 
-    if (history.length) {
-      document.getElementById('historyList').innerHTML = history.map(l => {
+    // Service history with dispute button (within 24hrs) and star ratings
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    if (completedLeads.length) {
+      document.getElementById('historyList').innerHTML = completedLeads.map(l => {
         const d = new Date(l.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' });
         const existingRating = reviewsByLeadId[l.id];
+        const withinDisputeWindow = l.scheduled_date >= yesterdayStr;
+
+        const disputeHtml = withinDisputeWindow
+          ? `<div style="margin-top:.5rem;">
+               <button class="btn-dispute" id="disputeBtn-${l.id}" onclick="openDisputeModal(${l.id}, '${d}')">⚑ Dispute This Service</button>
+               <div class="dispute-countdown">You have until ${new Date(new Date(l.scheduled_date + 'T12:00:00').getTime() + 24*60*60*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})} tomorrow to dispute</div>
+               <div class="dispute-done" id="disputeDone-${l.id}">Dispute submitted — we'll review within 24 hours.</div>
+             </div>`
+          : '';
+
         const ratingHtml = existingRating
           ? `<div class="rate-prompt"><div class="rate-label">Your Rating</div><div class="stars">${[1,2,3,4,5].map(n=>`<span class="star${n<=existingRating?' lit':''}">★</span>`).join('')}</div></div>`
           : `<div class="rate-prompt" id="ratePrompt-${l.id}">
@@ -338,6 +411,7 @@ async function loadClientDashboard(email) {
               </div>
               <div class="rate-thanks" id="rateThanks-${l.id}">Thanks for your feedback!</div>
             </div>`;
+
         return `<div class="history-row" id="histRow-${l.id}">
           <div class="history-top">
             <div>
@@ -347,6 +421,7 @@ async function loadClientDashboard(email) {
             </div>
             <div class="history-price">${l.price ? '$' + l.price : '—'}</div>
           </div>
+          ${disputeHtml}
           ${ratingHtml}
         </div>`;
       }).join('');
@@ -374,9 +449,21 @@ function openPlanModal(newFreq) {
   pendingFreq = newFreq;
   const from = FREQ_LABELS[activePlanFreq] || activePlanFreq;
   const to   = FREQ_LABELS[newFreq] || newFreq;
+
+  // Calculate price change
+  const base     = activePlanPrice / (FREQ_MULTIPLIERS[activePlanFreq] || 1);
+  const newPrice = Math.round(base * (FREQ_MULTIPLIERS[newFreq] || 1));
+  const diff     = newPrice - activePlanPrice;
+  const priceNote = diff > 0
+    ? `<span class="price-change-note">Price increases to $${newPrice}/visit (+$${diff})</span>`
+    : diff < 0
+    ? `<span class="price-change-note" style="background:#e8f5e9;border-color:#c8e6c9;color:var(--green-dark);">Price drops to $${newPrice}/visit (save $${Math.abs(diff)})</span>`
+    : '';
+
   document.getElementById('modalBody').innerHTML =
     `Are you sure you want to switch from <strong>${from}</strong> to <strong>${to}</strong>?<br/>
-     <span style="font-size:.78rem;color:var(--text-lite);">This takes effect on your next visit.</span>`;
+     ${priceNote}
+     <br/><span style="font-size:.78rem;color:var(--text-lite);">This takes effect on your next visit.</span>`;
   document.getElementById('confirmModal').classList.add('open');
   document.getElementById('planChangeSuccess').style.display = 'none';
 }
@@ -393,13 +480,16 @@ async function confirmPlanChange() {
   btn.disabled = true;
 
   try {
-    // Update all booked leads for this client to new frequency
+    // Recalculate price based on new frequency
+    const base     = activePlanPrice / (FREQ_MULTIPLIERS[activePlanFreq] || 1);
+    const newPrice = Math.round(base * (FREQ_MULTIPLIERS[pendingFreq] || 1));
+
     await fetch(
       `${SUPABASE_URL}/rest/v1/leads?id=eq.${activePlanLeadId}`,
       {
         method: 'PATCH',
         headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ frequency: pendingFreq })
+        body: JSON.stringify({ frequency: pendingFreq, price: newPrice })
       }
     );
 
@@ -427,8 +517,10 @@ async function confirmPlanChange() {
     }
 
     // Update local state
-    activePlanFreq = pendingFreq;
-    document.getElementById('planFreq').textContent = FREQ_LABELS[activePlanFreq] || activePlanFreq;
+    activePlanFreq  = pendingFreq;
+    activePlanPrice = newPrice;
+    document.getElementById('planFreq').textContent  = FREQ_LABELS[activePlanFreq] || activePlanFreq;
+    document.getElementById('planPrice').textContent = `$${newPrice}/visit`;
     renderPlanOptions(activePlanFreq);
     closeModal();
     document.getElementById('planChangeSuccess').style.display = 'block';
@@ -438,6 +530,71 @@ async function confirmPlanChange() {
     alert('Something went wrong. Please try again.');
   } finally {
     btn.textContent = 'Yes, Change It';
+    btn.disabled = false;
+  }
+}
+
+async function payBill(leadId) {
+  const btn = document.getElementById(`payBtn-${leadId}`);
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+  try {
+    await fetch(SEND_INVOICE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lead_id: leadId })
+    });
+    btn.style.display = 'none';
+    document.getElementById(`paySuccess-${leadId}`).style.display = 'block';
+  } catch(e) {
+    console.error('Pay bill error:', e);
+    btn.textContent = 'Pay Now';
+    btn.disabled = false;
+  }
+}
+
+function openDisputeModal(leadId, dateStr) {
+  pendingDisputeId = leadId;
+  document.getElementById('disputeModalBody').innerHTML =
+    `Are you sure you want to dispute the service on <strong>${dateStr}</strong>?<br/>
+     <span style="font-size:.78rem;color:var(--text-lite);">Our team will review and any pending charges will be paused.</span>`;
+  document.getElementById('disputeModal').classList.add('open');
+}
+
+function closeDisputeModal() {
+  document.getElementById('disputeModal').classList.remove('open');
+  pendingDisputeId = null;
+}
+
+async function confirmDispute() {
+  if (!pendingDisputeId) return;
+  const btn = document.getElementById('disputeConfirmBtn');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+  const leadId = pendingDisputeId;
+  closeDisputeModal();
+  try {
+    await Promise.all([
+      fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+        method: 'PATCH',
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ disputed: true })
+      }),
+      fetch(NOTIFY_CLIENT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'dispute', lead_id: leadId })
+      }).catch(() => {})
+    ]);
+    const dispBtn = document.getElementById(`disputeBtn-${leadId}`);
+    if (dispBtn) dispBtn.style.display = 'none';
+    const dispDone = document.getElementById(`disputeDone-${leadId}`);
+    if (dispDone) dispDone.style.display = 'block';
+  } catch(e) {
+    console.error('Dispute error:', e);
+    alert('Something went wrong. Please try again.');
+  } finally {
+    btn.textContent = 'Yes, Dispute It';
     btn.disabled = false;
   }
 }
