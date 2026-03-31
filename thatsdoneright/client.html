@@ -247,6 +247,7 @@ let activePlanPrice    = null;
 let pendingFreq        = null;
 let activeContractorId = null;
 let pendingDisputeId   = null;
+let pendingDisputeMeta = {};
 
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -393,7 +394,7 @@ async function loadClientDashboard(email) {
 
         const disputeHtml = withinDisputeWindow
           ? `<div style="margin-top:.5rem;">
-               <button class="btn-dispute" id="disputeBtn-${l.id}" onclick="openDisputeModal(${l.id}, '${d}')">⚑ Dispute This Service</button>
+               <button class="btn-dispute" id="disputeBtn-${l.id}" onclick="openDisputeModal(${l.id},'${d}',${JSON.stringify(l.name||'')},${JSON.stringify(l.email||'')},${l.price||0})">⚑ Dispute This Service</button>
                <div class="dispute-countdown">You have until ${new Date(new Date(l.scheduled_date + 'T12:00:00').getTime() + 24*60*60*1000).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})} tomorrow to dispute</div>
                <div class="dispute-done" id="disputeDone-${l.id}">Dispute submitted — we'll review within 24 hours.</div>
              </div>`
@@ -553,8 +554,9 @@ async function payBill(leadId) {
   }
 }
 
-function openDisputeModal(leadId, dateStr) {
-  pendingDisputeId = leadId;
+function openDisputeModal(leadId, dateStr, name, email, amount) {
+  pendingDisputeId   = leadId;
+  pendingDisputeMeta = { name, email, amount, dateStr };
   document.getElementById('disputeModalBody').innerHTML =
     `Are you sure you want to dispute the service on <strong>${dateStr}</strong>?<br/>
      <span style="font-size:.78rem;color:var(--text-lite);">Our team will review and any pending charges will be paused.</span>`;
@@ -563,7 +565,8 @@ function openDisputeModal(leadId, dateStr) {
 
 function closeDisputeModal() {
   document.getElementById('disputeModal').classList.remove('open');
-  pendingDisputeId = null;
+  pendingDisputeId   = null;
+  pendingDisputeMeta = {};
 }
 
 async function confirmDispute() {
@@ -572,14 +575,23 @@ async function confirmDispute() {
   btn.textContent = 'Submitting...';
   btn.disabled = true;
   const leadId = pendingDisputeId;
+  const meta   = pendingDisputeMeta;
   closeDisputeModal();
   try {
     await Promise.all([
-      fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
-        method: 'PATCH',
+      // Insert into disputes table
+      fetch(`${SUPABASE_URL}/rest/v1/disputes`, {
+        method: 'POST',
         headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-        body: JSON.stringify({ disputed: true })
+        body: JSON.stringify({
+          lead_id: leadId,
+          customer_name:  meta.name,
+          customer_email: meta.email,
+          amount:         meta.amount,
+          status:         'open'
+        })
       }),
+      // Notify admin
       fetch(NOTIFY_CLIENT_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
