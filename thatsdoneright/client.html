@@ -310,7 +310,7 @@ async function loadClientDashboard(email) {
     let reviewsByLeadId = {};
     if (completedIds.length) {
       const rvRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/service_reviews?lead_id=in.(${completedIds.join(',')})&select=lead_id,rating`,
+        `${SUPABASE_URL}/rest/v1/lawn_service_reviews?lead_id=in.(${completedIds.join(',')})&select=lead_id,rating`,
         { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
       );
       const reviews = await rvRes.json();
@@ -472,7 +472,7 @@ async function submitRating(leadId, rating, contractorId) {
   if (contractorId) payload.contractor_id = contractorId;
 
   await fetch(
-    `${SUPABASE_URL}/rest/v1/service_reviews`,
+    `${SUPABASE_URL}/rest/v1/lawn_service_reviews`,
     {
       method: 'POST',
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
