@@ -63,11 +63,26 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .appt-meta-val{font-size:.88rem;font-weight:500;color:var(--dark)}
 
 /* History */
-.history-row{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.history-row{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:.6rem}
+.history-top{display:flex;align-items:center;justify-content:space-between;gap:1rem}
 .history-date{font-family:var(--display);font-size:.88rem;font-weight:600;color:var(--dark)}
 .history-addr{font-size:.8rem;color:var(--text-mid);margin-top:2px}
 .history-price{font-family:var(--display);font-size:.95rem;font-weight:700;color:var(--green);white-space:nowrap}
 .history-badge{display:inline-flex;align-items:center;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.2rem .6rem;border-radius:100px;background:#f5f5f5;color:#999;margin-top:.35rem}
+
+/* Star rating */
+.rate-prompt{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+.rate-label{font-family:var(--display);font-size:.62rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.4rem}
+.stars{display:flex;gap:.2rem}
+.star{font-size:1.4rem;cursor:pointer;color:#ddd;transition:color .1s;background:none;border:none;padding:0;line-height:1}
+.star:hover,.star.lit{color:#f9a825}
+.rate-thanks{font-size:.78rem;color:var(--green);margin-top:.35rem;display:none}
+
+/* Membership */
+.membership-btn{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:.45rem .9rem;color:var(--white);font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.membership-btn:hover{background:rgba(255,255,255,0.25)}
+.membership-panel{display:none;padding:1.25rem 1.5rem;background:var(--white);border-bottom:2px solid var(--green)}
+.membership-panel.open{display:block}
 
 /* Empty states */
 .empty{text-align:center;padding:2rem;color:var(--text-lite);font-family:var(--display);font-size:.78rem;letter-spacing:1px;text-transform:uppercase}
@@ -145,18 +160,21 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <div class="plan-label">Address</div>
       <div class="plan-val" id="planAddr" style="font-size:.9rem;">—</div>
     </div>
+    <button class="membership-btn" onclick="toggleMembership()">
+      ⚙ Membership
+    </button>
+  </div>
+
+  <div class="membership-panel" id="membershipPanel">
+    <div style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:1rem;">Change My Plan</div>
+    <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
+    <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
+    <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
   </div>
 
   <div class="content">
     <div class="section-title">Next Appointment</div>
     <div id="nextAppt"><div class="empty"><span class="spinner"></span> Loading...</div></div>
-
-    <div class="section-title">Change My Plan</div>
-    <div id="changePlanSection">
-      <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
-      <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
-      <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
-    </div>
 
     <div class="section-title">Service History</div>
     <div id="historyList"><div class="empty"><span class="spinner"></span> Loading...</div></div>
@@ -287,6 +305,18 @@ async function loadClientDashboard(email) {
       document.getElementById('nextAppt').innerHTML = `<div class="empty">No upcoming appointments scheduled</div>`;
     }
 
+    // Fetch existing reviews for this client's completed leads
+    const completedIds = leads.filter(l => l.status === 'completed').map(l => l.id);
+    let reviewsByLeadId = {};
+    if (completedIds.length) {
+      const rvRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/lawn_service_reviews?lead_id=in.(${completedIds.join(',')})&select=lead_id,rating`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const reviews = await rvRes.json();
+      reviews.forEach(r => { reviewsByLeadId[r.lead_id] = r.rating; });
+    }
+
     // Service history
     const history = leads
       .filter(l => l.status === 'completed' && l.scheduled_date)
@@ -295,13 +325,29 @@ async function loadClientDashboard(email) {
     if (history.length) {
       document.getElementById('historyList').innerHTML = history.map(l => {
         const d = new Date(l.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'short', month:'long', day:'numeric', year:'numeric' });
-        return `<div class="history-row">
-          <div>
-            <div class="history-date">${d}</div>
-            <div class="history-addr">${l.address || ''}</div>
-            <span class="history-badge">✓ Completed</span>
+        const existingRating = reviewsByLeadId[l.id];
+        const ratingHtml = existingRating
+          ? `<div class="rate-prompt"><div class="rate-label">Your Rating</div><div class="stars">${[1,2,3,4,5].map(n=>`<span class="star${n<=existingRating?' lit':''}">★</span>`).join('')}</div></div>`
+          : `<div class="rate-prompt" id="ratePrompt-${l.id}">
+              <div class="rate-label">How was this visit?</div>
+              <div class="stars" id="stars-${l.id}">
+                ${[1,2,3,4,5].map(n=>`<button class="star" id="star-${l.id}-${n}"
+                  onmouseover="hoverStars(${l.id},${n})"
+                  onmouseout="resetStars(${l.id},0)"
+                  onclick="submitRating(${l.id},${n},${l.contractor_id||'null'})">★</button>`).join('')}
+              </div>
+              <div class="rate-thanks" id="rateThanks-${l.id}">Thanks for your feedback!</div>
+            </div>`;
+        return `<div class="history-row" id="histRow-${l.id}">
+          <div class="history-top">
+            <div>
+              <div class="history-date">${d}</div>
+              <div class="history-addr">${l.address || ''}</div>
+              <span class="history-badge">✓ Completed</span>
+            </div>
+            <div class="history-price">${l.price ? '$' + l.price : '—'}</div>
           </div>
-          <div class="history-price">${l.price ? '$' + l.price : '—'}</div>
+          ${ratingHtml}
         </div>`;
       }).join('');
     } else {
@@ -394,6 +440,45 @@ async function confirmPlanChange() {
     btn.textContent = 'Yes, Change It';
     btn.disabled = false;
   }
+}
+
+function toggleMembership() {
+  document.getElementById('membershipPanel').classList.toggle('open');
+}
+
+function hoverStars(leadId, n) {
+  for (let i = 1; i <= 5; i++) {
+    const s = document.getElementById(`star-${leadId}-${i}`);
+    if (s) s.classList.toggle('lit', i <= n);
+  }
+}
+
+function resetStars(leadId, current) {
+  for (let i = 1; i <= 5; i++) {
+    const s = document.getElementById(`star-${leadId}-${i}`);
+    if (s) s.classList.toggle('lit', i <= current);
+  }
+}
+
+async function submitRating(leadId, rating, contractorId) {
+  // Lock stars immediately
+  for (let i = 1; i <= 5; i++) {
+    const s = document.getElementById(`star-${leadId}-${i}`);
+    if (s) { s.onclick = null; s.onmouseover = null; s.onmouseout = null; s.classList.toggle('lit', i <= rating); }
+  }
+  document.getElementById(`rateThanks-${leadId}`).style.display = 'block';
+
+  const payload = { lead_id: leadId, rating };
+  if (contractorId) payload.contractor_id = contractorId;
+
+  await fetch(
+    `${SUPABASE_URL}/rest/v1/lawn_service_reviews`,
+    {
+      method: 'POST',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify(payload)
+    }
+  ).catch(e => console.error('Rating save error:', e));
 }
 
 async function logout() {
