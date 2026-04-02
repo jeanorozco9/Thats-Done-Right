@@ -686,7 +686,8 @@ async function scheduleNextVisit(jobId) {
         stripe_customer_id: job.stripe_customer_id,
         stripe_payment_method_id: job.stripe_payment_method_id,
         scheduled_date: nextDateStr,
-        status: 'booked'
+        status: 'booked',
+        auto_scheduled: true
       })
     });
   } catch(e) {
