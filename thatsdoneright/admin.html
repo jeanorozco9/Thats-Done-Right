@@ -561,7 +561,7 @@ function renderTable() {
       : '<span style="font-size:.75rem;color:var(--text-lite);">—</span>';
 
     return `<tr>
-      <td class="date-cell">${date}</td>
+      <td class="date-cell">${date}${l.invoice_number ? `<div style="font-size:.65rem;color:var(--text-lite);font-family:var(--display);letter-spacing:.3px;margin-top:2px;">${l.invoice_number}</div>` : ''}</td>
       <td><strong>${l.name || '—'}</strong></td>
       <td>${l.email ? `<a href="mailto:${l.email}" style="color:var(--green);text-decoration:none;">${l.email}</a>` : '—'}</td>
       <td>${l.phone ? `<a href="tel:${l.phone}" style="color:var(--dark);text-decoration:none;">${l.phone}</a>` : '—'}</td>

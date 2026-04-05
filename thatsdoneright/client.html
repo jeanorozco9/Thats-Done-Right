@@ -350,7 +350,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,payment_status,invoice_url,contractor_id&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,payment_status,invoice_url,invoice_number,contractor_id&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -471,6 +471,7 @@ async function loadClientDashboard(email) {
             <div>
               <div class="history-date">${d}</div>
               <div class="history-addr">${l.address || ''}</div>
+              ${l.invoice_number ? `<div style="font-family:var(--display);font-size:.6rem;letter-spacing:.5px;color:var(--text-lite);margin-top:2px;">${l.invoice_number}</div>` : ''}
               <span class="history-badge">✓ Completed</span>
             </div>
             <div class="history-price">${l.price ? '$' + l.price : '—'}</div>

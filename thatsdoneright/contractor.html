@@ -133,6 +133,28 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .month-count{font-size:.6rem;font-family:var(--display);font-weight:700;color:var(--green);display:block}
 
 @media(max-width:480px){.stats-row{gap:.5rem}.stat-card{padding:.75rem;min-width:80px}.jobs-wrap{padding:0 1rem 3rem}.job-card{padding:1rem}.timeline{padding:1rem 1rem 3rem}}
+
+/* Main tabs */
+.main-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--white);padding:0 1.5rem}
+.main-tab{font-family:var(--display);font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.85rem 1rem;border:none;background:none;cursor:pointer;color:var(--text-lite);border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.main-tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* Payments tab */
+.payments-wrap{padding:1.25rem 1.5rem 3rem;display:none}
+.payments-wrap.active{display:block}
+.ytd-card{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;gap:2rem;flex-wrap:wrap}
+.ytd-item{display:flex;flex-direction:column}
+.ytd-label{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-lite);margin-bottom:4px}
+.ytd-val{font-family:var(--display);font-size:1.8rem;font-weight:700;color:var(--dark);line-height:1}
+.ytd-val.green{color:var(--green)}
+.pay-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.pay-table th{font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);padding:.6rem .75rem;text-align:left;border-bottom:2px solid var(--border);white-space:nowrap}
+.pay-table td{padding:.75rem .75rem;border-bottom:1px solid var(--border);vertical-align:middle;color:var(--dark)}
+.pay-table tr:last-child td{border-bottom:none}
+.pay-table tr:hover td{background:#fafafa}
+.inv-num{font-family:var(--display);font-size:.72rem;font-weight:700;color:var(--text-mid);letter-spacing:.5px}
+.badge-paid{display:inline-flex;align-items:center;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.2rem .6rem;border-radius:100px;background:var(--green-tint);color:var(--green)}
+.badge-pending{display:inline-flex;align-items:center;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.2rem .6rem;border-radius:100px;background:#fff8e1;color:var(--yellow)}
 </style>
 </head>
 <body>
@@ -164,12 +186,19 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div class="page-header-title">My Schedule</div>
     <div class="page-header-sub" id="pageHeaderSub">Loading your schedule...</div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-num green" id="statToday">—</div><div class="stat-label">Today</div></div>
-    <div class="stat-card"><div class="stat-num yellow" id="statUpcoming">—</div><div class="stat-label">Upcoming</div></div>
-    <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Jobs</div></div>
-    <div class="stat-card"><div class="stat-num green" id="statCompleted">—</div><div class="stat-label">Completed</div></div>
+  <div class="main-tabs">
+    <button class="main-tab active" id="mainTabSchedule" onclick="switchMainTab('schedule')">Schedule</button>
+    <button class="main-tab" id="mainTabPayments" onclick="switchMainTab('payments')">Payments</button>
   </div>
+
+  <!-- Schedule section -->
+  <div id="scheduleSection">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num green" id="statToday">—</div><div class="stat-label">Today</div></div>
+      <div class="stat-card"><div class="stat-num yellow" id="statUpcoming">—</div><div class="stat-label">Upcoming</div></div>
+      <div class="stat-card"><div class="stat-num" id="statTotal">—</div><div class="stat-label">Total Jobs</div></div>
+      <div class="stat-card"><div class="stat-num green" id="statCompleted">—</div><div class="stat-label">Completed</div></div>
+    </div>
   <div class="schedule-header">
     <div class="view-tabs">
       <button class="view-tab active" id="tab-day" onclick="switchView('day')">Day</button>
@@ -186,8 +215,29 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <button class="date-nav-btn" onclick="navigateDate(1)">›</button>
     </div>
   </div>
-  <div id="scheduleWrap">
-    <div class="empty-state"><span class="spinner"></span> Loading jobs...</div>
+    <div id="scheduleWrap">
+      <div class="empty-state"><span class="spinner"></span> Loading jobs...</div>
+    </div>
+  </div><!-- end scheduleSection -->
+
+  <!-- Payments section -->
+  <div class="payments-wrap" id="paymentsSection">
+    <div class="ytd-card">
+      <div class="ytd-item">
+        <div class="ytd-label">Jobs Completed (YTD)</div>
+        <div class="ytd-val" id="ytdJobs">—</div>
+      </div>
+      <div class="ytd-item">
+        <div class="ytd-label">Invoices Paid (YTD)</div>
+        <div class="ytd-val green" id="ytdPaid">—</div>
+      </div>
+      <div class="ytd-item">
+        <div class="ytd-label">Pending Payment</div>
+        <div class="ytd-val" id="ytdPending">—</div>
+      </div>
+    </div>
+    <div class="section-title">Invoice History</div>
+    <div id="paymentsList"><div class="empty-state"><span class="spinner"></span> Loading...</div></div>
   </div>
 </div>
 
@@ -302,6 +352,76 @@ async function loadContractorAndJobs(email) {
     document.getElementById('contractorName').textContent = currentContractor.name.split(' ')[0];
     loadJobs();
   } catch(e) { console.error('Load contractor error:', e); }
+}
+
+function switchMainTab(tab) {
+  const onSchedule = tab === 'schedule';
+  document.getElementById('mainTabSchedule').classList.toggle('active', onSchedule);
+  document.getElementById('mainTabPayments').classList.toggle('active', !onSchedule);
+  document.getElementById('scheduleSection').style.display = onSchedule ? '' : 'none';
+  document.getElementById('paymentsSection').classList.toggle('active', !onSchedule);
+  if (!onSchedule) loadPayments();
+}
+
+async function loadPayments() {
+  const list = document.getElementById('paymentsList');
+  list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
+
+  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&status=eq.completed&select=id,address,name,scheduled_date,price,payment_status,invoice_number&order=scheduled_date.desc`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  const jobs = await res.json();
+
+  if (!jobs.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-msg">No completed jobs yet</div></div>';
+    document.getElementById('ytdJobs').textContent = '0';
+    document.getElementById('ytdPaid').textContent = '0';
+    document.getElementById('ytdPending').textContent = '0';
+    return;
+  }
+
+  const ytd = jobs.filter(j => j.scheduled_date >= yearStart);
+  const ytdPaid = ytd.filter(j => j.payment_status === 'paid');
+  const ytdPending = ytd.filter(j => j.payment_status !== 'paid');
+
+  document.getElementById('ytdJobs').textContent = ytd.length;
+  document.getElementById('ytdPaid').textContent = ytdPaid.length;
+  document.getElementById('ytdPending').textContent = ytdPending.length;
+
+  list.innerHTML = `
+    <div style="overflow-x:auto;">
+      <table class="pay-table">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Date</th>
+            <th>Client</th>
+            <th>Address</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${jobs.map(j => {
+            const d = j.scheduled_date
+              ? new Date(j.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              : '—';
+            const invNum = j.invoice_number || `#${j.id}`;
+            const firstName = (j.name || '').split(' ')[0] || '—';
+            const paid = j.payment_status === 'paid';
+            return `<tr>
+              <td><span class="inv-num">${invNum}</span></td>
+              <td>${d}</td>
+              <td>${firstName}</td>
+              <td style="font-size:.8rem;color:var(--text-mid)">${j.address || '—'}</td>
+              <td><span class="${paid ? 'badge-paid' : 'badge-pending'}">${paid ? 'Paid' : 'Pending'}</span></td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 async function logout() {
