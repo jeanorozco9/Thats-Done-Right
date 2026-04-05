@@ -298,7 +298,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,payment_status,invoice_url,contractor_id&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -374,7 +374,7 @@ async function loadClientDashboard(email) {
               <div class="bill-label">Amount Due</div>
               <div class="bill-amount">$${l.price}</div>
             </div>
-            <button class="btn-pay" id="payBtn-${l.id}" onclick="payBill(${l.id})">Pay Now</button>
+            <button class="btn-pay" id="payBtn-${l.id}" onclick="payBill(${l.id}, ${JSON.stringify(l.invoice_url||'')})">Pay Now</button>
           </div>
           <div class="bill-meta">Service on ${d} · ${l.address || ''}</div>
           <div class="pay-success" id="paySuccess-${l.id}">Payment submitted successfully!</div>
@@ -535,38 +535,14 @@ async function confirmPlanChange() {
   }
 }
 
-async function payBill(leadId) {
-  const btn = document.getElementById(`payBtn-${leadId}`);
-  btn.textContent = 'Processing...';
-  btn.disabled = true;
-  try {
-    await fetch(SEND_INVOICE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lead_id: leadId })
-    });
-
-    // Mark as paid in DB so it clears on next load
-    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
-      method: 'PATCH',
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=minimal'
-      },
-      body: JSON.stringify({ payment_status: 'paid' })
-    });
-
-    btn.style.display = 'none';
-    document.getElementById(`paySuccess-${leadId}`).style.display = 'block';
-    // Refresh after short delay so bill section disappears
-    setTimeout(() => loadHistory(), 2000);
-  } catch(e) {
-    console.error('Pay bill error:', e);
-    btn.textContent = 'Pay Now';
-    btn.disabled = false;
+async function payBill(leadId, invoiceUrl) {
+  // Open the Stripe-hosted invoice page so the client pays there
+  if (invoiceUrl) {
+    window.open(invoiceUrl, '_blank');
+    return;
   }
+  // Fallback: no invoice URL saved yet — shouldn't normally happen
+  alert('Payment link not available yet. Please check your email for the invoice.');
 }
 
 function openDisputeModal(leadId, dateStr, name, email, amount) {
