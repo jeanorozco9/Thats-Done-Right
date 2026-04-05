@@ -367,28 +367,28 @@ async function loadPayments() {
   const list = document.getElementById('paymentsList');
   list.innerHTML = '<div class="empty-state"><span class="spinner"></span> Loading...</div>';
 
-  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+  const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
 
   const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&status=eq.completed&select=id,address,name,scheduled_date,price,payment_status,invoice_number&order=scheduled_date.desc`,
+    `${SUPABASE_URL}/rest/v1/invoices?contractor_id=eq.${currentContractor.id}&select=id,invoice_number,amount_cents,status,created_at,paid_at,leads(name,address,scheduled_date)&order=created_at.desc`,
     { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
   );
-  const jobs = await res.json();
+  const invoices = await res.json();
 
-  if (!jobs.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-msg">No completed jobs yet</div></div>';
+  if (!invoices.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-msg">No invoices yet</div></div>';
     document.getElementById('ytdJobs').textContent = '0';
     document.getElementById('ytdPaid').textContent = '0';
     document.getElementById('ytdPending').textContent = '0';
     return;
   }
 
-  const ytd = jobs.filter(j => j.scheduled_date >= yearStart);
-  const ytdPaid = ytd.filter(j => j.payment_status === 'paid');
-  const ytdPending = ytd.filter(j => j.payment_status !== 'paid');
+  const ytd = invoices.filter(i => i.created_at >= yearStart);
+  const ytdPaid    = ytd.filter(i => i.status === 'paid');
+  const ytdPending = ytd.filter(i => i.status !== 'paid');
 
-  document.getElementById('ytdJobs').textContent = ytd.length;
-  document.getElementById('ytdPaid').textContent = ytdPaid.length;
+  document.getElementById('ytdJobs').textContent    = ytd.length;
+  document.getElementById('ytdPaid').textContent    = ytdPaid.length;
   document.getElementById('ytdPending').textContent = ytdPending.length;
 
   list.innerHTML = `
@@ -404,18 +404,17 @@ async function loadPayments() {
           </tr>
         </thead>
         <tbody>
-          ${jobs.map(j => {
-            const d = j.scheduled_date
-              ? new Date(j.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-              : '—';
-            const invNum = j.invoice_number || `#${j.id}`;
-            const firstName = (j.name || '').split(' ')[0] || '—';
-            const paid = j.payment_status === 'paid';
+          ${invoices.map(inv => {
+            const lead = inv.leads || {};
+            const d = lead.scheduled_date
+              ? new Date(lead.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+              : new Date(inv.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+            const paid = inv.status === 'paid';
             return `<tr>
-              <td><span class="inv-num">${invNum}</span></td>
+              <td><span class="inv-num">${inv.invoice_number || '#' + inv.id}</span></td>
               <td>${d}</td>
-              <td>${firstName}</td>
-              <td style="font-size:.8rem;color:var(--text-mid)">${j.address || '—'}</td>
+              <td>${(lead.name || '').split(' ')[0] || '—'}</td>
+              <td style="font-size:.8rem;color:var(--text-mid)">${lead.address || '—'}</td>
               <td><span class="${paid ? 'badge-paid' : 'badge-pending'}">${paid ? 'Paid' : 'Pending'}</span></td>
             </tr>`;
           }).join('')}
