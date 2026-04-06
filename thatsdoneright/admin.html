@@ -409,8 +409,9 @@ tr:hover td { background: var(--off-white); }
         <button class="refresh-btn" id="refreshBtn" onclick="loadLeads()">↻ Refresh</button>
       </div>
       <div class="filter-row">
-        <button class="filter-btn active" id="filterAll" onclick="showLeads(this)">All Leads</button>
-        <button class="filter-btn" onclick="setFilter('started', this)">Pending</button>
+        <button class="filter-btn active" id="filterAll" onclick="showLeads(this)">All</button>
+        <button class="filter-btn" onclick="setFilter('clients', this)">Clients</button>
+        <button class="filter-btn" onclick="setFilter('started', this)">Leads</button>
         <button class="filter-btn" onclick="setFilter('booked', this)">Booked</button>
         <button class="filter-btn" id="contractorsTab" onclick="showContractors(this)" style="margin-left:.5rem;border-color:#1c1c1c;color:#1c1c1c;font-weight:700;">🌿 Contractors</button>
         <div class="disputes-tab-wrap">
@@ -522,11 +523,16 @@ function setFilter(filter, btn) {
 function renderTable() {
   const leads = currentFilter === 'all'
     ? allLeads
-    : allLeads.filter(l => l.status === currentFilter || (currentFilter === 'booked' && l.status === 'invoiced'));
+    : currentFilter === 'clients'
+      ? allLeads.filter(l => l.status === 'booked' || l.status === 'completed' || l.status === 'invoiced')
+      : allLeads.filter(l => l.status === currentFilter || (currentFilter === 'booked' && l.status === 'invoiced'));
+
+  const filterLabel = currentFilter === 'all' ? 'All' : currentFilter === 'clients' ? 'Clients' : currentFilter === 'started' ? 'Leads' : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
+  document.getElementById('tableTitle').textContent = filterLabel;
 
   if (!leads.length) {
     document.getElementById('tableContainer').innerHTML =
-      '<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-msg">No leads yet</div></div>';
+      `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-msg">No ${filterLabel.toLowerCase()} yet</div></div>`;
     return;
   }
 
@@ -563,7 +569,15 @@ function renderTable() {
 
     return `<tr>
       <td class="date-cell">${date}${l.invoice_number ? `<div style="font-size:.65rem;color:var(--text-lite);font-family:var(--display);letter-spacing:.3px;margin-top:2px;">${l.invoice_number}</div>` : ''}</td>
-      <td><strong>${l.name || '—'}</strong></td>
+      <td>
+        <strong>${l.name || '—'}</strong>
+        <div style="margin-top:3px;">
+          ${l.status === 'started'
+            ? `<span style="display:inline-flex;align-items:center;font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.15rem .5rem;border-radius:100px;background:#f5f5f5;color:#999;">Lead</span>`
+            : `<span style="display:inline-flex;align-items:center;font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.15rem .5rem;border-radius:100px;background:var(--green-tint);color:var(--green);">Client</span>`
+          }
+        </div>
+      </td>
       <td>${l.email ? `<a href="mailto:${l.email}" style="color:var(--green);text-decoration:none;">${l.email}</a>` : '—'}</td>
       <td>${l.phone ? `<a href="tel:${l.phone}" style="color:var(--dark);text-decoration:none;">${l.phone}</a>` : '—'}</td>
       <td style="max-width:180px;font-size:.8rem;color:var(--text-mid);">${l.address || '—'}</td>
