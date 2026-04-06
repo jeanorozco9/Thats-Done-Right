@@ -417,6 +417,7 @@ tr:hover td { background: var(--off-white); }
           <button class="filter-btn" id="disputesTab" onclick="showDisputes(this)" style="margin-left:.25rem;border-color:#c62828;color:#c62828;font-weight:700;">⚑ Disputes</button>
           <span class="dispute-count" id="disputeTabCount" style="display:none;">0</span>
         </div>
+        <button class="filter-btn" id="invoicesTab" onclick="showInvoices(this)" style="margin-left:.25rem;border-color:#1565c0;color:#1565c0;font-weight:700;">🧾 Invoices</button>
       </div>
     </div>
 
@@ -561,7 +562,7 @@ function renderTable() {
       : '<span style="font-size:.75rem;color:var(--text-lite);">—</span>';
 
     return `<tr>
-      <td class="date-cell">${date}</td>
+      <td class="date-cell">${date}${l.invoice_number ? `<div style="font-size:.65rem;color:var(--text-lite);font-family:var(--display);letter-spacing:.3px;margin-top:2px;">${l.invoice_number}</div>` : ''}</td>
       <td><strong>${l.name || '—'}</strong></td>
       <td>${l.email ? `<a href="mailto:${l.email}" style="color:var(--green);text-decoration:none;">${l.email}</a>` : '—'}</td>
       <td>${l.phone ? `<a href="tel:${l.phone}" style="color:var(--dark);text-decoration:none;">${l.phone}</a>` : '—'}</td>
@@ -872,6 +873,71 @@ async function showDisputes(btn) {
   } catch(e) {
     document.getElementById('tableContainer').innerHTML =
       '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load disputes</div></div>';
+  }
+}
+
+async function showInvoices(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'Invoices';
+  document.getElementById('refreshBtn').onclick = () => showInvoices(btn);
+
+  document.getElementById('tableContainer').innerHTML =
+    '<div class="loading-state"><span class="spinner"></span> Loading invoices...</div>';
+
+  try {
+    const res = await fetch(
+      SUPABASE_URL + '/rest/v1/invoices?select=id,invoice_number,amount_cents,status,created_at,paid_at,due_date,leads(name,address,email)&order=created_at.desc',
+      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+    );
+    const invoices = await res.json();
+
+    if (!invoices.length) {
+      document.getElementById('tableContainer').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">🧾</div><div class="empty-state-msg">No invoices yet</div></div>';
+      return;
+    }
+
+    const STATUS_STYLE = {
+      pending:  { bg:'#f5f5f5',    color:'#999',     lbl:'Pending' },
+      sent:     { bg:'#e3f2fd',    color:'#1565c0',  lbl:'Sent' },
+      paid:     { bg:'var(--green-tint)', color:'var(--green)', lbl:'Paid' },
+      refunded: { bg:'#fff3e0',    color:'#e65100',  lbl:'Refunded' },
+    };
+
+    const rows = invoices.map(inv => {
+      const lead = inv.leads || {};
+      const created = new Date(inv.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+      const paidAt  = inv.paid_at ? new Date(inv.paid_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+      const dollars = inv.amount_cents ? '$' + Math.round(inv.amount_cents / 100) : '—';
+      const st = STATUS_STYLE[inv.status] || STATUS_STYLE.pending;
+      const badge = `<span style="display:inline-flex;align-items:center;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.2rem .6rem;border-radius:100px;background:${st.bg};color:${st.color};">${st.lbl}</span>`;
+
+      return `<tr>
+        <td class="date-cell">${created}<div style="font-size:.65rem;color:var(--text-lite);font-family:var(--display);margin-top:2px;">${inv.invoice_number || ''}</div></td>
+        <td><strong>${lead.name || '—'}</strong></td>
+        <td>${lead.email ? `<a href="mailto:${lead.email}" style="color:var(--green);text-decoration:none;">${lead.email}</a>` : '—'}</td>
+        <td style="max-width:160px;font-size:.8rem;color:var(--text-mid);">${lead.address || '—'}</td>
+        <td class="price-cell">${dollars}</td>
+        <td>${badge}</td>
+        <td class="date-cell">${paidAt}</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('tableContainer').innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Invoice</th><th>Client</th><th>Email</th><th>Address</th>
+            <th>Amount</th><th>Status</th><th>Paid On</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load invoices</div></div>';
   }
 }
 
