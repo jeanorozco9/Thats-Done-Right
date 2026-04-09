@@ -1863,7 +1863,7 @@ function updatePrice() {
   const TAX_RATE = 0.0825;
   const tax = parseFloat((price * TAX_RATE).toFixed(2));
   const total = parseFloat((price + tax).toFixed(2));
-  window.totalPrice = total;
+  window.totalPrice = Math.round(total);
   document.getElementById('priceNum').textContent = price;
   document.getElementById('taxAmount').textContent = tax.toFixed(2);
   document.getElementById('totalAmount').textContent = total.toFixed(2);
@@ -1967,7 +1967,12 @@ async function submitLead() {
     });
     const data = await res.json();
     if (data && data[0]) window.currentLeadId = data[0].id;
-  } catch(e) { console.error('Lead save error:', e); }
+  } catch(e) {
+    console.error('Lead save error:', e);
+    btn.textContent = 'Lock In My Visit →';
+    btn.disabled = false;
+    return;
+  }
 
   // Go to card panel
   const price = document.getElementById('priceNum').textContent;
