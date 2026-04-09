@@ -1230,6 +1230,10 @@ footer {
             <div class="price-label">Your Price Per Visit</div>
             <div class="price-amount"><sup>$</sup><span id="priceNum">--</span></div>
             <div class="price-sub">Flat rate · No hidden fees · Pay after service</div>
+            <div style="margin-top:.75rem;font-size:.85rem;color:#666;display:flex;flex-direction:column;gap:.25rem;text-align:left;padding:0 .5rem;">
+              <div style="display:flex;justify-content:space-between;"><span>Tax (8.25%)</span><span>$<span id="taxAmount">--</span></span></div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;color:#1C1C1C;border-top:1px solid #E8E2DC;padding-top:.25rem;"><span>Total Per Visit</span><span>$<span id="totalAmount">--</span></span></div>
+            </div>
           </div>
 
           <div class="stats-row">
@@ -1856,7 +1860,12 @@ function updatePrice() {
   let price = window.basePrice;
   if (window.currentFreq === 'twice')  price = Math.round(price * 1.10);
   if (window.currentFreq === 'once')   price = Math.round(price * 1.20);
+  const TAX_RATE = 0.0825;
+  const tax = parseFloat((price * TAX_RATE).toFixed(2));
+  const total = parseFloat((price + tax).toFixed(2));
   document.getElementById('priceNum').textContent = price;
+  document.getElementById('taxAmount').textContent = tax.toFixed(2);
+  document.getElementById('totalAmount').textContent = total.toFixed(2);
 }
 
 function calculateQuote() {
