@@ -1863,6 +1863,7 @@ function updatePrice() {
   const TAX_RATE = 0.0825;
   const tax = parseFloat((price * TAX_RATE).toFixed(2));
   const total = parseFloat((price + tax).toFixed(2));
+  window.totalPrice = total;
   document.getElementById('priceNum').textContent = price;
   document.getElementById('taxAmount').textContent = tax.toFixed(2);
   document.getElementById('totalAmount').textContent = total.toFixed(2);
@@ -1950,7 +1951,7 @@ async function submitLead() {
     address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
-    price: (() => { let p = window.basePrice || 0; if (window.currentFreq === 'twice') p = Math.round(p * 1.10); if (window.currentFreq === 'once') p = Math.round(p * 1.20); return parseFloat((p * 1.0825).toFixed(2)); })(),
+    price: window.totalPrice || 0,
     job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
     scheduled_date: ld.prefDate || null,
     status: 'started',
