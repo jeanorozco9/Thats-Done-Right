@@ -147,7 +147,7 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .drawer-close:hover{color:#fff}
 .drawer-user{padding:.85rem 1.25rem;font-family:var(--display);font-size:.68rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4)}
 .drawer-nav{flex:1;display:flex;flex-direction:column;padding:.5rem 0}
-.drawer-item{display:flex;align-items:center;gap:.85rem;padding:.9rem 1.25rem;color:rgba(255,255,255,0.75);font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;background:none;text-align:left;width:100%;text-decoration:none;transition:background .15s,color .15s}
+.drawer-item{display:flex;align-items:center;gap:.85rem;padding:.45rem 1.25rem;color:rgba(255,255,255,0.75);font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;background:none;text-align:left;width:100%;text-decoration:none;transition:background .15s,color .15s}
 .drawer-item:hover{background:rgba(255,255,255,0.06);color:#fff}
 .drawer-icon{font-size:1.1rem;width:22px;text-align:center;flex-shrink:0}
 .drawer-divider{height:1px;background:rgba(255,255,255,0.08);margin:.5rem 1.25rem}
@@ -192,6 +192,10 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     </div>
     <div class="drawer-user" id="drawerUser">My Account</div>
     <nav class="drawer-nav">
+      <button class="drawer-item signout" onclick="logout()">
+        <span class="drawer-icon">⏻</span> Sign Out
+      </button>
+      <div class="drawer-divider"></div>
       <button class="drawer-item" onclick="drawerGo('schedule')">
         <span class="drawer-icon">📅</span> My Schedule
       </button>
@@ -201,14 +205,9 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <button class="drawer-item" onclick="drawerGo('payment')">
         <span class="drawer-icon">💳</span> Payment Method
       </button>
-      <div class="drawer-divider"></div>
       <a class="drawer-item" href="index.html#faq" target="_blank">
         <span class="drawer-icon">❓</span> Questions
       </a>
-      <div class="drawer-divider"></div>
-      <button class="drawer-item signout" onclick="logout()">
-        <span class="drawer-icon">⏻</span> Sign Out
-      </button>
     </nav>
   </div>
 
