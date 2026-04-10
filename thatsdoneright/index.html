@@ -530,15 +530,14 @@ input:focus {
 .freq-card.active { border-color: var(--red); }
 .freq-card-label { padding: .95rem 1.1rem; flex: 1; }
 .freq-card-name {
-  font-family: var(--display); font-size: 1rem; font-weight: 700;
+  font-family: var(--display); font-size: 1.4rem; font-weight: 700;
   color: var(--dark); letter-spacing: .3px;
 }
-.freq-card-desc { font-size: .78rem; color: var(--text-mid); margin-top: 2px; }
 .freq-card-recommended {
-  display: inline-block; font-family: var(--display); font-size: .55rem;
+  display: inline-block; font-family: var(--display); font-size: .72rem;
   font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
   background: var(--red); color: var(--white); border-radius: 4px;
-  padding: .15rem .5rem; margin-bottom: .3rem;
+  padding: .25rem .7rem; margin-bottom: .45rem;
 }
 .freq-card-price {
   background: var(--red); color: var(--white);
@@ -1240,7 +1239,6 @@ footer {
                 <div class="freq-card-label">
                   <div class="freq-card-recommended">Recommended</div>
                   <div class="freq-card-name">Weekly</div>
-                  <div class="freq-card-desc">Best value · mowed every week</div>
                 </div>
                 <div class="freq-card-price">
                   <div class="freq-card-price-num" id="price-weekly">$--</div>
@@ -1250,7 +1248,6 @@ footer {
               <button class="freq-card" id="freq-twice" onclick="selectFreq('twice')">
                 <div class="freq-card-label">
                   <div class="freq-card-name">Every 2 Weeks</div>
-                  <div class="freq-card-desc">Mowed every other week</div>
                 </div>
                 <div class="freq-card-price">
                   <div class="freq-card-price-num" id="price-twice">$--</div>
@@ -1573,9 +1570,9 @@ function checkZone(zip) {
 function calcPrice(lawn) {
   const effective = Math.max(lawn, 4000);
   // Progressive pricing — rate applies only to sqft within each band
-  const base  = Math.min(effective, 4000) * 0.008;                          // first 4,000 sqft
+  const base  = Math.min(effective, 4000) * 0.00825;                        // first 4,000 sqft → $33
   const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.005;      // 4,001–8,000
-  const large = Math.max(0, effective - 8000) * 0.0024;                     // above 8,000
+  const large = Math.max(0, effective - 8000) * 0.00213;                    // above 8,000
   return Math.round(base + mid + large);
 }
 
