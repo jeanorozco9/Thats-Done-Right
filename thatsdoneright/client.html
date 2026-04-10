@@ -137,6 +137,12 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .hamburger{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:4px}
 .hamburger span{display:block;width:22px;height:2px;background:rgba(255,255,255,0.75);border-radius:2px;transition:background .15s}
 .hamburger:hover span{background:#fff}
+/* Upcoming schedule */
+.upcoming-row{display:flex;align-items:center;gap:1rem;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:.85rem 1.25rem;margin-bottom:.5rem}
+.upcoming-dot{width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0}
+.upcoming-date{font-family:var(--display);font-size:.88rem;font-weight:600;color:var(--dark)}
+.upcoming-freq{font-size:.78rem;color:var(--text-mid);margin-top:1px}
+
 .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:300}
 .drawer-overlay.open{display:block}
 .drawer{position:fixed;top:0;right:-280px;width:280px;height:100vh;background:#1c1c1c;z-index:301;transition:right .25s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
@@ -146,8 +152,8 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .drawer-close{background:none;border:none;color:rgba(255,255,255,0.5);font-size:1.4rem;cursor:pointer;line-height:1;padding:2px 6px}
 .drawer-close:hover{color:#fff}
 .drawer-user{padding:.85rem 1.25rem;font-family:var(--display);font-size:.68rem;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4)}
-.drawer-nav{flex:1;display:flex;flex-direction:column;padding:.5rem 0}
-.drawer-item{display:flex;align-items:center;gap:.85rem;padding:.2rem 1.25rem;color:rgba(255,255,255,0.75);font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;background:none;text-align:left;width:100%;text-decoration:none;transition:background .15s,color .15s}
+.drawer-nav{display:flex;flex-direction:column;padding:.25rem 0}
+.drawer-item{display:flex;align-items:center;gap:.85rem;padding:.75rem 1.25rem;color:rgba(255,255,255,0.75);font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;border:none;background:none;text-align:left;width:100%;text-decoration:none;transition:background .15s,color .15s}
 .drawer-item:hover{background:rgba(255,255,255,0.06);color:#fff}
 .drawer-icon{font-size:1.1rem;width:22px;text-align:center;flex-shrink:0}
 .drawer-divider{height:1px;background:rgba(255,255,255,0.08);margin:.5rem 1.25rem}
@@ -192,10 +198,6 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     </div>
     <div class="drawer-user" id="drawerUser">My Account</div>
     <nav class="drawer-nav">
-      <button class="drawer-item signout" onclick="logout()">
-        <span class="drawer-icon">⏻</span> Sign Out
-      </button>
-      <div class="drawer-divider"></div>
       <button class="drawer-item" onclick="drawerGo('schedule')">
         <span class="drawer-icon">📅</span> My Schedule
       </button>
@@ -208,6 +210,10 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <a class="drawer-item" href="index.html#faq" target="_blank">
         <span class="drawer-icon">❓</span> Questions
       </a>
+      <div class="drawer-divider"></div>
+      <button class="drawer-item signout" onclick="logout()">
+        <span class="drawer-icon">⏻</span> Sign Out
+      </button>
     </nav>
   </div>
 
@@ -244,6 +250,11 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   <div class="content">
     <div class="section-title" id="scheduleSection">Next Appointment</div>
     <div id="nextAppt"><div class="empty"><span class="spinner"></span> Loading...</div></div>
+
+    <div id="upcomingSection" style="display:none;">
+      <div class="section-title">Upcoming Schedule</div>
+      <div id="upcomingList"></div>
+    </div>
 
     <div id="billSection" style="display:none;">
       <div class="section-title">Current Bill</div>
@@ -380,6 +391,7 @@ async function loadClientDashboard(email) {
 
     // Render plan change options
     renderPlanOptions(activePlanFreq);
+    buildUpcomingSchedule(leads);
 
     // Next appointment
     const next = leads.find(l => l.status === 'booked' && l.scheduled_date && l.scheduled_date >= today);
@@ -716,6 +728,7 @@ function closeDrawer() {
 function drawerGo(section) {
   closeDrawer();
   if (section === 'schedule') {
+    document.getElementById('upcomingSection').style.display = 'block';
     document.getElementById('scheduleSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else if (section === 'details') {
     document.getElementById('planBanner').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -727,6 +740,47 @@ function drawerGo(section) {
       alert('No outstanding balance on file.');
     }
   }
+}
+
+function buildUpcomingSchedule(leads) {
+  // Find the most recent lead with a date (booked or completed)
+  const dated = leads
+    .filter(l => l.scheduled_date && (l.status === 'booked' || l.status === 'completed'))
+    .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
+  if (!dated.length) return;
+
+  const anchor = dated[0];
+  const freq   = anchor.frequency;
+  const days   = freq === 'weekly' ? 7 : 14;
+  const freqLabel = freq === 'weekly' ? 'Weekly service' : 'Every 2 weeks';
+
+  // Project forward from anchor date for 2 months
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const twoMonths = new Date(today); twoMonths.setMonth(twoMonths.getMonth() + 2);
+
+  let cursor = new Date(anchor.scheduled_date + 'T12:00:00');
+  const upcoming = [];
+
+  // Advance cursor past today
+  while (cursor <= today) cursor.setDate(cursor.getDate() + days);
+
+  while (cursor <= twoMonths) {
+    upcoming.push(new Date(cursor));
+    cursor.setDate(cursor.getDate() + days);
+  }
+
+  if (!upcoming.length) return;
+
+  document.getElementById('upcomingList').innerHTML = upcoming.map(d => {
+    const label = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    return `<div class="upcoming-row">
+      <div class="upcoming-dot"></div>
+      <div>
+        <div class="upcoming-date">${label}</div>
+        <div class="upcoming-freq">${freqLabel}</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 async function logout() {
