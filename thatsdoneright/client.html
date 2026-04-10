@@ -391,9 +391,9 @@ async function loadClientDashboard(email) {
 
     // Render plan change options
     renderPlanOptions(activePlanFreq);
-    buildUpcomingSchedule(leads);
+    const schedule = buildUpcomingSchedule(leads);
 
-    // Next appointment
+    // Next appointment — use actual booked lead, fall back to first projected date
     const next = leads.find(l => l.status === 'booked' && l.scheduled_date && l.scheduled_date >= today);
     if (next) {
       const dateStr = new Date(next.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
@@ -406,6 +406,18 @@ async function loadClientDashboard(email) {
             <div class="appt-meta-item"><div class="appt-meta-label">Address</div><div class="appt-meta-val">${next.address || '—'}</div></div>
             <div class="appt-meta-item"><div class="appt-meta-label">Frequency</div><div class="appt-meta-val">${freqLabel}</div></div>
             <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${next.price ? '$' + next.price : '—'}</div></div>
+          </div>
+        </div>`;
+    } else if (schedule && schedule.dates && schedule.dates.length) {
+      const dateStr = schedule.dates[0].toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+      document.getElementById('nextAppt').innerHTML = `
+        <div class="appt-card">
+          <div class="appt-date">${dateStr}</div>
+          <div class="appt-time">🕐 Time TBD</div>
+          <div class="appt-meta">
+            <div class="appt-meta-item"><div class="appt-meta-label">Address</div><div class="appt-meta-val">${planLead.address || '—'}</div></div>
+            <div class="appt-meta-item"><div class="appt-meta-label">Frequency</div><div class="appt-meta-val">${freqLabel}</div></div>
+            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${planLead.price ? '$' + planLead.price : '—'}</div></div>
           </div>
         </div>`;
     } else {
@@ -747,21 +759,20 @@ function buildUpcomingSchedule(leads) {
   const dated = leads
     .filter(l => l.scheduled_date && (l.status === 'booked' || l.status === 'completed'))
     .sort((a, b) => b.scheduled_date.localeCompare(a.scheduled_date));
-  if (!dated.length) return;
+  if (!dated.length) return [];
 
   const anchor = dated[0];
   const freq   = anchor.frequency;
   const days   = freq === 'weekly' ? 7 : 14;
   const freqLabel = freq === 'weekly' ? 'Weekly service' : 'Every 2 weeks';
 
-  // Project forward from anchor date for 2 months
-  const today   = new Date(); today.setHours(0,0,0,0);
+  const today     = new Date(); today.setHours(0,0,0,0);
   const twoMonths = new Date(today); twoMonths.setMonth(twoMonths.getMonth() + 2);
 
   let cursor = new Date(anchor.scheduled_date + 'T12:00:00');
   const upcoming = [];
 
-  // Advance cursor past today
+  // Advance past today
   while (cursor <= today) cursor.setDate(cursor.getDate() + days);
 
   while (cursor <= twoMonths) {
@@ -769,8 +780,9 @@ function buildUpcomingSchedule(leads) {
     cursor.setDate(cursor.getDate() + days);
   }
 
-  if (!upcoming.length) return;
+  if (!upcoming.length) return [];
 
+  document.getElementById('upcomingSection').style.display = 'block';
   document.getElementById('upcomingList').innerHTML = upcoming.map(d => {
     const label = d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
     return `<div class="upcoming-row">
@@ -781,6 +793,8 @@ function buildUpcomingSchedule(leads) {
       </div>
     </div>`;
   }).join('');
+
+  return { dates: upcoming, anchor, freqLabel };
 }
 
 async function logout() {
