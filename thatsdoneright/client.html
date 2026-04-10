@@ -279,6 +279,28 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 </div>
 
+<!-- Payment method modal -->
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal-card" style="max-width:340px;">
+    <div style="font-size:2.2rem;margin-bottom:.6rem;text-align:center;">💳</div>
+    <div class="modal-title">Payment Method</div>
+    <div id="paymentModalBody" class="modal-body" style="margin-bottom:1.25rem;">
+      <div style="background:#f7f7f7;border-radius:10px;padding:1rem 1.25rem;text-align:left;margin-bottom:.75rem;">
+        <div style="font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.35rem;">Card on File</div>
+        <div id="pmCardDisplay" style="font-family:var(--display);font-size:.95rem;font-weight:600;color:var(--dark);">•••• •••• •••• ——</div>
+        <div style="font-size:.78rem;color:var(--text-mid);margin-top:.2rem;">Securely stored via Stripe</div>
+      </div>
+      <div style="font-size:.82rem;color:var(--text-mid);line-height:1.55;">To view details or update your card, click below. You'll be taken to our secure payment portal.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.5rem;">
+      <button class="modal-btn modal-btn-confirm" id="btnUpdateCard" onclick="updatePaymentMethod()" style="background:var(--green);">
+        Manage Payment Method
+      </button>
+      <button class="modal-btn modal-btn-cancel" onclick="closePaymentModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- Dispute confirmation modal -->
 <div class="modal-overlay" id="disputeModal">
   <div class="modal-card">
@@ -303,13 +325,14 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 const FREQ_LABELS       = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' };
 const FREQ_MULTIPLIERS  = { weekly: 1.0, twice: 1.10, once: 1.20 };
 
-let activePlanLeadId   = null;
-let activePlanFreq     = null;
-let activePlanPrice    = null;
-let pendingFreq        = null;
-let activeContractorId = null;
-let pendingDisputeId   = null;
-let pendingDisputeMeta = {};
+let activePlanLeadId        = null;
+let activePlanFreq          = null;
+let activePlanPrice         = null;
+let pendingFreq             = null;
+let activeContractorId      = null;
+let pendingDisputeId        = null;
+let pendingDisputeMeta      = {};
+let currentStripeCustomerId = null;
 
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -360,7 +383,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -383,11 +406,12 @@ async function loadClientDashboard(email) {
     document.getElementById('planAddr').textContent  = planLead.address || '—';
     document.getElementById('planBanner').style.display = 'flex';
 
-    // Store for plan change
-    activePlanLeadId   = planLead.id;
-    activePlanFreq     = planLead.frequency;
-    activePlanPrice    = planLead.price || 0;
-    activeContractorId = planLead.contractor_id || null;
+    // Store for plan change / payment
+    activePlanLeadId        = planLead.id;
+    activePlanFreq          = planLead.frequency;
+    activePlanPrice         = planLead.price || 0;
+    activeContractorId      = planLead.contractor_id || null;
+    currentStripeCustomerId = leads.find(l => l.stripe_customer_id)?.stripe_customer_id || null;
 
     // Render plan change options
     renderPlanOptions(activePlanFreq);
@@ -745,12 +769,7 @@ function drawerGo(section) {
   } else if (section === 'details') {
     document.getElementById('planBanner').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else if (section === 'payment') {
-    document.getElementById('billSection').style.display = 'block';
-    document.getElementById('billSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    if (!document.getElementById('billList').children.length) {
-      document.getElementById('billSection').style.display = 'none';
-      alert('No outstanding balance on file.');
-    }
+    openPaymentModal();
   }
 }
 
@@ -795,6 +814,52 @@ function buildUpcomingSchedule(leads) {
   }).join('');
 
   return { dates: upcoming, anchor, freqLabel };
+}
+
+function openPaymentModal() {
+  document.getElementById('paymentModal').classList.add('open');
+}
+
+function closePaymentModal() {
+  document.getElementById('paymentModal').classList.remove('open');
+}
+
+async function updatePaymentMethod() {
+  if (!currentStripeCustomerId) {
+    alert('No payment method on file. Please contact support.');
+    return;
+  }
+  const btn = document.getElementById('btnUpdateCard');
+  btn.textContent = 'Opening...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/billing-portal`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+          stripe_customer_id: currentStripeCustomerId,
+          return_url: window.location.href
+        })
+      }
+    );
+    const data = await res.json();
+    if (data.url) {
+      window.open(data.url, '_blank');
+    } else {
+      alert('Unable to open payment portal. Please try again or contact support.');
+    }
+  } catch(e) {
+    console.error('Billing portal error:', e);
+    alert('Something went wrong. Please try again.');
+  } finally {
+    btn.textContent = 'Manage Payment Method';
+    btn.disabled = false;
+  }
 }
 
 async function logout() {
