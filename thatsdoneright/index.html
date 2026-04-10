@@ -517,24 +517,40 @@ input:focus {
 .result-panel { display: none; animation: fadeUp .3s ease; }
 .result-panel.show { display: block; }
 
-/* Frequency buttons */
-.freq-btn {
-  font-family: var(--display);
-  font-size: .78rem;
-  font-weight: 600;
-  letter-spacing: .5px;
-  text-transform: uppercase;
-  padding: .5rem 1.1rem;
-  border-radius: 100px;
-  border: 2px solid var(--border);
-  background: var(--white);
-  color: var(--text-mid);
-  cursor: pointer;
-  transition: all .15s;
+/* Frequency cards */
+.freq-cards { display: flex; flex-direction: column; gap: .6rem; }
+.freq-card {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 0; border-radius: 12px;
+  border: 2px solid var(--border); background: var(--white);
+  cursor: pointer; transition: border-color .15s, box-shadow .15s;
+  overflow: hidden; text-align: left; position: relative;
 }
-
-.freq-btn:hover { border-color: var(--red); color: var(--red); }
-.freq-btn.active { background: var(--red); border-color: var(--red); color: var(--white); }
+.freq-card:hover { border-color: var(--red); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.freq-card.active { border-color: var(--red); }
+.freq-card-label { padding: .95rem 1.1rem; flex: 1; }
+.freq-card-name {
+  font-family: var(--display); font-size: 1rem; font-weight: 700;
+  color: var(--dark); letter-spacing: .3px;
+}
+.freq-card-desc { font-size: .78rem; color: var(--text-mid); margin-top: 2px; }
+.freq-card-recommended {
+  display: inline-block; font-family: var(--display); font-size: .55rem;
+  font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  background: var(--red); color: var(--white); border-radius: 4px;
+  padding: .15rem .5rem; margin-bottom: .3rem;
+}
+.freq-card-price {
+  background: var(--red); color: var(--white);
+  padding: .95rem 1.25rem; min-width: 100px; text-align: right;
+  display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+  transition: background .15s;
+}
+.freq-card:not(.active) .freq-card-price { background: #f0f0f0; color: var(--text-mid); }
+.freq-card-price-num {
+  font-family: var(--display); font-size: 1.3rem; font-weight: 700; line-height: 1;
+}
+.freq-card-price-label { font-size: .65rem; margin-top: 2px; opacity: .8; }
 
 /* Price block */
 .price-block {
@@ -1218,11 +1234,29 @@ footer {
 
           <!-- Frequency selector -->
           <div style="margin-bottom:1.25rem;">
-            <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);margin-bottom:.65rem;text-align:center;">How often would you like service?</div>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;">
-              <button class="freq-btn active" id="freq-weekly" onclick="selectFreq('weekly')">Weekly</button>
-              <button class="freq-btn" id="freq-twice" onclick="selectFreq('twice')">Twice a Month</button>
-              <button class="freq-btn" id="freq-once" onclick="selectFreq('once')">Once a Month</button>
+            <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);margin-bottom:.75rem;text-align:center;">How often would you like service?</div>
+            <div class="freq-cards">
+              <button class="freq-card active" id="freq-weekly" onclick="selectFreq('weekly')">
+                <div class="freq-card-label">
+                  <div class="freq-card-recommended">Recommended</div>
+                  <div class="freq-card-name">Weekly</div>
+                  <div class="freq-card-desc">Best value · mowed every week</div>
+                </div>
+                <div class="freq-card-price">
+                  <div class="freq-card-price-num" id="price-weekly">$--</div>
+                  <div class="freq-card-price-label">per service</div>
+                </div>
+              </button>
+              <button class="freq-card" id="freq-twice" onclick="selectFreq('twice')">
+                <div class="freq-card-label">
+                  <div class="freq-card-name">Every 2 Weeks</div>
+                  <div class="freq-card-desc">Mowed every other week</div>
+                </div>
+                <div class="freq-card-price">
+                  <div class="freq-card-price-num" id="price-twice">$--</div>
+                  <div class="freq-card-price-label">per service</div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -1854,16 +1888,20 @@ function setLoading(on) { document.getElementById('loadingRow').classList.toggle
 
 function selectFreq(freq) {
   window.currentFreq = freq;
-  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.freq-card').forEach(b => b.classList.remove('active'));
   document.getElementById('freq-' + freq).classList.add('active');
   updatePrice();
 }
 
 function updatePrice() {
   if (!window.basePrice) return;
-  let price = window.basePrice;
-  if (window.currentFreq === 'twice')  price = Math.round(price * 1.10);
-  if (window.currentFreq === 'once')   price = Math.round(price * 1.20);
+  const base  = window.basePrice;
+  const twice = Math.round(base * 1.10);
+  // Update prices inside each card
+  document.getElementById('price-weekly').textContent = '$' + base;
+  document.getElementById('price-twice').textContent  = '$' + twice;
+  // Selected price for summary/tax block
+  let price = window.currentFreq === 'twice' ? twice : base;
   const TAX_RATE = 0.0825;
   const tax = parseFloat((price * TAX_RATE).toFixed(2));
   const total = parseFloat((price + tax).toFixed(2));
@@ -1887,7 +1925,7 @@ function calculateQuote() {
 
   window.basePrice = price;
   window.currentFreq = 'weekly';
-  document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.freq-card').forEach(b => b.classList.remove('active'));
   document.getElementById('freq-weekly').classList.add('active');
   updatePrice();
   document.getElementById('statLot').textContent  = lot.toLocaleString()  + ' sqft';
@@ -1916,7 +1954,7 @@ function goBackToDetails() {
 
 function handleBook() {
   const price = document.getElementById('priceNum').textContent;
-  const freq  = { weekly: 'Weekly', twice: 'Twice a Month', once: 'Once a Month' }[window.currentFreq || 'weekly'];
+  const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
   const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
   document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
 
@@ -1980,7 +2018,7 @@ async function submitLead() {
 
   // Go to card panel
   const price = document.getElementById('priceNum').textContent;
-  const freq  = { weekly: 'Weekly', twice: 'Twice a Month', once: 'Once a Month' }[window.currentFreq || 'weekly'];
+  const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
   const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
   document.getElementById('cardSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit — No charge today`;
 
