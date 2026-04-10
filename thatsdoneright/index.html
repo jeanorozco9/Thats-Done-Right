@@ -1570,9 +1570,9 @@ function checkZone(zip) {
 function calcPrice(lawn) {
   const effective = Math.max(lawn, 4000);
   // Progressive pricing — rate applies only to sqft within each band
-  const base  = Math.min(effective, 4000) * 0.008;                          // first 4,000 sqft
+  const base  = Math.min(effective, 4000) * 0.00825;                        // first 4,000 sqft → $33
   const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.005;      // 4,001–8,000
-  const large = Math.max(0, effective - 8000) * 0.0024;                     // above 8,000
+  const large = Math.max(0, effective - 8000) * 0.00213;                    // above 8,000
   return Math.round(base + mid + large);
 }
 
