@@ -81,8 +81,10 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 /* Membership */
 .membership-btn{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:.45rem .9rem;color:var(--white);font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .membership-btn:hover{background:rgba(255,255,255,0.25)}
-.membership-panel{display:none;padding:1.25rem 1.5rem;background:var(--white);border-bottom:2px solid var(--green)}
-.membership-panel.open{display:block}
+.membership-panel{max-height:0;overflow:hidden;transition:max-height .35s ease, padding .35s ease;padding:0 1.5rem;background:var(--white);border-bottom:2px solid transparent;}
+.membership-panel.open{max-height:600px;padding:1.25rem 1.5rem;border-bottom:2px solid var(--green);}
+.membership-btn-chevron{display:inline-block;transition:transform .3s ease;margin-left:.25rem;}
+.membership-btn.open .membership-btn-chevron{transform:rotate(180deg);}
 .price-change-note{display:inline-block;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:.3rem .7rem;font-size:.78rem;color:#f57f17;margin-top:.5rem}
 
 /* Current bill */
@@ -235,8 +237,8 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <div class="plan-label">Address</div>
       <div class="plan-val" id="planAddr" style="font-size:.9rem;">—</div>
     </div>
-    <button class="membership-btn" onclick="toggleMembership()">
-      ⚙ Membership
+    <button class="membership-btn" id="membershipBtn" onclick="toggleMembership()">
+      ⚙ Membership <span class="membership-btn-chevron">▾</span>
     </button>
   </div>
 
@@ -768,6 +770,7 @@ async function confirmDispute() {
 
 function toggleMembership() {
   document.getElementById('membershipPanel').classList.toggle('open');
+  document.getElementById('membershipBtn').classList.toggle('open');
 }
 
 function hoverStars(leadId, n) {
