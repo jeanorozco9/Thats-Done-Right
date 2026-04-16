@@ -304,7 +304,7 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div style="font-family:var(--script);font-size:2rem;color:var(--green);margin-bottom:.4rem;">Goodbye, Friend.</div>
     <div style="font-family:var(--display);font-size:.95rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem;color:var(--dark);">Your membership has been cancelled.</div>
     <div style="font-size:.88rem;color:var(--text-mid);line-height:1.7;margin-bottom:1.5rem;">We're truly sorry to see you go. 💔<br>Your lawn was looking <em>amazing</em>.<br><br>Whenever you're ready to come back — we'll be here. 🌿</div>
-    <button onclick="document.getElementById('goodbyeModal').classList.remove('open'); logout();" style="width:100%;padding:.85rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Take Me Home 🏡</button>
+    <button onclick="document.getElementById('goodbyeModal').classList.remove('open'); sb.auth.signOut().then(() => { window.location.href = 'index.html'; });" style="width:100%;padding:.85rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Take Me Home 🏡</button>
   </div>
 </div>
 
