@@ -245,6 +245,11 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
     <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
     <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
+
+    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+      <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Cancel Subscription</p>
+      <button onclick="cancelMembership()" style="width:100%;padding:.75rem;background:#e53935;color:#fff;border:none;border-radius:var(--radius);font-family:var(--display);font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;">Cancel Membership</button>
+    </div>
   </div>
 
   <div class="content">
@@ -859,6 +864,20 @@ async function updatePaymentMethod() {
   } finally {
     btn.textContent = 'Manage Payment Method';
     btn.disabled = false;
+  }
+}
+
+async function cancelMembership() {
+  if (!confirm('Are you sure you want to cancel your membership? This cannot be undone.')) return;
+  try {
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from('leads').update({ status: 'cancelled' }).eq('email', user.email);
+    alert('Your membership has been cancelled. We\'re sorry to see you go!');
+    await logout();
+  } catch(e) {
+    console.error('Cancel error:', e);
+    alert('Something went wrong. Please contact us at team@thatsdoneright.com');
   }
 }
 
