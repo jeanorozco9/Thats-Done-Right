@@ -81,10 +81,14 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 /* Membership */
 .membership-btn{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:.45rem .9rem;color:var(--white);font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .membership-btn:hover{background:rgba(255,255,255,0.25)}
-.membership-panel{max-height:0;overflow:hidden;transition:max-height .35s ease, padding .35s ease;padding:0 1.5rem;background:var(--white);border-bottom:2px solid transparent;}
-.membership-panel.open{max-height:600px;padding:1.25rem 1.5rem;border-bottom:2px solid var(--green);}
-.membership-btn-chevron{display:inline-block;transition:transform .3s ease;margin-left:.25rem;}
-.membership-btn.open .membership-btn-chevron{transform:rotate(180deg);}
+.membership-panel{background:var(--white);border-bottom:2px solid var(--green);}
+.membership-panel-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;cursor:pointer;user-select:none;}
+.membership-panel-header:hover{background:#f9f9f9;}
+.membership-panel-title{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);}
+.membership-panel-chevron{font-size:.7rem;color:var(--text-lite);transition:transform .3s ease;}
+.membership-panel-chevron.open{transform:rotate(180deg);}
+.membership-panel-body{max-height:0;overflow:hidden;transition:max-height .35s ease, padding .35s ease;padding:0 1.5rem;}
+.membership-panel-body.open{max-height:600px;padding:0 1.5rem 1.25rem;}
 .price-change-note{display:inline-block;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:.3rem .7rem;font-size:.78rem;color:#f57f17;margin-top:.5rem}
 
 /* Current bill */
@@ -243,14 +247,19 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 
   <div class="membership-panel" id="membershipPanel">
-    <div style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:1rem;">Change My Plan</div>
-    <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
-    <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
-    <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
+    <div class="membership-panel-header" onclick="toggleMembership()">
+      <span class="membership-panel-title">Change My Plan</span>
+      <span class="membership-panel-chevron" id="panelChevron">▾</span>
+    </div>
+    <div class="membership-panel-body" id="membershipPanelBody">
+      <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
+      <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
+      <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
 
-    <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-      <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Cancel Subscription</p>
-      <button onclick="cancelMembership()" style="width:100%;padding:.85rem 1rem;background:rgba(229,57,53,0.08);color:#e53935;border:2px solid rgba(229,57,53,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(229,57,53,0.15)';this.style.borderColor='rgba(229,57,53,0.6)'" onmouseout="this.style.background='rgba(229,57,53,0.08)';this.style.borderColor='rgba(229,57,53,0.3)'">Cancel Membership</button>
+      <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Cancel Subscription</p>
+        <button onclick="cancelMembership()" style="width:100%;padding:.85rem 1rem;background:rgba(229,57,53,0.08);color:#e53935;border:2px solid rgba(229,57,53,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(229,57,53,0.15)';this.style.borderColor='rgba(229,57,53,0.6)'" onmouseout="this.style.background='rgba(229,57,53,0.08)';this.style.borderColor='rgba(229,57,53,0.3)'">Cancel Membership</button>
+      </div>
     </div>
   </div>
 
@@ -769,7 +778,8 @@ async function confirmDispute() {
 }
 
 function toggleMembership() {
-  document.getElementById('membershipPanel').classList.toggle('open');
+  document.getElementById('membershipPanelBody').classList.toggle('open');
+  document.getElementById('panelChevron').classList.toggle('open');
   document.getElementById('membershipBtn').classList.toggle('open');
 }
 
