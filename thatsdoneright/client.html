@@ -81,9 +81,9 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 /* Membership */
 .membership-btn{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:.45rem .9rem;color:var(--white);font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .membership-btn:hover{background:rgba(255,255,255,0.25)}
-.membership-panel{background:var(--white);border-bottom:2px solid var(--green);}
+.membership-panel{background:#f1f8e9;border-bottom:2px solid var(--green);}
 .membership-panel-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;cursor:pointer;user-select:none;}
-.membership-panel-header:hover{background:#f9f9f9;}
+.membership-panel-header:hover{background:#e8f5e9;}
 .membership-panel-title{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);}
 .membership-panel-chevron{font-size:.7rem;color:var(--text-lite);transition:transform .3s ease;}
 .membership-panel-chevron.open{transform:rotate(180deg);}
@@ -241,7 +241,7 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <div class="plan-label">Address</div>
       <div class="plan-val" id="planAddr" style="font-size:.9rem;">—</div>
     </div>
-    <button class="membership-btn" id="membershipBtn" onclick="toggleMembership()">
+    <button class="membership-btn open" id="membershipBtn" onclick="toggleMembership()">
       ⚙ Membership <span class="membership-btn-chevron">▾</span>
     </button>
   </div>
@@ -249,9 +249,9 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   <div class="membership-panel" id="membershipPanel">
     <div class="membership-panel-header" onclick="toggleMembership()">
       <span class="membership-panel-title">Change My Plan</span>
-      <span class="membership-panel-chevron" id="panelChevron">▾</span>
+      <span class="membership-panel-chevron open" id="panelChevron">▾</span>
     </div>
-    <div class="membership-panel-body" id="membershipPanelBody">
+    <div class="membership-panel-body open" id="membershipPanelBody">
       <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
       <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
       <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
