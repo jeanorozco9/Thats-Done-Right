@@ -284,6 +284,19 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 </div>
 
+<!-- Cancel membership modal -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal-card" style="max-width:340px;text-align:center;">
+    <div style="font-size:4.5rem;line-height:1;margin-bottom:.5rem;">🥺</div>
+    <div style="font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;color:var(--dark);">Wait… Don't Go!</div>
+    <div style="font-size:.88rem;color:var(--text-mid);line-height:1.6;margin-bottom:1.5rem;">Your lawn will miss you. 😢<br>Are you <em>sure</em> you want to cancel your membership?</div>
+    <div style="display:flex;flex-direction:column;gap:.65rem;">
+      <button onclick="confirmCancelMembership()" style="padding:.85rem;background:#e53935;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Cancel My Membership</button>
+      <button onclick="document.getElementById('cancelModal').classList.remove('open')" style="padding:.85rem;background:#f0f0f0;color:var(--dark-mid);border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">🌿 Keep My Lawn Looking Good</button>
+    </div>
+  </div>
+</div>
+
 <!-- Payment method modal -->
 <div class="modal-overlay" id="paymentModal">
   <div class="modal-card" style="max-width:340px;">
@@ -867,8 +880,12 @@ async function updatePaymentMethod() {
   }
 }
 
-async function cancelMembership() {
-  if (!confirm('Are you sure you want to cancel your membership? This cannot be undone.')) return;
+function cancelMembership() {
+  document.getElementById('cancelModal').classList.add('open');
+}
+
+async function confirmCancelMembership() {
+  document.getElementById('cancelModal').classList.remove('open');
   try {
     const { data: { user } } = await sb.auth.getUser();
     if (!user) return;
