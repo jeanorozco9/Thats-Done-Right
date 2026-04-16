@@ -284,6 +284,19 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 </div>
 
+<!-- Disabled account modal -->
+<div class="modal-overlay" id="disabledAccountModal">
+  <div class="modal-card" style="max-width:340px;text-align:center;">
+    <div style="font-size:4.5rem;line-height:1;margin-bottom:.5rem;">🔒</div>
+    <div style="font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;color:var(--dark);">Account Disabled</div>
+    <div style="font-size:.88rem;color:var(--text-mid);line-height:1.7;margin-bottom:1.5rem;">Your account has been cancelled. 😔<br>Would you like to re-enable it and get your lawn looking great again? 🌿</div>
+    <div style="display:flex;flex-direction:column;gap:.65rem;">
+      <button onclick="reEnableAccount()" style="padding:.85rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes Please, Re-Enable! 🙌</button>
+      <button onclick="document.getElementById('disabledAccountModal').classList.remove('open')" style="padding:.85rem;background:#f0f0f0;color:var(--dark-mid);border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">No Thanks</button>
+    </div>
+  </div>
+</div>
+
 <!-- Cancel membership modal -->
 <div class="modal-overlay" id="cancelModal">
   <div class="modal-card" style="max-width:340px;text-align:center;">
@@ -379,13 +392,23 @@ async function sendMagicLink() {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id&limit=1`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,status&limit=1`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const rows = await res.json();
 
     if (!rows.length) {
       document.getElementById('loginError').style.display = 'block';
+      btn.textContent = 'Send Login Link';
+      btn.disabled = false;
+      return;
+    }
+
+    // Check if account is cancelled
+    if (rows[0].status === 'cancelled') {
+      window._cancelledEmail = email;
+      window._cancelledLeadId = rows[0].id;
+      document.getElementById('disabledAccountModal').classList.add('open');
       btn.textContent = 'Send Login Link';
       btn.disabled = false;
       return;
@@ -888,6 +911,31 @@ async function updatePaymentMethod() {
   } finally {
     btn.textContent = 'Manage Payment Method';
     btn.disabled = false;
+  }
+}
+
+async function reEnableAccount() {
+  document.getElementById('disabledAccountModal').classList.remove('open');
+  try {
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?id=eq.${window._cancelledLeadId}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` },
+        body: JSON.stringify({ status: 'started' })
+      }
+    );
+    // Now send the magic link
+    const { error } = await sb.auth.signInWithOtp({
+      email: window._cancelledEmail,
+      options: { emailRedirectTo: `${window.location.origin}/client.html` }
+    });
+    if (error) throw error;
+    document.getElementById('loginSuccess').style.display = 'block';
+    document.getElementById('loginBtn').textContent = 'Link Sent!';
+  } catch(e) {
+    console.error('Re-enable error:', e);
+    alert('Something went wrong. Please contact us at team@thatsdoneright.com');
   }
 }
 
