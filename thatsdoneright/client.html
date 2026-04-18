@@ -971,13 +971,7 @@ async function confirmCancelMembership() {
 
 async function logout() {
   await sb.auth.signOut();
-  document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('planBanner').style.display = 'none';
-  document.getElementById('emailInput').value = '';
-  document.getElementById('loginBtn').textContent = 'Send Login Link';
-  document.getElementById('loginBtn').disabled = false;
-  document.getElementById('loginSuccess').style.display = 'none';
+  window.location.href = 'https://thatsdoneright.com/';
 }
 </script>
 </body>
