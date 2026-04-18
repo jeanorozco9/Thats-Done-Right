@@ -1580,7 +1580,7 @@ function checkZone(zip) {
 
 function calcPrice(lawn, isKaty = false) {
   const effective = Math.max(lawn, 4000);
-  const r1 = isKaty ? 0.00825 * 1.15 : 0.00825;  // Katy gets 15% surcharge on first band
+  const r1 = isKaty ? 0.00917 : 0.00825;  // Katy ~11% surcharge on first band → $38 at 4,261 sqft
   const base  = Math.min(effective, 4000) * r1;
   const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.005;      // 4,001–8,000
   const large = Math.max(0, effective - 8000) * 0.00213;                    // above 8,000
