@@ -1827,6 +1827,9 @@ function bookAgain() {
   window.currentFreq  = lead.frequency || 'weekly';
   window.totalPrice   = lead.price || 0;
 
+  // Flag so submitLead PATCHes this lead instead of creating a new one
+  window.returningLeadId = lead.id;
+
   // Populate contact summary
   const freqLabel = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq] || window.currentFreq;
   document.getElementById('contactSummary').innerHTML =
@@ -2080,14 +2083,24 @@ async function submitLead() {
   };
 
   try {
-    // Always create a fresh complete lead with all data (phone, price, notes included)
-    const res = await fetch(SUPABASE_URL + '/rest/v1/leads', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=representation' },
-      body: JSON.stringify(leadData)
-    });
-    const data = await res.json();
-    if (data && data[0]) window.currentLeadId = data[0].id;
+    if (window.returningLeadId) {
+      // Returning customer — patch their existing lead, no new row
+      await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${window.returningLeadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+        body: JSON.stringify(leadData)
+      });
+      window.currentLeadId = window.returningLeadId;
+    } else {
+      // New customer — create a fresh lead
+      const res = await fetch(SUPABASE_URL + '/rest/v1/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=representation' },
+        body: JSON.stringify(leadData)
+      });
+      const data = await res.json();
+      if (data && data[0]) window.currentLeadId = data[0].id;
+    }
   } catch(e) {
     console.error('Lead save error:', e);
     btn.textContent = 'Lock In My Visit →';
@@ -2245,11 +2258,14 @@ function resetAll() {
   document.getElementById('contactCaptureSection').classList.remove('show');
   document.getElementById('detailsSection').classList.remove('show');
   document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
-  window.earlyName      = null;
-  window.earlyEmail     = null;
-  window.earlyLeadId    = null;
-  window.currentLeadId  = null;
-  window.cachedProp     = null;
+  window.earlyName       = null;
+  window.earlyEmail      = null;
+  window.earlyLeadId     = null;
+  window.currentLeadId   = null;
+  window.cachedProp      = null;
+  window.returningLead   = null;
+  window.returningLeadId = null;
+  document.getElementById('returningBanner').style.display = 'none';
   window.lawnDetails    = null;
   window.basePrice      = null;
   document.getElementById('waitlistEmail').value = '';
