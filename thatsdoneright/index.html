@@ -1152,9 +1152,20 @@ footer {
             <input type="email" id="earlyEmail" placeholder="john@email.com" autocomplete="email" />
             <div class="field-error" id="earlyEmailError">Please enter a valid email</div>
           </div>
-          <button class="btn-primary" onclick="submitEarlyContact()">
+          <button class="btn-primary" id="earlyContactBtn" onclick="submitEarlyContact()">
             Get My Instant Price →
           </button>
+
+          <!-- Returning customer banner -->
+          <div id="returningBanner" style="display:none;margin-top:1rem;background:#f0faf0;border:1.5px solid #c8e6c9;border-radius:12px;padding:1rem 1.1rem;">
+            <div style="font-family:var(--display);font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--green);margin-bottom:.35rem;">👋 Welcome Back!</div>
+            <div style="font-size:.88rem;color:var(--dark);font-weight:600;margin-bottom:.2rem;" id="returningAddr"></div>
+            <div style="font-size:.82rem;color:var(--text-mid);margin-bottom:.85rem;" id="returningQuoteInfo"></div>
+            <div style="display:flex;gap:.6rem;">
+              <button onclick="bookAgain()" style="flex:2;padding:.65rem .75rem;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Book Again →</button>
+              <button onclick="startFresh()" style="flex:1;padding:.65rem .75rem;background:none;color:var(--text-mid);border:1.5px solid var(--border);border-radius:8px;font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Start Fresh</button>
+            </div>
+          </div>
         </div>
 
         <!-- Address map confirmation -->
@@ -1744,24 +1755,93 @@ function resolve(zip) {
   }
 }
 
-function submitEarlyContact() {
+async function submitEarlyContact() {
   const name  = document.getElementById('earlyName').value.trim();
   const email = document.getElementById('earlyEmail').value.trim();
   let ok = true;
 
   document.getElementById('earlyNameError').classList.remove('show');
   document.getElementById('earlyEmailError').classList.remove('show');
+  document.getElementById('returningBanner').style.display = 'none';
 
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!name)  { document.getElementById('earlyNameError').classList.add('show'); ok = false; }
   if (!validEmail.test(email)) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
   if (!ok) return;
 
+  const btn = document.getElementById('earlyContactBtn');
+  btn.textContent = 'Checking...';
+  btn.disabled = true;
+
   // Store name/email for later use in lead capture
   window.earlyName  = name;
   window.earlyEmail = email;
 
-  // Hide contact capture, show map confirmation
+  // Check if this email already has a lead
+  const existing = await checkExistingLead(email);
+  if (existing) {
+    window.returningLead = existing;
+    const freqLabel = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[existing.frequency] || existing.frequency || '';
+    document.getElementById('returningAddr').textContent  = existing.address || 'Your saved address';
+    document.getElementById('returningQuoteInfo').textContent =
+      [freqLabel, existing.price ? `$${existing.price}/visit` : ''].filter(Boolean).join(' · ') || 'Previous quote on file';
+    document.getElementById('returningBanner').style.display = 'block';
+    btn.textContent = 'Get My Instant Price →';
+    btn.disabled = false;
+    return;
+  }
+
+  btn.textContent = 'Get My Instant Price →';
+  btn.disabled = false;
+
+  // New customer — continue normal flow
+  document.getElementById('contactCaptureSection').classList.remove('show');
+  showMapConfirm();
+}
+
+async function checkExistingLead(email) {
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,phone,frequency,price,status&order=id.desc&limit=1`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const rows = await res.json();
+    return rows.length ? rows[0] : null;
+  } catch(e) { return null; }
+}
+
+function bookAgain() {
+  const lead = window.returningLead;
+  if (!lead) return;
+
+  // Pre-fill contact fields
+  if (lead.name)  document.getElementById('contactName').value  = lead.name;
+  if (window.earlyEmail) document.getElementById('contactEmail').value = window.earlyEmail;
+  if (lead.phone) document.getElementById('contactPhone').value = lead.phone;
+
+  // Set address in confirmedAddrText so card summary works
+  document.getElementById('confirmedAddrText').textContent = lead.address || '';
+  document.getElementById('addressInput').value = lead.address || '';
+
+  // Restore price and frequency
+  window.currentFreq  = lead.frequency || 'weekly';
+  window.totalPrice   = lead.price || 0;
+
+  // Populate contact summary
+  const freqLabel = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq] || window.currentFreq;
+  document.getElementById('contactSummary').innerHTML =
+    `<strong>${lead.address || ''}</strong><br>${freqLabel} · $${window.totalPrice}/visit — No charge today`;
+
+  // Jump straight to contact panel
+  document.getElementById('contactCaptureSection').classList.remove('show');
+  hide('resultPanel');
+  show('contactPanel');
+  document.getElementById('contactPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function startFresh() {
+  document.getElementById('returningBanner').style.display = 'none';
+  window.returningLead = null;
   document.getElementById('contactCaptureSection').classList.remove('show');
   showMapConfirm();
 }
@@ -1794,6 +1874,8 @@ function editAddress() {
   window.earlyName = null;
   window.earlyEmail = null;
   window.cachedProp = null;
+  window.returningLead = null;
+  document.getElementById('returningBanner').style.display = 'none';
   document.getElementById('addressInput').focus();
 }
 
