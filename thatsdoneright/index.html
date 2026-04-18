@@ -1794,7 +1794,20 @@ async function submitEarlyContact() {
   btn.textContent = 'Get My Instant Price →';
   btn.disabled = false;
 
-  // New customer — continue normal flow
+  // New customer — save partial lead immediately so we capture their info even if they drop off
+  const address = document.getElementById('confirmedAddrText').textContent ||
+                  document.getElementById('addressInput').value.split(',')[0];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
+      body: JSON.stringify({ name, email, address, zip: currentZip, status: 'started' })
+    });
+    const data = await res.json();
+    if (data && data[0]) window.returningLeadId = data[0].id;
+  } catch(e) { console.error('Early lead save error:', e); }
+
+  // Continue normal flow
   document.getElementById('contactCaptureSection').classList.remove('show');
   showMapConfirm();
 }
