@@ -863,24 +863,9 @@ input:focus {
 
 /* Zones */
 .zones-section {
-  background: linear-gradient(160deg, #1b4d1b 0%, #14381a 40%, #0e2a10 100%);
+  background: var(--dark);
   padding: 3rem 1.5rem;
   text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-.zones-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    120deg,
-    rgba(255,255,255,0.015) 0px,
-    rgba(255,255,255,0.015) 1px,
-    transparent 1px,
-    transparent 28px
-  );
-  pointer-events: none;
 }
 
 .zones-section .section-title { color: var(--white); }
@@ -918,105 +903,23 @@ input:focus {
 
 /* ── FOOTER ── */
 footer {
-  background: linear-gradient(to bottom, #0c1f0a 0%, #111 60%);
-  padding: 0 1.5rem 2rem;
+  background: #111;
+  padding: 2rem 1.5rem;
   text-align: center;
-  border-top: none;
-}
-
-#footerGrass {
-  width: calc(100% + 3rem);
-  margin-left: -1.5rem;
-  line-height: 0;
-  display: block;
-  overflow: visible;
-  margin-bottom: 1.25rem;
-}
-#footerGrass svg {
-  height: 110px;
-  overflow: visible;
-  display: block;
-  width: 100%;
-}
-@keyframes grassSwayFront {
-  0%,100% { transform: skewX(-4deg); }
-  50%     { transform: skewX(4.5deg); }
-}
-@keyframes grassSwayMid {
-  0%,100% { transform: skewX(2.5deg); }
-  50%     { transform: skewX(-3deg); }
-}
-@keyframes grassSwayBack {
-  0%,100% { transform: skewX(-1.5deg); }
-  50%     { transform: skewX(2deg); }
-}
-.g-back {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: grassSwayBack 7s ease-in-out infinite;
-}
-.g-mid {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: grassSwayMid 5s ease-in-out infinite 0.9s;
-}
-.g-front {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: grassSwayFront 3.8s ease-in-out infinite 0.3s;
-}
-.g-tips {
-  transform-box: fill-box;
-  transform-origin: bottom center;
-  animation: grassSwayFront 3.8s ease-in-out infinite 0.1s;
+  border-top: 3px solid var(--red);
 }
 
 .footer-logo {
   font-family: var(--script);
   font-size: 1.8rem;
-  color: #4caf50;
-  text-shadow: 0 0 30px rgba(76,175,80,0.35);
+  color: var(--red);
   margin-bottom: .4rem;
 }
 
 .footer-text {
   font-size: .75rem;
-  color: rgba(255,255,255,0.9);
+  color: rgba(255,255,255,0.3);
   letter-spacing: .5px;
-}
-
-.footer-cta-label {
-  font-family: var(--display);
-  font-size: .62rem;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.85);
-  margin-bottom: .65rem;
-}
-
-.footer-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: .6rem;
-  background: var(--green);
-  color: #fff;
-  font-family: var(--display);
-  font-size: .88rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  text-decoration: none;
-  padding: .8rem 1.75rem;
-  border-radius: 10px;
-  border: 2px solid rgba(255,255,255,0.12);
-  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
-  transition: background .15s, transform .1s;
-}
-
-.footer-cta-btn:hover {
-  background: var(--green-dark);
-  transform: translateY(-2px);
 }
 
 /* ── MY ACCOUNT TAB ── */
@@ -1617,13 +1520,13 @@ footer {
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div id="footerGrass"></div>
   <div class="footer-logo">That's Done Right</div>
   <div class="footer-text">Licensed & Insured · Houston Area, TX · © 2026 That's Done Right LLC</div>
-  <div style="margin-top:.5rem;"><a href="mailto:team@thatsdoneright.com" style="font-family:var(--display);font-size:.78rem;font-weight:600;color:rgba(255,255,255,0.9);text-decoration:none;letter-spacing:.5px;">Contact us: team@thatsdoneright.com</a></div>
-  <div style="margin-top:1.75rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,0.08);">
-    <div class="footer-cta-label">Are you a lawn care professional?</div>
-    <a href="/apply.html" class="footer-cta-btn">🌿 Join Our Contractor Team — Apply Now</a>
+  <div style="margin-top:.5rem;"><a href="mailto:team@thatsdoneright.com" style="font-family:var(--display);font-size:.78rem;font-weight:600;color:rgba(255,255,255,0.6);text-decoration:none;letter-spacing:.5px;">Contact us: team@thatsdoneright.com</a></div>
+  <div style="margin-top:.75rem;">
+    <a href="/apply.html" style="font-family:var(--display);font-size:.7rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,1);text-decoration:none;">
+      Are you a lawn care contractor? Apply to join our team →
+    </a>
   </div>
 </footer>
 
@@ -2389,74 +2292,6 @@ function resetAll() {
   currentZip = null;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-// ── Grass generator ──
-(function() {
-  // Creates a curly S-curve blade: base shoots up straight, then arcs one
-  // way in the middle, then curls back the other way at the tip.
-  function blade(bx, gy, h, lean, curl, w) {
-    const hw = w / 2;
-    // Mid-point bulges opposite to the final lean for an S-shape
-    const midX = bx - curl * 0.55;
-    const midY = gy - h * 0.45;
-    const tipX = bx + lean;
-    const tipY = gy - h;
-    // Control pts: first arc goes opposite, second arc comes back to tip
-    const c1x = bx - curl * 0.2,  c1y = gy - h * 0.18;
-    const c2x = midX + curl * 0.1, c2y = midY - h * 0.12;
-    const c3x = midX - lean * 0.4, c3y = midY + h * 0.1;
-    const c4x = tipX - lean * 0.2, c4y = tipY + h * 0.22;
-    const d = [
-      `M${(bx-hw).toFixed(1)},${gy}`,
-      `C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${midX.toFixed(1)},${midY.toFixed(1)}`,
-      `C${c3x.toFixed(1)},${c3y.toFixed(1)} ${c4x.toFixed(1)},${c4y.toFixed(1)} ${tipX.toFixed(1)},${tipY.toFixed(1)}`,
-      `C${c4x.toFixed(1)},${c4y.toFixed(1)} ${c3x.toFixed(1)},${c3y.toFixed(1)} ${(midX+hw*.4).toFixed(1)},${midY.toFixed(1)}`,
-      `C${(c2x+hw*.3).toFixed(1)},${c2y.toFixed(1)} ${(c1x+hw*.3).toFixed(1)},${c1y.toFixed(1)} ${(bx+hw).toFixed(1)},${gy}`,
-      'Z'
-    ].join(' ');
-    return `<path d="${d}"/>`;
-  }
-  const W = 1000, GY = 75;
-  let back = '', mid = '', front = '', tips = '';
-  // Back — short, gentle curl
-  for (let i = 0; i < 90; i++) {
-    const bx   = (i / 90) * W + Math.sin(i * 3.7) * 4;
-    const h    = 16 + Math.abs(Math.sin(i * 1.3)) * 20;
-    const lean = Math.sin(i * 2.1) * 12;
-    const curl = Math.cos(i * 1.7) * 10;
-    back += blade(bx, GY, h, lean, curl, 2.0);
-  }
-  // Mid — medium height, moderate curl
-  for (let i = 0; i < 120; i++) {
-    const bx   = (i / 120) * W + Math.cos(i * 2.9) * 5;
-    const h    = 26 + Math.abs(Math.sin(i * 1.7)) * 30;
-    const lean = Math.sin(i * 1.5) * 20;
-    const curl = Math.cos(i * 2.3) * 16;
-    mid += blade(bx, GY, h, lean, curl, 2.4);
-  }
-  // Front — tallest, strong curl for drama
-  for (let i = 0; i < 150; i++) {
-    const bx   = (i / 150) * W + Math.sin(i * 1.8) * 6;
-    const h    = 34 + Math.abs(Math.sin(i * 2.3)) * 46;
-    const lean = Math.sin(i * 0.9) * 28 + Math.cos(i * 2.1) * 8;
-    const curl = Math.cos(i * 1.3) * 22 + Math.sin(i * 2.7) * 10;
-    front += blade(bx, GY, h, lean, curl, 2.8);
-    if (h > 60) {
-      const tipX = bx + lean, tipY = GY - h;
-      tips += `<path d="M${(tipX-.7).toFixed(1)},${(tipY+5).toFixed(1)} Q${tipX.toFixed(1)},${(tipY-5).toFixed(1)} ${(tipX+.7).toFixed(1)},${(tipY+5).toFixed(1)} Z"/>`;
-    }
-  }
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 95" preserveAspectRatio="none" style="width:100%;display:block;height:100px;overflow:visible;">
-    <defs><linearGradient id="soilG" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1f4d12"/><stop offset="100%" stop-color="#0c1f0a"/></linearGradient></defs>
-    <rect x="0" y="${GY}" width="1000" height="20" fill="url(#soilG)"/>
-    <g class="g-back" fill="#2d8a2a" opacity="0.75">${back}</g>
-    <g class="g-mid" fill="#3eb83b">${mid}</g>
-    <g class="g-front" fill="#55d452">${front}</g>
-    <g class="g-tips" fill="#a8f0a6" opacity="0.9">${tips}</g>
-  </svg>`;
-  const el = document.getElementById('footerGrass');
-  if (el) el.innerHTML = svg;
-})();
 </script>
 
 </body>
