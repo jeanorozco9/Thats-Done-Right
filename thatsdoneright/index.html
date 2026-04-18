@@ -1578,10 +1578,10 @@ function checkZone(zip) {
   return { ok: false, name: z.name, msg: `Sorry, we don't service ${z.name} yet — we're working on it!${l}` };
 }
 
-function calcPrice(lawn) {
+function calcPrice(lawn, isKaty = false) {
   const effective = Math.max(lawn, 4000);
-  // Progressive pricing — rate applies only to sqft within each band
-  const base  = Math.min(effective, 4000) * 0.00825;                        // first 4,000 sqft → $33
+  const r1 = isKaty ? 0.00825 * 1.15 : 0.00825;  // Katy gets 15% surcharge on first band
+  const base  = Math.min(effective, 4000) * r1;
   const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.005;      // 4,001–8,000
   const large = Math.max(0, effective - 8000) * 0.00213;                    // above 8,000
   return Math.round(base + mid + large);
@@ -2002,8 +2002,9 @@ function calculateQuote() {
   if (isNaN(home) || home < 200 || home >= lot) { document.getElementById('homeError').classList.add('show'); document.getElementById('homeSize').style.borderColor = '#c62828'; ok = false; }
   if (!ok) return;
 
+  const KATY_ZIPS = ["77449","77450","77494","77493"];
   const lawn  = lot - home;
-  let price = calcPrice(lawn);
+  let price = calcPrice(lawn, KATY_ZIPS.includes(currentZip));
 
   window.basePrice = price;
   window.currentFreq = 'weekly';
