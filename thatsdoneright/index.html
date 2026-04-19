@@ -1341,23 +1341,38 @@ footer {
 
         <!-- Card payment panel -->
         <div class="result-panel" id="cardPanel">
-          <div style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);margin-bottom:.25rem;text-align:center;letter-spacing:.5px;text-transform:uppercase;">Save Your Card</div>
-          <div style="font-size:.82rem;color:var(--text-mid);text-align:center;margin-bottom:1.25rem;line-height:1.6;">
-            No charge today — your card will only be charged after the job is completed.
-          </div>
-
           <div id="cardSummary" style="background:var(--off-white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--radius);padding:.75rem 1rem;font-size:.82rem;color:var(--text-mid);margin-bottom:1.25rem;"></div>
 
-          <div class="field" style="margin-bottom:1.25rem;">
-            <label>Card Details</label>
-            <div id="cardElement" style="padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);background:var(--off-white);"></div>
-            <div id="cardError" style="color:#c62828;font-size:.75rem;margin-top:.4rem;display:none;"></div>
+          <!-- Promise banner -->
+          <div style="background:#fff;border:1.5px solid #c8e6c9;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.25rem;">
+            <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;">
+              <span style="font-size:1.3rem;">💳</span>
+              <span style="font-family:var(--display);font-size:.92rem;font-weight:700;color:var(--green);letter-spacing:.3px;">Inspect First, Pay Later Promise</span>
+            </div>
+            <div style="font-size:.85rem;color:var(--dark-mid);line-height:1.6;">Your card won't be charged until 24 hours after service — giving you time to inspect the work and ensure you're 100% satisfied.</div>
           </div>
 
-          <div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:var(--radius);padding:.75rem 1rem;font-size:.78rem;color:#2e7d32;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:.5rem;">
-            <span>🔒</span>
-            <span>Your card is saved securely by Stripe. You will <strong>not</strong> be charged until after your lawn is serviced. If you don't pay within 24 hours of receiving your invoice, your card on file will be charged automatically.</span>
+          <!-- Card number -->
+          <div class="field" style="margin-bottom:1rem;">
+            <label style="display:flex;align-items:center;justify-content:space-between;">
+              Card Number<span style="font-size:1rem;color:var(--text-lite);">🔒</span>
+            </label>
+            <div id="cardNumberElement" style="padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);background:#fff;"></div>
           </div>
+
+          <!-- Expiry + CVC -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1.25rem;">
+            <div class="field">
+              <label>Month / Year</label>
+              <div id="cardExpiryElement" style="padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);background:#fff;"></div>
+            </div>
+            <div class="field">
+              <label>CVV</label>
+              <div id="cardCvcElement" style="padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);background:#fff;"></div>
+            </div>
+          </div>
+
+          <div id="cardError" style="color:#c62828;font-size:.75rem;margin-bottom:.75rem;display:none;"></div>
 
           <button class="btn-primary" onclick="submitCard()" id="cardSubmitBtn">
             Save Card & Confirm Booking →
@@ -2136,29 +2151,31 @@ async function submitLead() {
   initStripeCard();
 }
 
-let stripeInstance = null;
-let cardElement    = null;
-let currentLeadId  = null;
+let stripeInstance     = null;
+let cardNumberElement  = null;
+let cardExpiryElement  = null;
+let cardCvcElement     = null;
+let currentLeadId      = null;
 
 function initStripeCard() {
-  if (stripeInstance) return; // Already initialized
+  if (stripeInstance) return;
   stripeInstance = Stripe(STRIPE_PK);
   const elements = stripeInstance.elements();
-  cardElement = elements.create('card', {
-    style: {
-      base: {
-        fontFamily: 'Source Sans 3, sans-serif',
-        fontSize: '16px',
-        color: '#1c1c1c',
-        '::placeholder': { color: '#999' }
-      }
-    }
-  });
-  cardElement.mount('#cardElement');
-  cardElement.on('change', e => {
-    const err = document.getElementById('cardError');
-    if (e.error) { err.textContent = e.error.message; err.style.display = 'block'; }
-    else { err.style.display = 'none'; }
+  const style = {
+    base: { fontFamily: 'Source Sans 3, sans-serif', fontSize: '16px', color: '#1c1c1c', '::placeholder': { color: '#bbb' } }
+  };
+  cardNumberElement = elements.create('cardNumber', { style, showIcon: true });
+  cardExpiryElement = elements.create('cardExpiry', { style });
+  cardCvcElement    = elements.create('cardCvc',    { style });
+  cardNumberElement.mount('#cardNumberElement');
+  cardExpiryElement.mount('#cardExpiryElement');
+  cardCvcElement.mount('#cardCvcElement');
+  [cardNumberElement, cardExpiryElement, cardCvcElement].forEach(el => {
+    el.on('change', e => {
+      const err = document.getElementById('cardError');
+      if (e.error) { err.textContent = e.error.message; err.style.display = 'block'; }
+      else { err.style.display = 'none'; }
+    });
   });
 }
 
@@ -2185,7 +2202,7 @@ async function submitCard() {
     // Confirm card setup with Stripe
     const { setupIntent, error } = await stripeInstance.confirmCardSetup(client_secret, {
       payment_method: {
-        card: cardElement,
+        card: cardNumberElement,
         billing_details: { name, email }
       }
     });
@@ -2244,7 +2261,7 @@ function hide(id) { document.getElementById(id).classList.remove('show'); }
 function resetResults() {
   document.getElementById('confirmedAddr').style.display = 'none';
   ['zoneOkBanner','unavailablePanel','resultPanel','contactPanel','cardPanel','confirmedPanel'].forEach(hide);
-  stripeInstance = null; cardElement = null;
+  stripeInstance = null; cardNumberElement = null; cardExpiryElement = null; cardCvcElement = null;
   document.getElementById('contactCaptureSection').classList.remove('show');
   document.getElementById('mapConfirmSection').classList.remove('show');
   document.getElementById('manualSection').classList.remove('show');
