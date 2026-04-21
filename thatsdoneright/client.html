@@ -338,15 +338,32 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div style="font-size:2.2rem;margin-bottom:.6rem;text-align:center;">💳</div>
     <div class="modal-title">Payment Method</div>
     <div id="paymentModalBody" class="modal-body" style="margin-bottom:1.25rem;">
-      <div style="background:#f7f7f7;border-radius:10px;padding:1rem 1.25rem;text-align:left;margin-bottom:.75rem;">
-        <div style="font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.35rem;">Card on File</div>
-        <div id="pmCardDisplay" style="font-family:var(--display);font-size:.95rem;font-weight:600;color:var(--dark);">•••• •••• •••• ——</div>
-        <div style="font-size:.78rem;color:var(--text-mid);margin-top:.2rem;">Securely stored via Stripe</div>
+
+      <!-- Loading state -->
+      <div id="pmLoading" style="text-align:center;padding:1.25rem 0;display:none;">
+        <div style="font-size:.82rem;color:var(--text-mid);">Loading card info…</div>
       </div>
-      <div style="font-size:.82rem;color:var(--text-mid);line-height:1.55;">To view details or update your card, click below. You'll be taken to our secure payment portal.</div>
+
+      <!-- Card on file -->
+      <div id="pmCardBox" style="background:#f7f7f7;border-radius:10px;padding:1rem 1.25rem;text-align:left;margin-bottom:.75rem;display:none;">
+        <div style="font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.35rem;">Card on File</div>
+        <div id="pmCardDisplay" style="font-family:var(--display);font-size:.95rem;font-weight:600;color:var(--dark);letter-spacing:.5px;"></div>
+        <div id="pmCardExpiry" style="font-size:.75rem;color:var(--text-mid);margin-top:.15rem;"></div>
+        <div style="font-size:.72rem;color:var(--text-mid);margin-top:.2rem;">🔒 Encrypted &amp; stored by Stripe · PCI DSS compliant</div>
+      </div>
+
+      <!-- No card yet -->
+      <div id="pmNoCard" style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:1rem 1.25rem;text-align:left;margin-bottom:.75rem;display:none;">
+        <div style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;color:#e65100;margin-bottom:.35rem;">⚠ No Card on File</div>
+        <div style="font-size:.82rem;color:var(--dark-mid);line-height:1.5;">You don't have a payment method yet. Add one securely through our payment portal.</div>
+      </div>
+
+      <div id="pmCta" style="font-size:.82rem;color:var(--text-mid);line-height:1.55;display:none;">
+        Click below to manage your payment method securely through Stripe.
+      </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:.5rem;">
-      <button class="modal-btn modal-btn-confirm" id="btnUpdateCard" onclick="updatePaymentMethod()" style="background:var(--green);">
+      <button class="modal-btn modal-btn-confirm" id="btnUpdateCard" onclick="updatePaymentMethod()" style="background:var(--green);display:none;">
         Manage Payment Method
       </button>
       <button class="modal-btn modal-btn-cancel" onclick="closePaymentModal()">Close</button>
@@ -386,6 +403,8 @@ let activeContractorId      = null;
 let pendingDisputeId        = null;
 let pendingDisputeMeta      = {};
 let currentStripeCustomerId = null;
+let currentClientEmail      = null;
+let currentClientName       = null;
 
 window.addEventListener('load', async () => {
   const { data: { session } } = await sb.auth.getSession();
@@ -475,6 +494,8 @@ async function loadClientDashboard(email) {
     activePlanPrice         = planLead.price || 0;
     activeContractorId      = planLead.contractor_id || null;
     currentStripeCustomerId = leads.find(l => l.stripe_customer_id)?.stripe_customer_id || null;
+    currentClientEmail      = email;
+    currentClientName       = planLead.name || null;
 
     // Render plan change options
     renderPlanOptions(activePlanFreq);
@@ -881,8 +902,65 @@ function buildUpcomingSchedule(leads) {
   return { dates: upcoming, anchor, freqLabel };
 }
 
-function openPaymentModal() {
+async function openPaymentModal() {
   document.getElementById('paymentModal').classList.add('open');
+
+  // Reset UI
+  const pmLoading  = document.getElementById('pmLoading');
+  const pmCardBox  = document.getElementById('pmCardBox');
+  const pmNoCard   = document.getElementById('pmNoCard');
+  const pmCta      = document.getElementById('pmCta');
+  const btn        = document.getElementById('btnUpdateCard');
+
+  pmLoading.style.display = 'block';
+  pmCardBox.style.display = 'none';
+  pmNoCard.style.display  = 'none';
+  pmCta.style.display     = 'none';
+  btn.style.display       = 'none';
+
+  // If no Stripe customer yet, skip card lookup
+  if (!currentStripeCustomerId) {
+    pmLoading.style.display = 'none';
+    pmNoCard.style.display  = 'block';
+    pmCta.style.display     = 'none';
+    btn.textContent         = 'Add Payment Method';
+    btn.style.display       = 'block';
+    return;
+  }
+
+  // Fetch real card info
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/functions/v1/get-card-info`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
+        body: JSON.stringify({ stripe_customer_id: currentStripeCustomerId })
+      }
+    );
+    const data = await res.json();
+    pmLoading.style.display = 'none';
+
+    if (data.card) {
+      const brandLabel = (data.card.brand || 'Card').replace(/^\w/, c => c.toUpperCase());
+      document.getElementById('pmCardDisplay').textContent =
+        `${brandLabel}  •••• •••• •••• ${data.card.last4}`;
+      document.getElementById('pmCardExpiry').textContent =
+        `Expires ${data.card.exp_month}/${String(data.card.exp_year).slice(-2)}`;
+      pmCardBox.style.display = 'block';
+      btn.textContent         = 'Update Card';
+    } else {
+      pmNoCard.style.display  = 'block';
+      btn.textContent         = 'Add Payment Method';
+    }
+    btn.style.display = 'block';
+  } catch(e) {
+    console.error('Card info error:', e);
+    pmLoading.style.display = 'none';
+    pmNoCard.style.display  = 'block';
+    btn.textContent         = 'Add Payment Method';
+    btn.style.display       = 'block';
+  }
 }
 
 function closePaymentModal() {
@@ -890,39 +968,43 @@ function closePaymentModal() {
 }
 
 async function updatePaymentMethod() {
-  if (!currentStripeCustomerId) {
-    alert('No payment method on file. Please contact support.');
-    return;
-  }
   const btn = document.getElementById('btnUpdateCard');
-  btn.textContent = 'Opening...';
+  const prevText = btn.textContent;
+  btn.textContent = 'Opening…';
   btn.disabled = true;
+
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/functions/v1/billing-portal`,
+      `${SUPABASE_URL}/functions/v1/setup-payment`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${SUPABASE_KEY}`
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
         body: JSON.stringify({
-          stripe_customer_id: currentStripeCustomerId,
+          stripe_customer_id: currentStripeCustomerId || null,
+          email:     currentClientEmail,
+          name:      currentClientName,
+          lead_id:   activePlanLeadId,
           return_url: window.location.href
         })
       }
     );
     const data = await res.json();
+
     if (data.url) {
-      window.open(data.url, '_blank');
+      // If a new customer was created, cache the ID so subsequent opens work
+      if (data.stripe_customer_id && !currentStripeCustomerId) {
+        currentStripeCustomerId = data.stripe_customer_id;
+      }
+      window.location.href = data.url;   // redirect in same tab so return_url works
     } else {
-      alert('Unable to open payment portal. Please try again or contact support.');
+      console.error('Billing portal error:', data.error);
+      alert('Unable to open the payment portal. Please try again or email us at team@thatsdoneright.com');
     }
   } catch(e) {
     console.error('Billing portal error:', e);
-    alert('Something went wrong. Please try again.');
+    alert('Something went wrong. Please try again or email team@thatsdoneright.com');
   } finally {
-    btn.textContent = 'Manage Payment Method';
+    btn.textContent = prevText;
     btn.disabled = false;
   }
 }
