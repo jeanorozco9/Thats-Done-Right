@@ -12,6 +12,9 @@
   const STRIPE_PK      = "pk_live_51TBhc80T6k1KLZeBeP21r08HAOlj9OjsDNfmqzW0fv6eErqWBlj7OfZ5zS7qA6rG1M8GWkqvjfhWFiVFysJvewfH00DJoZflc6";
   const SETUP_INTENT_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/create-setup-intent";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+
+  // ── Read discount from URL (e.g. ?discount=15 set by follow-up emails) ──
+  window.discountPct = parseInt(new URLSearchParams(window.location.search).get('discount') || '0', 10) || 0;
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -1278,6 +1281,15 @@ footer {
             </div>
           </div>
 
+          <!-- Discount badge — shown only when ?discount= is in the URL -->
+          <div id="discountBanner" style="display:none;background:#fff8e1;border:2px dashed #f57c00;border-radius:10px;padding:12px 16px;margin-top:.75rem;text-align:center;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#f57c00;margin-bottom:4px;">🏷 One-Time Discount Applied</div>
+            <div style="font-size:13px;color:#555;">
+              Original: <span style="text-decoration:line-through;">$<span id="originalPriceNum">--</span></span>
+              &nbsp;→&nbsp; You save <strong style="color:#f57c00;">$<span id="savingsNum">--</span></strong>
+            </div>
+          </div>
+
           <div class="stats-row">
             <div class="stat-box">
               <div class="stat-label">Lot</div>
@@ -2007,18 +2019,39 @@ function updatePrice() {
   if (!window.basePrice) return;
   const base  = window.basePrice;
   const twice = Math.round(base * 1.10);
-  // Update prices inside each card
+
+  // Update frequency card labels
   document.getElementById('price-weekly').textContent = '$' + base;
   document.getElementById('price-twice').textContent  = '$' + twice;
-  // Selected price for summary/tax block
-  let price = window.currentFreq === 'twice' ? twice : base;
+
+  // Selected price before discount
+  const rawPrice = window.currentFreq === 'twice' ? twice : base;
+
+  // Apply discount if customer came from a follow-up email
+  const discount = window.discountPct || 0;
+  const price    = discount > 0 ? Math.round(rawPrice * (1 - discount / 100)) : rawPrice;
+  const savings  = rawPrice - price;
+
   const TAX_RATE = 0.0825;
-  const tax = parseFloat((price * TAX_RATE).toFixed(2));
+  const tax   = parseFloat((price * TAX_RATE).toFixed(2));
   const total = parseFloat((price + tax).toFixed(2));
+
   window.totalPrice = Math.round(total);
-  document.getElementById('priceNum').textContent = price;
-  document.getElementById('taxAmount').textContent = tax.toFixed(2);
+  document.getElementById('priceNum').textContent    = price;
+  document.getElementById('taxAmount').textContent   = tax.toFixed(2);
   document.getElementById('totalAmount').textContent = total.toFixed(2);
+
+  // Show discount badge if active
+  const banner = document.getElementById('discountBanner');
+  if (banner) {
+    if (discount > 0) {
+      document.getElementById('originalPriceNum').textContent = rawPrice;
+      document.getElementById('savingsNum').textContent       = savings;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
 }
 
 function calculateQuote() {
@@ -2105,6 +2138,7 @@ async function submitLead() {
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
     price: window.totalPrice || 0,
+    discount_pct: window.discountPct || 0,
     job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
     scheduled_date: ld.prefDate || null,
     status: 'started',
