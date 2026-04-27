@@ -2139,7 +2139,7 @@ async function submitLead() {
     address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
-    price: window.totalPrice || 0,
+    price: window.basePrice || 0,
     discount_pct: window.discountPct || 0,
     job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
     scheduled_date: ld.prefDate || null,
