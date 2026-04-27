@@ -2076,6 +2076,16 @@ function calculateQuote() {
   document.getElementById('statHome').textContent = home.toLocaleString() + ' sqft';
   document.getElementById('statLawn').textContent = lawn.toLocaleString() + ' sqft';
 
+  // Save price + property sizes to any existing partial lead immediately
+  const partialLeadId = window.earlyLeadId || window.currentLeadId;
+  if (partialLeadId) {
+    fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${partialLeadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, Prefer: 'return=minimal' },
+      body: JSON.stringify({ price, lot_size: lot, home_size: home, frequency: 'weekly' })
+    });
+  }
+
   document.getElementById('manualSection').classList.remove('show');
   hide('zoneOkBanner');
   show('resultPanel');
