@@ -2132,6 +2132,8 @@ async function submitLead() {
   btn.disabled = true;
 
   const ld = window.lawnDetails || {};
+  const lotVal  = parseFloat(document.getElementById('lotSize').value)  || null;
+  const homeVal = parseFloat(document.getElementById('homeSize').value) || null;
   const leadData = {
     name, email, phone,
     address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
@@ -2142,7 +2144,9 @@ async function submitLead() {
     job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
     scheduled_date: ld.prefDate || null,
     status: 'started',
-    manual_size_entry: !window.sizeAutoFilled
+    manual_size_entry: !window.sizeAutoFilled,
+    lot_size: lotVal,
+    home_size: homeVal
   };
 
   try {
