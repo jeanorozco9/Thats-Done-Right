@@ -2343,6 +2343,50 @@ function resetAll() {
   currentZip = null;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ── Pre-load lead from follow-up email link (?id=X&discount=Y) ──
+(async function preloadLeadFromUrl() {
+  const leadId = new URLSearchParams(window.location.search).get('id');
+  if (!leadId) return;
+
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}&select=*`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    const rows = await r.json();
+    const lead = rows && rows[0];
+    if (!lead || !lead.price) return;
+
+    // Restore global state so checkout flow knows who this is
+    window.basePrice     = lead.price;
+    window.currentFreq   = lead.frequency || 'weekly';
+    window.earlyName     = lead.name  || '';
+    window.earlyEmail    = lead.email || '';
+    window.currentLeadId = lead.id;
+
+    // Show their confirmed address
+    document.getElementById('confirmedAddrText').textContent = lead.address || '';
+    document.getElementById('confirmedAddr').style.display   = 'block';
+
+    // Highlight correct frequency button
+    document.querySelectorAll('.freq-card').forEach(b => b.classList.remove('active'));
+    const freqBtn = document.getElementById('freq-' + window.currentFreq);
+    if (freqBtn) freqBtn.classList.add('active');
+
+    // Show property stats if stored
+    if (lead.lot_size)  document.getElementById('statLot').textContent  = Number(lead.lot_size).toLocaleString()  + ' sqft';
+    if (lead.home_size) document.getElementById('statHome').textContent = Number(lead.home_size).toLocaleString() + ' sqft';
+    if (lead.lot_size && lead.home_size)
+      document.getElementById('statLawn').textContent = (lead.lot_size - lead.home_size).toLocaleString() + ' sqft';
+
+    // Render discounted price and reveal the panel
+    updatePrice();
+    show('resultPanel');
+    document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    console.error('preloadLeadFromUrl error', e);
+  }
+})();
 </script>
 
 </body>
