@@ -1288,8 +1288,9 @@ footer {
           <textarea id="lawnNotes" class="detail-textarea" placeholder="e.g. Fence gate is small, dog in backyard, avoid flower beds..."></textarea>
 
           <button class="btn-primary" style="margin-top:1rem;" onclick="submitDetails()">
-            See My Instant Price →
+            Continue →
           </button>
+          <button class="btn-ghost" onclick="document.getElementById('detailsSection').classList.remove('show');show('contactPanel');document.getElementById('contactPanel').scrollIntoView({behavior:'smooth',block:'nearest'});">← Back</button>
         </div>
 
         <!-- Manual size entry -->
@@ -1463,7 +1464,7 @@ footer {
           <button class="btn-primary" onclick="submitCard()" id="cardSubmitBtn">
             Save Card & Confirm Booking →
           </button>
-          <button class="btn-ghost" onclick="hide('cardPanel');show('contactPanel');">← Back</button>
+          <button class="btn-ghost" onclick="hide('cardPanel');document.getElementById('detailsSection').classList.add('show');document.getElementById('detailsSection').scrollIntoView({behavior:'smooth',block:'nearest'});">← Back</button>
         </div>
 
         <!-- Booking confirmed panel -->
@@ -2018,18 +2019,18 @@ function editAddress() {
 function confirmAddress() {
   document.getElementById('mapConfirmSection').classList.remove('show');
 
-  // Show details questions next
-  document.getElementById('detailsSection').classList.add('show');
-  const _today = new Date();
-  const _maxDate = new Date(_today);
-  _maxDate.setDate(_today.getDate() + 30);
-  const _todayStr = _today.toISOString().split('T')[0];
-  const _maxStr   = _maxDate.toISOString().split('T')[0];
-  const _pf = document.getElementById('prefDate');
-  _pf.min   = _todayStr;
-  _pf.max   = _maxStr;
-  _pf.value = '';
-  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Go straight to size entry or auto-calculate (quick questions moved to after contact)
+  const prop = window.cachedProp;
+  if (prop && prop.lot_sqft > 0) {
+    document.getElementById('lotSize').value  = prop.lot_sqft;
+    document.getElementById('homeSize').value = prop.bld_sqft || 0;
+    document.getElementById('addrHint').textContent = '✔ Property size auto-filled from public records';
+    document.getElementById('addrHint').style.color = 'var(--green)';
+    window.sizeAutoFilled = true;
+    calculateQuote();
+  } else {
+    showManual();
+  }
 }
 
 // Single-select option groups
@@ -2073,20 +2074,30 @@ function submitDetails() {
 
   window.lawnDetails = { prefDate, pets, lastCut, notes };
 
-  // Hide details, show price
   document.getElementById('detailsSection').classList.remove('show');
 
-  const prop = window.cachedProp;
-  if (prop && prop.lot_sqft > 0) {
-    document.getElementById('lotSize').value = prop.lot_sqft;
-    document.getElementById('homeSize').value = prop.bld_sqft || 0;
-    document.getElementById('addrHint').textContent = '✔ Property size auto-filled from public records';
-    document.getElementById('addrHint').style.color = 'var(--green)';
-    window.sizeAutoFilled = true;
-    calculateQuote();
-  } else {
-    showManual();
+  // Patch questions onto the existing lead
+  const leadId = window.currentLeadId || window.returningLeadId;
+  if (leadId) {
+    fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        job_notes:      [pets, lastCut, notes].filter(Boolean).join(' | ') || null,
+        scheduled_date: prefDate || null
+      })
+    }).catch(e => console.error('Questions save error:', e));
   }
+
+  // Go to card panel
+  const price = document.getElementById('priceNum').textContent;
+  const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
+  const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
+  document.getElementById('cardSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit — No charge today`;
+
+  show('cardPanel');
+  document.getElementById('cardPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  initStripeCard();
 }
 
 function showManual(hint) {
@@ -2195,8 +2206,8 @@ function joinWaitlist() {
 
 function goBackToDetails() {
   hide('resultPanel');
-  document.getElementById('detailsSection').classList.add('show');
-  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('manualSection').classList.add('show');
+  document.getElementById('manualSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function handleBook() {
@@ -2234,7 +2245,6 @@ async function submitLead() {
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  const ld = window.lawnDetails || {};
   const lotVal  = parseFloat(document.getElementById('lotSize').value)  || null;
   const homeVal = parseFloat(document.getElementById('homeSize').value) || null;
   const leadData = {
@@ -2244,12 +2254,11 @@ async function submitLead() {
     frequency: window.currentFreq || 'weekly',
     price: window.totalPrice || 0,
     discount_pct: window.discountPct || 0,
-    job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
-    scheduled_date: ld.prefDate || null,
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled,
     lot_size: lotVal,
     home_size: homeVal
+    // job_notes and scheduled_date saved after quick questions in submitDetails()
   };
 
   try {
@@ -2278,18 +2287,19 @@ async function submitLead() {
     return;
   }
 
-  // Go to card panel
-  const price = document.getElementById('priceNum').textContent;
-  const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
-  const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
-  document.getElementById('cardSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit — No charge today`;
-
+  // Show quick questions next
   hide('contactPanel');
-  show('cardPanel');
-  document.getElementById('cardPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const _today = new Date();
+  const _maxDate = new Date(_today); _maxDate.setDate(_today.getDate() + 30);
+  const _pf = document.getElementById('prefDate');
+  _pf.min   = _today.toISOString().split('T')[0];
+  _pf.max   = _maxDate.toISOString().split('T')[0];
+  _pf.value = '';
+  document.getElementById('detailsSection').classList.add('show');
+  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Initialize Stripe card element
-  initStripeCard();
+  btn.textContent = 'Confirm & Continue →';
+  btn.disabled = false;
 }
 
 let stripeInstance     = null;
