@@ -2047,6 +2047,7 @@ function confirmAddress() {
   } else if (CROSBY_ZIPS.includes(currentZip)) {
     // Flat rate for Crosby when property data isn't in our database yet
     window.basePrice   = 45;
+    window.flatRate    = 45;
     window.currentFreq = 'weekly';
     window.sizeAutoFilled = false;
     document.querySelectorAll('.freq-card').forEach(b => b.classList.remove('active'));
@@ -2161,7 +2162,7 @@ function selectFreq(freq) {
 function updatePrice() {
   if (!window.basePrice) return;
   const base  = window.basePrice;
-  const twice = Math.round(base * 1.10);
+  const twice = window.flatRate ? window.flatRate : Math.round(base * 1.10);
 
   // Update frequency card labels
   document.getElementById('price-weekly').textContent = '$' + base;
@@ -2490,6 +2491,7 @@ function resetAll() {
   document.getElementById('returningBanner').style.display = 'none';
   window.lawnDetails    = null;
   window.basePrice      = null;
+  window.flatRate       = null;
   document.getElementById('waitlistEmail').value = '';
   document.getElementById('addrHint').textContent = 'e.g. 1234 Oak St, Houston TX 77084';
   document.getElementById('addrHint').style.color = '';
