@@ -1229,6 +1229,11 @@ footer {
             <input type="email" id="earlyEmail" placeholder="john@email.com" autocomplete="email" />
             <div class="field-error" id="earlyEmailError">Please enter a valid email</div>
           </div>
+          <div class="field">
+            <label>Phone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb">(for reminders)</span></label>
+            <input type="tel" id="earlyPhone" placeholder="(713) 555-0123" autocomplete="tel" />
+            <div class="field-error" id="earlyPhoneError">Please enter a valid phone number</div>
+          </div>
           <button class="btn-primary" id="earlyContactBtn" onclick="submitEarlyContact()">
             Get My Instant Price →
           </button>
@@ -1862,22 +1867,26 @@ async function submitEarlyContact() {
   const email = document.getElementById('earlyEmail').value.trim();
   let ok = true;
 
+  const phone = document.getElementById('earlyPhone').value.trim();
   document.getElementById('earlyNameError').classList.remove('show');
   document.getElementById('earlyEmailError').classList.remove('show');
+  document.getElementById('earlyPhoneError').classList.remove('show');
   document.getElementById('returningBanner').style.display = 'none';
 
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!name)  { document.getElementById('earlyNameError').classList.add('show'); ok = false; }
   if (!validEmail.test(email)) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
+  if (phone.replace(/\D/g,'').length < 10) { document.getElementById('earlyPhoneError').classList.add('show'); ok = false; }
   if (!ok) return;
 
   const btn = document.getElementById('earlyContactBtn');
   btn.textContent = 'Checking...';
   btn.disabled = true;
 
-  // Store name/email for later use in lead capture
+  // Store name/email/phone for later use in lead capture
   window.earlyName  = name;
   window.earlyEmail = email;
+  window.earlyPhone = phone;
 
   // Check if this email already has a lead
   const existing = await checkExistingLead(email);
@@ -1903,7 +1912,7 @@ async function submitEarlyContact() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ name, email, address, zip: currentZip, status: 'started', auto_scheduled: true, price: 0, frequency: 'N/A' })
+      body: JSON.stringify({ name, email, phone, address, zip: currentZip, status: 'started', auto_scheduled: true, price: 0, frequency: 'N/A' })
     });
     const data = await res.json();
     if (data && data[0]) {
@@ -2216,9 +2225,10 @@ function handleBook() {
   const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
   document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
 
-  // Pre-fill name and email from early capture
+  // Pre-fill name, email, and phone from early capture
   if (window.earlyName)  document.getElementById('contactName').value  = window.earlyName;
   if (window.earlyEmail) document.getElementById('contactEmail').value = window.earlyEmail;
+  if (window.earlyPhone) document.getElementById('contactPhone').value = window.earlyPhone;
 
   hide('resultPanel');
   show('contactPanel');
