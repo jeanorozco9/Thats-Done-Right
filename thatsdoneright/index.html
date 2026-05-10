@@ -2028,8 +2028,9 @@ function editAddress() {
 function confirmAddress() {
   document.getElementById('mapConfirmSection').classList.remove('show');
 
-  // Go straight to size entry or auto-calculate (quick questions moved to after contact)
   const prop = window.cachedProp;
+  const CROSBY_ZIPS = ["77532"];
+
   if (prop && prop.lot_sqft > 0) {
     document.getElementById('lotSize').value  = prop.lot_sqft;
     document.getElementById('homeSize').value = prop.bld_sqft || 0;
@@ -2037,6 +2038,29 @@ function confirmAddress() {
     document.getElementById('addrHint').style.color = 'var(--green)';
     window.sizeAutoFilled = true;
     calculateQuote();
+  } else if (CROSBY_ZIPS.includes(currentZip)) {
+    // Flat rate for Crosby when property data isn't in our database yet
+    window.basePrice   = 45;
+    window.currentFreq = 'weekly';
+    window.sizeAutoFilled = false;
+    document.querySelectorAll('.freq-card').forEach(b => b.classList.remove('active'));
+    document.getElementById('freq-weekly').classList.add('active');
+    document.getElementById('statLot').textContent  = 'N/A';
+    document.getElementById('statHome').textContent = 'N/A';
+    document.getElementById('statLawn').textContent = 'N/A';
+    updatePrice();
+    const partialLeadId = window.earlyLeadId || window.currentLeadId;
+    if (partialLeadId) {
+      fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${partialLeadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, Prefer: 'return=minimal' },
+        body: JSON.stringify({ price: 45, frequency: 'weekly' })
+      });
+    }
+    document.getElementById('manualSection').classList.remove('show');
+    hide('zoneOkBanner');
+    show('resultPanel');
+    document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
     showManual();
   }
