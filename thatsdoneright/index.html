@@ -1229,6 +1229,11 @@ footer {
             <input type="email" id="earlyEmail" placeholder="john@email.com" autocomplete="email" />
             <div class="field-error" id="earlyEmailError">Please enter a valid email</div>
           </div>
+          <div class="field">
+            <label>Phone <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#bbb">(for reminders)</span></label>
+            <input type="tel" id="earlyPhone" placeholder="(713) 555-0123" autocomplete="tel" />
+            <div class="field-error" id="earlyPhoneError">Please enter a valid phone number</div>
+          </div>
           <button class="btn-primary" id="earlyContactBtn" onclick="submitEarlyContact()">
             Get My Instant Price →
           </button>
@@ -1288,8 +1293,9 @@ footer {
           <textarea id="lawnNotes" class="detail-textarea" placeholder="e.g. Fence gate is small, dog in backyard, avoid flower beds..."></textarea>
 
           <button class="btn-primary" style="margin-top:1rem;" onclick="submitDetails()">
-            See My Instant Price →
+            Continue →
           </button>
+          <button class="btn-ghost" onclick="document.getElementById('detailsSection').classList.remove('show');show('contactPanel');document.getElementById('contactPanel').scrollIntoView({behavior:'smooth',block:'nearest'});">← Back</button>
         </div>
 
         <!-- Manual size entry -->
@@ -1463,7 +1469,7 @@ footer {
           <button class="btn-primary" onclick="submitCard()" id="cardSubmitBtn">
             Save Card & Confirm Booking →
           </button>
-          <button class="btn-ghost" onclick="hide('cardPanel');show('contactPanel');">← Back</button>
+          <button class="btn-ghost" onclick="hide('cardPanel');document.getElementById('detailsSection').classList.add('show');document.getElementById('detailsSection').scrollIntoView({behavior:'smooth',block:'nearest'});">← Back</button>
         </div>
 
         <!-- Booking confirmed panel -->
@@ -1861,22 +1867,26 @@ async function submitEarlyContact() {
   const email = document.getElementById('earlyEmail').value.trim();
   let ok = true;
 
+  const phone = document.getElementById('earlyPhone').value.trim();
   document.getElementById('earlyNameError').classList.remove('show');
   document.getElementById('earlyEmailError').classList.remove('show');
+  document.getElementById('earlyPhoneError').classList.remove('show');
   document.getElementById('returningBanner').style.display = 'none';
 
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   if (!name)  { document.getElementById('earlyNameError').classList.add('show'); ok = false; }
   if (!validEmail.test(email)) { document.getElementById('earlyEmailError').classList.add('show'); ok = false; }
+  if (phone.replace(/\D/g,'').length < 10) { document.getElementById('earlyPhoneError').classList.add('show'); ok = false; }
   if (!ok) return;
 
   const btn = document.getElementById('earlyContactBtn');
   btn.textContent = 'Checking...';
   btn.disabled = true;
 
-  // Store name/email for later use in lead capture
+  // Store name/email/phone for later use in lead capture
   window.earlyName  = name;
   window.earlyEmail = email;
+  window.earlyPhone = phone;
 
   // Check if this email already has a lead
   const existing = await checkExistingLead(email);
@@ -1902,7 +1912,7 @@ async function submitEarlyContact() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ name, email, address, zip: currentZip, status: 'started', auto_scheduled: true, price: 0, frequency: 'N/A' })
+      body: JSON.stringify({ name, email, phone, address, zip: currentZip, status: 'started', auto_scheduled: true, price: 0, frequency: 'N/A' })
     });
     const data = await res.json();
     if (data && data[0]) {
@@ -2018,18 +2028,18 @@ function editAddress() {
 function confirmAddress() {
   document.getElementById('mapConfirmSection').classList.remove('show');
 
-  // Show details questions next
-  document.getElementById('detailsSection').classList.add('show');
-  const _today = new Date();
-  const _maxDate = new Date(_today);
-  _maxDate.setDate(_today.getDate() + 30);
-  const _todayStr = _today.toISOString().split('T')[0];
-  const _maxStr   = _maxDate.toISOString().split('T')[0];
-  const _pf = document.getElementById('prefDate');
-  _pf.min   = _todayStr;
-  _pf.max   = _maxStr;
-  _pf.value = '';
-  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Go straight to size entry or auto-calculate (quick questions moved to after contact)
+  const prop = window.cachedProp;
+  if (prop && prop.lot_sqft > 0) {
+    document.getElementById('lotSize').value  = prop.lot_sqft;
+    document.getElementById('homeSize').value = prop.bld_sqft || 0;
+    document.getElementById('addrHint').textContent = '✔ Property size auto-filled from public records';
+    document.getElementById('addrHint').style.color = 'var(--green)';
+    window.sizeAutoFilled = true;
+    calculateQuote();
+  } else {
+    showManual();
+  }
 }
 
 // Single-select option groups
@@ -2073,20 +2083,30 @@ function submitDetails() {
 
   window.lawnDetails = { prefDate, pets, lastCut, notes };
 
-  // Hide details, show price
   document.getElementById('detailsSection').classList.remove('show');
 
-  const prop = window.cachedProp;
-  if (prop && prop.lot_sqft > 0) {
-    document.getElementById('lotSize').value = prop.lot_sqft;
-    document.getElementById('homeSize').value = prop.bld_sqft || 0;
-    document.getElementById('addrHint').textContent = '✔ Property size auto-filled from public records';
-    document.getElementById('addrHint').style.color = 'var(--green)';
-    window.sizeAutoFilled = true;
-    calculateQuote();
-  } else {
-    showManual();
+  // Patch questions onto the existing lead
+  const leadId = window.currentLeadId || window.returningLeadId;
+  if (leadId) {
+    fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        job_notes:      [pets, lastCut, notes].filter(Boolean).join(' | ') || null,
+        scheduled_date: prefDate || null
+      })
+    }).catch(e => console.error('Questions save error:', e));
   }
+
+  // Go to card panel
+  const price = document.getElementById('priceNum').textContent;
+  const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
+  const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
+  document.getElementById('cardSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit — No charge today`;
+
+  show('cardPanel');
+  document.getElementById('cardPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  initStripeCard();
 }
 
 function showManual(hint) {
@@ -2195,8 +2215,8 @@ function joinWaitlist() {
 
 function goBackToDetails() {
   hide('resultPanel');
-  document.getElementById('detailsSection').classList.add('show');
-  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  document.getElementById('manualSection').classList.add('show');
+  document.getElementById('manualSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function handleBook() {
@@ -2205,9 +2225,10 @@ function handleBook() {
   const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
   document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
 
-  // Pre-fill name and email from early capture
+  // Pre-fill name, email, and phone from early capture
   if (window.earlyName)  document.getElementById('contactName').value  = window.earlyName;
   if (window.earlyEmail) document.getElementById('contactEmail').value = window.earlyEmail;
+  if (window.earlyPhone) document.getElementById('contactPhone').value = window.earlyPhone;
 
   hide('resultPanel');
   show('contactPanel');
@@ -2234,7 +2255,6 @@ async function submitLead() {
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  const ld = window.lawnDetails || {};
   const lotVal  = parseFloat(document.getElementById('lotSize').value)  || null;
   const homeVal = parseFloat(document.getElementById('homeSize').value) || null;
   const leadData = {
@@ -2244,12 +2264,11 @@ async function submitLead() {
     frequency: window.currentFreq || 'weekly',
     price: window.totalPrice || 0,
     discount_pct: window.discountPct || 0,
-    job_notes: [ld.pets, ld.lastCut, ld.notes].filter(Boolean).join(' | ') || null,
-    scheduled_date: ld.prefDate || null,
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled,
     lot_size: lotVal,
     home_size: homeVal
+    // job_notes and scheduled_date saved after quick questions in submitDetails()
   };
 
   try {
@@ -2278,18 +2297,19 @@ async function submitLead() {
     return;
   }
 
-  // Go to card panel
-  const price = document.getElementById('priceNum').textContent;
-  const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
-  const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
-  document.getElementById('cardSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit — No charge today`;
-
+  // Show quick questions next
   hide('contactPanel');
-  show('cardPanel');
-  document.getElementById('cardPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const _today = new Date();
+  const _maxDate = new Date(_today); _maxDate.setDate(_today.getDate() + 30);
+  const _pf = document.getElementById('prefDate');
+  _pf.min   = _today.toISOString().split('T')[0];
+  _pf.max   = _maxDate.toISOString().split('T')[0];
+  _pf.value = '';
+  document.getElementById('detailsSection').classList.add('show');
+  document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-  // Initialize Stripe card element
-  initStripeCard();
+  btn.textContent = 'Confirm & Continue →';
+  btn.disabled = false;
 }
 
 let stripeInstance     = null;
