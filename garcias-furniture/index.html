@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garcia's Custom Furniture — Houston Heights Woodworking</title>
+  <meta name="description" content="Handcrafted, solid wood, artisan-made custom furniture built for your unique space. Serving Houston Heights and surrounding metro area.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #faf7f2;
+      --warm-white: #fffef9;
+      --wood-light: #c8a97e;
+      --wood-mid: #a07850;
+      --wood-dark: #6b4c2a;
+      --charcoal: #2c2420;
+      --charcoal-light: #3d3330;
+      --text-muted: #8a7a6a;
+      --text-body: #4a3f38;
+      --gold: #c49a3c;
+      --gold-light: #e8c97a;
+      --section-gap: 120px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--warm-white);
+      color: var(--text-body);
+      overflow-x: hidden;
+    }
+
+    /* ─── NAV ─────────────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 80px;
+      background: rgba(255, 254, 249, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(200, 169, 126, 0.2);
+      transition: box-shadow 0.3s;
+    }
+
+    nav.scrolled { box-shadow: 0 4px 24px rgba(44, 36, 32, 0.08); }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 52px;
+      width: 52px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid var(--wood-light);
+    }
+
+    .nav-logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--charcoal);
+      line-height: 1.2;
+    }
+
+    .nav-logo-text span {
+      display: block;
+      font-size: 0.65rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--wood-mid);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-body);
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--wood-mid); }
+
+    .nav-cta {
+      background: var(--charcoal) !important;
+      color: var(--cream) !important;
+      padding: 10px 22px !important;
+      border-radius: 3px;
+      letter-spacing: 0.1em !important;
+      transition: background 0.2s !important;
+    }
+
+    .nav-cta:hover { background: var(--wood-dark) !important; color: var(--cream) !important; }
+
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger span { display: block; width: 24px; height: 2px; background: var(--charcoal); transition: 0.3s; }
+
+    /* ─── HERO ────────────────────────────────────────────────────── */
+    .hero {
+      height: 100vh;
+      min-height: 700px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('https://images.unsplash.com/photo-1547609434-b732edfee020?fm=jpg&q=85&w=1920&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center 30%;
+      transform: scale(1.05);
+      animation: heroZoom 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes heroZoom {
+      from { transform: scale(1.05); }
+      to   { transform: scale(1.12); }
+    }
+
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        105deg,
+        rgba(44, 36, 32, 0.80) 0%,
+        rgba(44, 36, 32, 0.50) 55%,
+        rgba(44, 36, 32, 0.15) 100%
+      );
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 8%;
+      max-width: 700px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: block;
+      width: 32px;
+      height: 1px;
+      background: var(--gold-light);
+    }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.5s forwards;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold-light);
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.75;
+      max-width: 520px;
+      margin-bottom: 40px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.7s forwards;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--gold);
+      color: var(--charcoal);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 16px 32px;
+      border-radius: 3px;
+      transition: background 0.25s, transform 0.2s;
+    }
+
+    .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      color: #fff;
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 16px 32px;
+      border: 1px solid rgba(255,255,255,0.45);
+      border-radius: 3px;
+      transition: border-color 0.25s, background 0.25s;
+    }
+
+    .btn-ghost:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+
+    .hero-scroll {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      animation: bounce 2s infinite;
+    }
+
+    .hero-scroll svg { width: 20px; height: 20px; stroke: rgba(255,255,255,0.5); }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(8px); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── MARQUEE ─────────────────────────────────────────────────── */
+    .marquee-wrap {
+      background: var(--charcoal);
+      padding: 18px 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .marquee-track {
+      display: inline-flex;
+      gap: 0;
+      animation: marquee 28s linear infinite;
+    }
+
+    .marquee-track span {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.78rem;
+      font-style: italic;
+      color: var(--wood-light);
+      letter-spacing: 0.12em;
+      padding: 0 30px;
+    }
+
+    .marquee-track span.dot {
+      color: var(--gold);
+      font-style: normal;
+      font-size: 1rem;
+      padding: 0 2px;
+    }
+
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* ─── SECTION HELPERS ─────────────────────────────────────────── */
+    section { padding: var(--section-gap) 8%; }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--wood-mid);
+      margin-bottom: 14px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--wood-mid);
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      color: var(--charcoal);
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+
+    .section-title em { font-style: italic; color: var(--wood-mid); }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.8;
+      max-width: 560px;
+      font-weight: 300;
+    }
+
+    /* ─── ABOUT / INTRO ───────────────────────────────────────────── */
+    .about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      background: var(--cream);
+    }
+
+    .about-media {
+      position: relative;
+    }
+
+    .about-img-main {
+      width: 100%;
+      aspect-ratio: 4/5;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .about-img-accent {
+      position: absolute;
+      bottom: -40px;
+      right: -40px;
+      width: 55%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 6px solid var(--warm-white);
+      box-shadow: 0 16px 48px rgba(44,36,32,0.18);
+    }
+
+    .about-badge {
+      position: absolute;
+      top: 30px;
+      left: -24px;
+      background: var(--charcoal);
+      color: #fff;
+      padding: 18px 22px;
+      border-radius: 4px;
+      text-align: center;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.22);
+    }
+
+    .about-badge strong {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+
+    .about-badge span {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .about-text { padding-top: 40px; }
+
+    .about-features {
+      margin-top: 36px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .feature-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: rgba(200, 169, 126, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--wood-mid);
+      font-size: 1.1rem;
+    }
+
+    .feature-item h4 {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-bottom: 4px;
+    }
+
+    .feature-item p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* ─── STATS ───────────────────────────────────────────────────── */
+    .stats-band {
+      background: var(--charcoal);
+      padding: 70px 8%;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      text-align: center;
+    }
+
+    .stat-item {}
+
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.2rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+    }
+
+    /* ─── SERVICES ────────────────────────────────────────────────── */
+    .services { background: var(--warm-white); }
+
+    .services-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: end;
+      margin-bottom: 60px;
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .service-card {
+      background: var(--cream);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 56px rgba(44,36,32,0.12);
+    }
+
+    .service-card-img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      transition: transform 0.5s;
+    }
+
+    .service-card:hover .service-card-img { transform: scale(1.04); }
+
+    .service-card-img-wrap { overflow: hidden; }
+
+    .service-card-body {
+      padding: 28px 26px 32px;
+    }
+
+    .service-icon {
+      font-size: 1.4rem;
+      margin-bottom: 14px;
+    }
+
+    .service-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-bottom: 10px;
+    }
+
+    .service-card p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.75;
+    }
+
+    /* ─── GALLERY ─────────────────────────────────────────────────── */
+    .gallery { background: var(--cream); padding-bottom: 80px; }
+
+    .gallery-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 260px;
+      gap: 14px;
+    }
+
+    .gallery-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .gallery-item:nth-child(1) { grid-column: span 2; grid-row: span 2; }
+    .gallery-item:nth-child(5) { grid-column: span 2; }
+    .gallery-item:nth-child(9) { grid-column: span 2; }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.55s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .gallery-item:hover img { transform: scale(1.07); }
+
+    .gallery-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(44,36,32,0.7) 0%, transparent 55%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+    }
+
+    .gallery-item:hover .gallery-overlay { opacity: 1; }
+
+    .gallery-overlay span {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: #fff;
+    }
+
+    /* ─── PROCESS ─────────────────────────────────────────────────── */
+    .process { background: var(--warm-white); }
+
+    .process-header { margin-bottom: 60px; }
+
+    .process-steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 40px;
+      position: relative;
+    }
+
+    .process-steps::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(12.5% + 20px);
+      right: calc(12.5% + 20px);
+      height: 1px;
+      background: linear-gradient(to right, var(--wood-light), var(--wood-dark), var(--wood-light));
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--charcoal);
+      color: var(--gold-light);
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 22px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--charcoal);
+      margin-bottom: 10px;
+    }
+
+    .step p {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    /* ─── TESTIMONIALS ────────────────────────────────────────────── */
+    .testimonials {
+      background: var(--charcoal);
+      padding: var(--section-gap) 8%;
+    }
+
+    .testimonials .section-label { color: var(--gold-light); }
+    .testimonials .section-label::before { background: var(--gold-light); }
+    .testimonials .section-title { color: #fff; }
+    .testimonials .section-title em { color: var(--gold-light); }
+
+    .testimonials-grid {
+      margin-top: 52px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .testimonial-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      padding: 36px 30px;
+    }
+
+    .stars { color: var(--gold); font-size: 0.9rem; letter-spacing: 2px; margin-bottom: 18px; }
+
+    .testimonial-card p {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.8;
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--wood-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: #fff;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .author-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .author-location {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.45);
+    }
+
+    /* ─── CONTACT ─────────────────────────────────────────────────── */
+    .contact {
+      background: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .contact-info { padding-top: 8px; }
+
+    .contact-detail {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .contact-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: var(--charcoal);
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .contact-detail h4 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .contact-detail p, .contact-detail a {
+      font-size: 0.92rem;
+      color: var(--charcoal);
+      text-decoration: none;
+    }
+
+    .contact-detail a:hover { color: var(--wood-mid); }
+
+    .contact-social {
+      display: flex;
+      gap: 14px;
+      margin-top: 36px;
+    }
+
+    .social-link {
+      width: 44px;
+      height: 44px;
+      border: 1.5px solid rgba(44,36,32,0.18);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--charcoal);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .social-link:hover { border-color: var(--wood-mid); background: var(--wood-mid); color: #fff; }
+
+    /* Contact form */
+    .contact-form-wrap {}
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-group { margin-bottom: 18px; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      background: #fff;
+      border: 1.5px solid rgba(44,36,32,0.15);
+      border-radius: 4px;
+      padding: 13px 16px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: var(--charcoal);
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus { border-color: var(--wood-mid); }
+
+    .form-group textarea { resize: vertical; min-height: 130px; }
+
+    .form-submit {
+      width: 100%;
+      background: var(--charcoal);
+      color: #fff;
+      border: none;
+      padding: 16px;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+
+    .form-submit:hover { background: var(--wood-dark); }
+
+    /* ─── FOOTER ──────────────────────────────────────────────────── */
+    footer {
+      background: #1a1210;
+      padding: 60px 8% 30px;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 50px;
+      padding-bottom: 50px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-brand {}
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      text-decoration: none;
+    }
+
+    .footer-logo img {
+      height: 46px;
+      width: 46px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .footer-logo-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .footer-logo-name span {
+      display: block;
+      font-size: 0.6rem;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--wood-light);
+    }
+
+    .footer-brand p {
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.45);
+      line-height: 1.75;
+      margin-bottom: 22px;
+    }
+
+    .footer-col h4 {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--wood-light);
+      margin-bottom: 18px;
+    }
+
+    .footer-col ul { list-style: none; }
+
+    .footer-col ul li { margin-bottom: 12px; }
+
+    .footer-col ul li a {
+      font-size: 0.83rem;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-col ul li a:hover { color: var(--wood-light); }
+
+    .footer-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 28px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .footer-bottom p {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* ─── SCROLL REVEAL ───────────────────────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+      .about { grid-template-columns: 1fr; }
+      .about-media { display: none; }
+      .services-header { grid-template-columns: 1fr; }
+      .contact { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr 1fr; gap: 36px; }
+      .gallery-grid { grid-template-columns: repeat(3, 1fr); }
+      .gallery-item:nth-child(5) { grid-column: span 1; }
+      .gallery-item:nth-child(9) { grid-column: span 1; }
+    }
+
+    @media (max-width: 768px) {
+      :root { --section-gap: 72px; }
+      .nav-links { display: none; }
+      .hamburger { display: flex; }
+      .stats-band { grid-template-columns: repeat(2, 1fr); }
+      .services-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .gallery-item:nth-child(1) { grid-column: span 2; }
+      .process-steps { grid-template-columns: repeat(2, 1fr); }
+      .process-steps::before { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-item:nth-child(1) { grid-column: span 1; grid-row: span 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── NAV ──────────────────────────────────────────────────────────── -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/mainlogo.jpeg" alt="Garcia's Custom Furniture Logo">
+    <div class="nav-logo-text">
+      Garcia's Custom Furniture
+      <span>Houston Heights, TX</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact" class="nav-cta">Get a Quote</a></li>
+  </ul>
+  <div class="hamburger" onclick="toggleMenu(this)">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ─── HERO ──────────────────────────────────────────────────────────── -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Houston Heights · Est. in Your Home</div>
+    <h1>Furniture <em>Built</em><br>for Your Life</h1>
+    <p>Handcrafted solid wood pieces made by a father-and-son shop in Houston Heights. Custom built to fit your exact space, style, and story — one-of-a-kind, built to last.</p>
+    <div class="hero-btns">
+      <a href="#portfolio" class="btn-primary">View Our Work</a>
+      <a href="#contact" class="btn-ghost">Request a Quote</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
+    Scroll
+  </div>
+</section>
+
+<!-- ─── MARQUEE ──────────────────────────────────────────────────────── -->
+<div class="marquee-wrap" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Handcrafted</span><span class="dot">✦</span>
+    <span>Solid Wood</span><span class="dot">✦</span>
+    <span>Artisan-Made</span><span class="dot">✦</span>
+    <span>One-of-a-Kind</span><span class="dot">✦</span>
+    <span>Built to Last</span><span class="dot">✦</span>
+    <span>High Quality</span><span class="dot">✦</span>
+    <span>Contemporary</span><span class="dot">✦</span>
+    <span>Custom Designed</span><span class="dot">✦</span>
+    <!-- repeat for seamless loop -->
+    <span>Handcrafted</span><span class="dot">✦</span>
+    <span>Solid Wood</span><span class="dot">✦</span>
+    <span>Artisan-Made</span><span class="dot">✦</span>
+    <span>One-of-a-Kind</span><span class="dot">✦</span>
+    <span>Built to Last</span><span class="dot">✦</span>
+    <span>High Quality</span><span class="dot">✦</span>
+    <span>Contemporary</span><span class="dot">✦</span>
+    <span>Custom Designed</span><span class="dot">✦</span>
+  </div>
+</div>
+
+<!-- ─── ABOUT ─────────────────────────────────────────────────────────── -->
+<section class="about" id="about">
+  <div class="about-media">
+    <img class="about-img-main" src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/craft-200x300.png" alt="Craftsman at work">
+    <img class="about-img-accent" src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_8351-1030x773.jpeg" alt="Custom furniture detail">
+    <div class="about-badge">
+      <strong>200+</strong>
+      <span>Happy Clients</span>
+    </div>
+  </div>
+  <div class="about-text reveal">
+    <div class="section-label">Our Story</div>
+    <h2 class="section-title">A Father &amp; Son<br>Woodworking <em>Legacy</em></h2>
+    <p class="section-sub">We're a small, passionate shop based in the Houston Heights. Every piece we create is a collaboration — between your vision and our craft. From a single custom table to a full kitchen remodel, we bring precision, care, and genuine love for woodworking to every project.</p>
+    <div class="about-features">
+      <div class="feature-item">
+        <div class="feature-icon">🪵</div>
+        <div>
+          <h4>Premium Materials</h4>
+          <p>Only solid hardwoods and premium finishes — no shortcuts.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">📐</div>
+        <div>
+          <h4>Made-to-Measure</h4>
+          <p>Every piece built to your exact dimensions and specifications.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">🤝</div>
+        <div>
+          <h4>Personal Service</h4>
+          <p>Direct communication from design through delivery.</p>
+        </div>
+      </div>
+      <div class="feature-item">
+        <div class="feature-icon">⏱</div>
+        <div>
+          <h4>On-Time Delivery</h4>
+          <p>Transparent timelines and regular project updates.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── STATS ─────────────────────────────────────────────────────────── -->
+<div class="stats-band">
+  <div class="stat-item reveal">
+    <div class="stat-number">3</div>
+    <div class="stat-label">Team Members</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-number">200+</div>
+    <div class="stat-label">Happy Clients</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-number">212</div>
+    <div class="stat-label">Projects Finished</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-number">4,144</div>
+    <div class="stat-label">Hours of Craft</div>
+  </div>
+</div>
+
+<!-- ─── SERVICES ──────────────────────────────────────────────────────── -->
+<section class="services" id="services">
+  <div class="services-header">
+    <div class="reveal">
+      <div class="section-label">What We Do</div>
+      <h2 class="section-title">Furniture for <em>Every</em><br>Space &amp; Client</h2>
+    </div>
+    <p class="section-sub reveal">Whether you're a homeowner with a tricky corner, a business needing custom displays, or a designer seeking a reliable craftsman partner — we build it right.</p>
+  </div>
+  <div class="services-grid">
+    <div class="service-card reveal">
+      <div class="service-card-img-wrap">
+        <img class="service-card-img" src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_4249-225x300.jpg" alt="Homeowners">
+      </div>
+      <div class="service-card-body">
+        <div class="service-icon">🏠</div>
+        <h3>Homeowners &amp; Renters</h3>
+        <p>Unique spaces deserve unique furniture. We design and build custom pieces that fit your exact dimensions, style, and personality.</p>
+      </div>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-card-img-wrap">
+        <img class="service-card-img" src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_10391-1030x618.jpg" alt="Businesses">
+      </div>
+      <div class="service-card-body">
+        <div class="service-icon">🏢</div>
+        <h3>Businesses &amp; Offices</h3>
+        <p>Custom desks, reception units, display shelving, and branded furniture that makes your workspace stand out professionally.</p>
+      </div>
+    </div>
+    <div class="service-card reveal">
+      <div class="service-card-img-wrap">
+        <img class="service-card-img" src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/kitchen-687x1030.png" alt="Designers">
+      </div>
+      <div class="service-card-body">
+        <div class="service-icon">✏️</div>
+        <h3>Designers &amp; Builders</h3>
+        <p>We partner with interior designers and builders to deliver handcrafted, tailor-made pieces that bring your client visions to life.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PORTFOLIO ─────────────────────────────────────────────────────── -->
+<section class="gallery" id="portfolio">
+  <div class="gallery-header">
+    <div class="reveal">
+      <div class="section-label">Portfolio</div>
+      <h2 class="section-title">Our Finest <em>Work</em></h2>
+    </div>
+    <a href="#contact" class="btn-primary reveal">Start Your Project</a>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_1200-774x1030.jpg" alt="Mini Bar" loading="lazy">
+      <div class="gallery-overlay"><span>Mini Bar</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_4308-773x1030.jpg" alt="Bathroom Vanity" loading="lazy">
+      <div class="gallery-overlay"><span>Bathroom Vanity</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_1197-779x1030.jpg" alt="Book Shelf" loading="lazy">
+      <div class="gallery-overlay"><span>Book Shelf</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_7236-773x1030.jpg" alt="TV Console" loading="lazy">
+      <div class="gallery-overlay"><span>TV Console</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_5264-1030x773.jpg" alt="TV Shelves" loading="lazy">
+      <div class="gallery-overlay"><span>TV Shelves</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_4428-773x1030.jpg" alt="Handmade Table" loading="lazy">
+      <div class="gallery-overlay"><span>Handmade Table</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_3455-1030x773.jpg" alt="Kitchen" loading="lazy">
+      <div class="gallery-overlay"><span>Custom Kitchen</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_4245-2-1030x773.jpeg" alt="Dresser" loading="lazy">
+      <div class="gallery-overlay"><span>Dresser</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_1549-1030x773.jpeg" alt="Book Case" loading="lazy">
+      <div class="gallery-overlay"><span>Book Case</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_7555-773x1030.jpeg" alt="Bathroom Vanity" loading="lazy">
+      <div class="gallery-overlay"><span>Floating Vanity</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_7890-773x1030.jpeg" alt="Handmade Dresser" loading="lazy">
+      <div class="gallery-overlay"><span>Handmade Dresser</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_8467-1030x773.jpeg" alt="Bed Frame Set" loading="lazy">
+      <div class="gallery-overlay"><span>Bed Frame Set</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_5855-2-773x1030.jpeg" alt="Floating Bathroom Vanity" loading="lazy">
+      <div class="gallery-overlay"><span>Custom Closet</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_4299-2-773x1030.jpeg" alt="Custom Kitchen Cabinets" loading="lazy">
+      <div class="gallery-overlay"><span>Kitchen Cabinets</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/IMG_5848-2-773x1030.jpeg" alt="Custom Closet Cabinets" loading="lazy">
+      <div class="gallery-overlay"><span>Closet Cabinets</span></div>
+    </div>
+    <div class="gallery-item">
+      <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/main-parallax2-300x167.png" alt="Workshop" loading="lazy">
+      <div class="gallery-overlay"><span>Our Workshop</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── PROCESS ───────────────────────────────────────────────────────── -->
+<section class="process" id="process">
+  <div class="process-header reveal">
+    <div class="section-label">How It Works</div>
+    <h2 class="section-title">From Idea to <em>Heirloom</em></h2>
+  </div>
+  <div class="process-steps">
+    <div class="step reveal">
+      <div class="step-num">1</div>
+      <h3>Consultation</h3>
+      <p>Tell us about your space, style, and needs. We'll discuss dimensions, materials, and what makes your vision unique.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">2</div>
+      <h3>Design &amp; Quote</h3>
+      <p>We create a detailed design proposal and transparent quote — no hidden fees, no surprises.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">3</div>
+      <h3>Crafting</h3>
+      <p>Our craftsmen get to work. We provide regular updates so you can watch your piece come to life.</p>
+    </div>
+    <div class="step reveal">
+      <div class="step-num">4</div>
+      <h3>Delivery &amp; Install</h3>
+      <p>We deliver and install your furniture, ensuring it fits perfectly and you're completely satisfied.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── TESTIMONIALS ──────────────────────────────────────────────────── -->
+<section class="testimonials">
+  <div class="reveal">
+    <div class="section-label">Client Love</div>
+    <h2 class="section-title">What Our Clients <em>Say</em></h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial-card reveal">
+      <div class="stars">★★★★★</div>
+      <p>"Garcia's built us a custom mini bar that completely transformed our living room. The craftsmanship is exceptional — everyone who visits asks about it."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">M</div>
+        <div>
+          <div class="author-name">Maria L.</div>
+          <div class="author-location">Houston Heights, TX</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card reveal">
+      <div class="stars">★★★★★</div>
+      <p>"We needed custom office furniture that matched our brand aesthetic exactly. Garcia's delivered beyond our expectations — on time and on budget."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">J</div>
+        <div>
+          <div class="author-name">James R.</div>
+          <div class="author-location">Midtown Houston, TX</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card reveal">
+      <div class="stars">★★★★★</div>
+      <p>"As an interior designer, I need craftsmen I can trust. Garcia's has been my go-to for custom pieces for three years. Reliable, skilled, and easy to work with."</p>
+      <div class="testimonial-author">
+        <div class="author-avatar">S</div>
+        <div>
+          <div class="author-name">Sofia M.</div>
+          <div class="author-location">River Oaks, TX</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── CONTACT ───────────────────────────────────────────────────────── -->
+<section class="contact" id="contact">
+  <div class="contact-info reveal">
+    <div class="section-label">Get In Touch</div>
+    <h2 class="section-title">Let's Build<br>Something <em>Remarkable</em></h2>
+    <p class="section-sub" style="margin-bottom: 44px;">Ready to start your custom furniture project? Reach out for a free consultation. We'd love to hear about your space and your vision.</p>
+
+    <div class="contact-detail">
+      <div class="contact-icon">✉</div>
+      <div>
+        <h4>Email Us</h4>
+        <a href="mailto:[email protected]">[email protected]</a>
+      </div>
+    </div>
+    <div class="contact-detail">
+      <div class="contact-icon">📍</div>
+      <div>
+        <h4>Location</h4>
+        <p>Houston Heights &amp; Metro Area, Houston, TX</p>
+      </div>
+    </div>
+    <div class="contact-detail">
+      <div class="contact-icon">🕐</div>
+      <div>
+        <h4>Response Time</h4>
+        <p>We typically respond within 24 hours</p>
+      </div>
+    </div>
+
+    <div class="contact-social">
+      <a href="https://www.instagram.com" target="_blank" rel="noopener" class="social-link" title="Instagram">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      </a>
+      <a href="https://www.yelp.com" target="_blank" rel="noopener" class="social-link" title="Yelp">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M21.111 18.226c-.141.969-2.119 3.483-3.029 3.847-.311.124-.611.094-.85-.09-.154-.12-.314-.365-2.447-3.827l-.633-1.032c-.244-.405-.172-.927.168-1.232a1.3 1.3 0 0 1 1.363-.22c.047.018.09.039.135.063l3.914 2.153c.405.224.601.647.51 1.031l-.131.307zm-4.56-3.817c-.259.376-.687.556-1.108.454l-.156-.044-4.833-1.994c-.453-.187-.687-.674-.554-1.145l.048-.139 2.287-4.678c.198-.405.605-.596 1.006-.479l.266.098c.913.398 2.824 1.787 3.406 2.595a4.68 4.68 0 0 1 .784 1.762c.104.601-.002 1.135-.243 1.517l-.15.197-.249.256-.5-.4zm-10.53 5.808C5.563 20.886 5.15 18 5.347 17.01c.069-.349.254-.616.511-.763l.165-.073 4.197-1.343c.471-.151.966.083 1.141.545l.045.147.517 4.401c.047.401-.16.775-.511.947l-.167.059c-.964.25-3.566.396-4.725.287zm1.354-9.758c.01-.01.023-.019.034-.028-.011.009-.024.018-.034.028zM7.43 10.73l-.116.104-3.518 3.612c-.28.287-.352.714-.164 1.075.294.563 1.836 2.059 2.7 2.458.305.139.629.133.89-.027l.158-.125 3.168-3.447c.319-.347.326-.869.016-1.229l-.113-.11-2.435-2.243a.878.878 0 0 0-.586-.069zm1.104-7.373C8.012 3.122 6.003 3.995 5.411 4.72c-.21.261-.271.567-.172.854l.08.19 2.306 4.527c.224.44.717.647 1.175.5l.153-.06 4.132-2.086c.397-.201.58-.646.448-1.063l-.076-.196c-.42-.898-1.909-2.607-2.851-3.165a2.665 2.665 0 0 0-1.042-.352 1.576 1.576 0 0 0-1.03.488z"/></svg>
+      </a>
+      <a href="https://www.pinterest.com" target="_blank" rel="noopener" class="social-link" title="Pinterest">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      </a>
+      <a href="https://www.houzz.com" target="_blank" rel="noopener" class="social-link" title="Houzz">
+        <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12.5 3.5L3 8.5V21h7v-5h5v5h6V8.5L12.5 3.5z"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <div class="contact-form-wrap reveal">
+    <form onsubmit="handleSubmit(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="fname">First Name</label>
+          <input type="text" id="fname" placeholder="John" required>
+        </div>
+        <div class="form-group">
+          <label for="lname">Last Name</label>
+          <input type="text" id="lname" placeholder="Doe" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="[email protected]" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" placeholder="(713) 000-0000">
+      </div>
+      <div class="form-group">
+        <label for="subject">Type of Project</label>
+        <select id="subject">
+          <option value="">Select a project type...</option>
+          <option>Custom Kitchen Cabinets</option>
+          <option>Bathroom Vanity</option>
+          <option>Bedroom Furniture</option>
+          <option>TV Console / Media Unit</option>
+          <option>Mini Bar</option>
+          <option>Bookshelves</option>
+          <option>Office / Desk</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="message">Tell Us About Your Project</label>
+        <textarea id="message" placeholder="Describe your space, style preferences, dimensions, timeline, and any other details..." required></textarea>
+      </div>
+      <button type="submit" class="form-submit">Send Message →</button>
+    </form>
+  </div>
+</section>
+
+<!-- ─── FOOTER ────────────────────────────────────────────────────────── -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <a href="#" class="footer-logo">
+        <img src="https://garciascustomfurniture.com/wp-content/uploads/2025/03/mainlogo.jpeg" alt="Garcia's Custom Furniture">
+        <div class="footer-logo-name">
+          Garcia's Custom Furniture
+          <span>Houston Heights, TX</span>
+        </div>
+      </a>
+      <p>A family-run woodworking shop dedicated to crafting high-quality, custom furniture that fits your style and space perfectly.</p>
+      <div class="contact-social" style="margin-top:0">
+        <a href="#" class="social-link" style="border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.5)">IG</a>
+        <a href="#" class="social-link" style="border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.5)">YP</a>
+        <a href="#" class="social-link" style="border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.5)">PI</a>
+        <a href="#" class="social-link" style="border-color:rgba(255,255,255,0.15);color:rgba(255,255,255,0.5)">HZ</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li><a href="#services">Homeowners</a></li>
+        <li><a href="#services">Businesses</a></li>
+        <li><a href="#services">Designers</a></li>
+        <li><a href="#portfolio">Portfolio</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Furniture</h4>
+      <ul>
+        <li><a href="#portfolio">Kitchen Cabinets</a></li>
+        <li><a href="#portfolio">Bathroom Vanities</a></li>
+        <li><a href="#portfolio">TV Consoles</a></li>
+        <li><a href="#portfolio">Bed Frames</a></li>
+        <li><a href="#portfolio">Custom Tables</a></li>
+        <li><a href="#portfolio">Bookshelves</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <ul>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#process">Our Process</a></li>
+        <li><a href="#contact">Get a Quote</a></li>
+        <li><a href="mailto:[email protected]">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Garcia's Custom Furniture. All rights reserved. Houston Heights, TX.</p>
+    <p>Handcrafted with ♥ in Houston</p>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll effect
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 40);
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Hamburger
+  function toggleMenu(el) {
+    el.classList.toggle('open');
+    const links = document.querySelector('.nav-links');
+    links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+    links.style.flexDirection = 'column';
+    links.style.position = 'absolute';
+    links.style.top = '80px';
+    links.style.left = '0';
+    links.style.right = '0';
+    links.style.background = 'var(--warm-white)';
+    links.style.padding = '24px 8%';
+    links.style.gap = '20px';
+    links.style.borderTop = '1px solid rgba(200,169,126,0.2)';
+  }
+
+  // Form submit
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.form-submit');
+    btn.textContent = '✓ Message Sent!';
+    btn.style.background = 'var(--wood-mid)';
+    setTimeout(() => {
+      btn.textContent = 'Send Message →';
+      btn.style.background = '';
+      e.target.reset();
+    }, 3000);
+  }
+
+  // Counter animation
+  function animateCounters() {
+    document.querySelectorAll('.stat-number').forEach(el => {
+      const text = el.textContent;
+      const num = parseFloat(text.replace(/[^0-9.]/g, ''));
+      const suffix = text.replace(/[0-9.,]/g, '');
+      if (isNaN(num)) return;
+      let start = 0;
+      const duration = 1800;
+      const step = (timestamp) => {
+        if (!start) start = timestamp;
+        const progress = Math.min((timestamp - start) / duration, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(ease * num);
+        el.textContent = current.toLocaleString() + suffix;
+        if (progress < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  // Trigger counter when stats band visible
+  const statsObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        animateCounters();
+        statsObserver.disconnect();
+      }
+    });
+  }, { threshold: 0.5 });
+  statsObserver.observe(document.querySelector('.stats-band'));
+</script>
+</body>
+</html>

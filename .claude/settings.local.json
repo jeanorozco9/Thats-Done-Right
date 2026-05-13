@@ -5,7 +5,10 @@
       "Bash(supabase --version)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "WebFetch(domain:garciascustomfurniture.com)",
+      "WebSearch",
+      "WebFetch(domain:unsplash.com)"
     ]
   }
 }
