@@ -353,6 +353,101 @@ tr:hover td { background: var(--off-white); }
   .table-wrap { padding: 1rem .75rem; }
   th, td { padding: .65rem .75rem; }
 }
+
+/* LEAD DRAWER */
+.drawer-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 900;
+}
+.drawer-overlay.open { display: block; }
+
+.lead-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  height: 100%;
+  width: 380px;
+  max-width: 100vw;
+  background: var(--white);
+  box-shadow: -4px 0 32px rgba(0,0,0,0.18);
+  z-index: 901;
+  transform: translateX(100%);
+  transition: transform .25s ease;
+  display: flex;
+  flex-direction: column;
+}
+.lead-drawer.open { transform: translateX(0); }
+
+.drawer-header {
+  background: var(--dark);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.drawer-title {
+  font-family: var(--display);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--white);
+}
+.drawer-close {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.drawer-close:hover { color: var(--white); }
+
+.drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.drawer-section-label {
+  font-family: var(--display);
+  font-size: .6rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-lite);
+  margin-bottom: .5rem;
+}
+.drawer-row {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.drawer-value {
+  font-size: .9rem;
+  color: var(--dark);
+  line-height: 1.5;
+}
+.drawer-value a { color: var(--green); text-decoration: none; }
+.drawer-value.notes {
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: .85rem;
+  color: var(--dark-mid);
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.drawer-divider { border: none; border-top: 1px solid var(--border); }
+
+tr.clickable-row { cursor: pointer; }
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"/>
 </head>
@@ -567,7 +662,7 @@ function renderTable() {
          </a>`
       : '<span style="font-size:.75rem;color:var(--text-lite);">—</span>';
 
-    return `<tr>
+    return `<tr class="clickable-row" onclick="openLeadDrawer(${l.id})">
       <td class="date-cell">${date}${l.invoice_number ? `<div style="font-size:.65rem;color:var(--text-lite);font-family:var(--display);letter-spacing:.3px;margin-top:2px;">${l.invoice_number}</div>` : ''}</td>
       <td>
         <strong>${l.name || '—'}</strong>
@@ -585,13 +680,13 @@ function renderTable() {
       <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
       <td class="price-cell">${l.price ? '$' + l.price : '—'}</td>
       <td>${photoCell}</td>
-      <td>
+      <td onclick="event.stopPropagation()">
         <select class="contractor-select ${l.contractor_id ? 'assigned' : ''}"
           onchange="assignContractor(${l.id}, this.value)">
           ${CONTRACTORS.map(c => `<option value="${c.id}" ${(c.id === 0 && !l.contractor_id) || (c.id > 0 && l.contractor_id == c.id) ? 'selected' : ''}>${c.name}</option>`).join('')}
         </select>
       </td>
-      <td><span class="badge ${statusBadge}">${statusLabel}</span>${invoiceBtn}</td>
+      <td onclick="event.stopPropagation()"><span class="badge ${statusBadge}">${statusLabel}</span>${invoiceBtn}</td>
     </tr>`;
   }).join('');
 
@@ -989,6 +1084,89 @@ function exportCSV() {
   a.download = 'tdr-leads-' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
 }
+
+
+function openLeadDrawer(id) {
+  const l = allLeads.find(x => x.id === id);
+  if (!l) return;
+
+  const freqLabel = l.frequency === 'weekly' ? 'Weekly'
+                  : l.frequency === 'twice'  ? 'Every 2 Weeks'
+                  : l.frequency || '—';
+
+  const statusLabel = l.status === 'booked'    ? 'Booked'
+                    : l.status === 'invoiced'  ? 'Invoiced'
+                    : l.status === 'completed' ? 'Completed'
+                    : l.status === 'paid'      ? 'Paid'
+                    : 'Pending';
+
+  const scheduledDate = l.scheduled_date
+    ? new Date(l.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })
+    : null;
+
+  const createdDate = l.created_at
+    ? new Date(l.created_at).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' })
+    : '—';
+
+  const notes = (l.job_notes || '').trim();
+
+  document.getElementById('drawerContent').innerHTML = `
+    <div class="drawer-row">
+      <div class="drawer-section-label">Client</div>
+      <div class="drawer-value"><strong>${l.name || '—'}</strong></div>
+      ${l.email ? `<div class="drawer-value"><a href="mailto:${l.email}">${l.email}</a></div>` : ''}
+      ${l.phone ? `<div class="drawer-value"><a href="tel:${l.phone}">${l.phone}</a></div>` : ''}
+    </div>
+    <hr class="drawer-divider"/>
+    <div class="drawer-row">
+      <div class="drawer-section-label">Address</div>
+      <div class="drawer-value">${l.address || '—'}${l.zip ? ', ' + l.zip : ''}</div>
+    </div>
+    <hr class="drawer-divider"/>
+    <div class="drawer-row">
+      <div class="drawer-section-label">Service</div>
+      <div class="drawer-value">${freqLabel} · ${l.price ? '$' + l.price + '/visit' : '—'}</div>
+      <div class="drawer-value" style="color:var(--text-mid);font-size:.8rem;">Status: ${statusLabel}</div>
+    </div>
+    <hr class="drawer-divider"/>
+    <div class="drawer-row">
+      <div class="drawer-section-label">Requested Service Date</div>
+      <div class="drawer-value">${scheduledDate || '<span style="color:var(--text-lite);">No date requested</span>'}</div>
+    </div>
+    <hr class="drawer-divider"/>
+    <div class="drawer-row">
+      <div class="drawer-section-label">Details Provided</div>
+      ${notes
+        ? `<div class="drawer-value notes">${notes.replace(/\|/g, '\n')}</div>`
+        : '<div class="drawer-value" style="color:var(--text-lite);">No details provided</div>'
+      }
+    </div>
+    <hr class="drawer-divider"/>
+    <div class="drawer-row">
+      <div class="drawer-section-label">Lead Created</div>
+      <div class="drawer-value" style="color:var(--text-mid);font-size:.8rem;">${createdDate}</div>
+    </div>
+  `;
+
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('leadDrawer').classList.add('open');
+}
+
+function closeLeadDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('leadDrawer').classList.remove('open');
+}
 </script>
+
+<!-- LEAD DETAIL DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeLeadDrawer()"></div>
+<div class="lead-drawer" id="leadDrawer">
+  <div class="drawer-header">
+    <span class="drawer-title">Client Details</span>
+    <button class="drawer-close" onclick="closeLeadDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerContent"></div>
+</div>
+
 </body>
 </html>
