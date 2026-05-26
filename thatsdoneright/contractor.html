@@ -869,7 +869,7 @@ function renderJob(job, type) {
         <div style="font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);margin-bottom:.75rem;">Upload a photo of the completed job</div>
         <img id="photoPreview-${job.id}" class="photo-preview"/>
         <label class="photo-label" for="photoInput-${job.id}">📷 Choose Photo</label>
-        <input type="file" id="photoInput-${job.id}" accept="image/*" capture="environment" onchange="previewPhoto(${job.id})"/>
+        <input type="file" id="photoInput-${job.id}" accept="image/*" onchange="previewPhoto(${job.id})"/>
         <br/>
         <button class="btn-submit-photo" id="photoSubmitBtn-${job.id}" onclick="submitPhoto(${job.id})">Submit & Complete Job</button>
       </div>`;
