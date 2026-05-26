@@ -2090,6 +2090,7 @@ function submitDetails() {
   if (prefDate) {
     const toISO = d => d.toISOString().split('T')[0];
     const today = new Date(); today.setHours(0,0,0,0);
+    const minDay = new Date(today); minDay.setDate(today.getDate() + 2);
     const maxDay = new Date(today); maxDay.setDate(today.getDate() + 30);
     const selected = new Date(prefDate + 'T00:00:00');
     let dateErrEl = document.getElementById('prefDateErr');
@@ -2099,8 +2100,8 @@ function submitDetails() {
       dateErrEl.style.cssText = 'color:#c0392b;font-size:.85rem;margin:.25rem 0 .5rem;';
       document.getElementById('prefDate').insertAdjacentElement('afterend', dateErrEl);
     }
-    if (selected < today) {
-      dateErrEl.textContent = 'Please select a date starting from today.';
+    if (selected < minDay) {
+      dateErrEl.textContent = 'Please select a date at least 2 days from today.';
       document.getElementById('prefDate').focus();
       return;
     }
@@ -2331,9 +2332,10 @@ async function submitLead() {
   // Show quick questions next
   hide('contactPanel');
   const _today = new Date();
+  const _minDate = new Date(_today); _minDate.setDate(_today.getDate() + 2);
   const _maxDate = new Date(_today); _maxDate.setDate(_today.getDate() + 30);
   const _pf = document.getElementById('prefDate');
-  _pf.min   = _today.toISOString().split('T')[0];
+  _pf.min   = _minDate.toISOString().split('T')[0];
   _pf.max   = _maxDate.toISOString().split('T')[0];
   _pf.value = '';
   document.getElementById('detailsSection').classList.add('show');
@@ -2440,14 +2442,14 @@ function hide(id) { document.getElementById(id).classList.remove('show'); }
 
 
 
-// Set date picker limits: today → today+30 days
+// Set date picker limits: 2 days from today → today+30 days
 (function() {
   const toISO = d => d.toISOString().split('T')[0];
   const today  = new Date();
-  const maxDay = new Date();
-  maxDay.setDate(today.getDate() + 30);
+  const minDay = new Date(); minDay.setDate(today.getDate() + 2);
+  const maxDay = new Date(); maxDay.setDate(today.getDate() + 30);
   const el = document.getElementById('prefDate');
-  if (el) { el.min = toISO(today); el.max = toISO(maxDay); }
+  if (el) { el.min = toISO(minDay); el.max = toISO(maxDay); }
 })();
 
 function resetResults() {
