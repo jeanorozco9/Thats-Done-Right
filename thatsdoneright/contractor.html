@@ -163,14 +163,50 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   <div class="login-card">
     <div class="login-logo">That's Done Right</div>
     <div class="login-sub">Contractor Portal</div>
-    <label>Your Email Address</label>
-    <input type="email" id="emailInput" placeholder="john@email.com" autocomplete="email" onkeydown="if(event.key==='Enter') sendMagicLink()"/>
-    <button class="login-btn" id="loginBtn" onclick="sendMagicLink()">Send Login Link</button>
-    <div class="login-success" id="loginSuccess">
-      ✅ Check your email! We sent you a secure login link.<br/>
-      <span style="font-size:.8rem;color:#555;">Click the link in your email to access your jobs.</span>
+
+    <!-- Step 1: Email -->
+    <div id="stepEmail">
+      <label>Your Email Address</label>
+      <input type="email" id="emailInput" placeholder="john@email.com" autocomplete="email" onkeydown="if(event.key==='Enter') checkContractorEmail()"/>
+      <button class="login-btn" id="loginBtn" onclick="checkContractorEmail()">Continue →</button>
     </div>
-    <div class="login-error" id="loginError">No approved contractor account found for that email.</div>
+
+    <!-- Step 2a: Password login -->
+    <div id="stepPassword" style="display:none;">
+      <div style="font-size:.8rem;color:#888;margin-bottom:1rem;" id="emailDisplay"></div>
+      <label>Password</label>
+      <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') loginWithPassword()"/>
+      <button class="login-btn" id="pwBtn" onclick="loginWithPassword()">Log In</button>
+      <div id="pwAttempts" style="font-size:.78rem;color:#e65100;margin-top:.6rem;display:none;"></div>
+      <div style="margin-top:.75rem;">
+        <button onclick="goBackToEmail()" style="background:none;border:none;color:#aaa;font-size:.75rem;cursor:pointer;">← Different email</button>
+      </div>
+    </div>
+
+    <!-- Step 2b: First time - no password yet -->
+    <div id="stepSetup" style="display:none;text-align:center;">
+      <div style="font-size:2.2rem;margin-bottom:.6rem;">🔑</div>
+      <div style="font-family:var(--display);font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.5rem;">Create Your Password</div>
+      <div style="font-size:.82rem;color:#666;margin-bottom:1.25rem;line-height:1.6;">Welcome! We'll email you a secure link to set up your password.</div>
+      <button class="login-btn" id="setupBtn" onclick="sendSetupEmail()">Send Setup Link</button>
+      <div style="margin-top:.75rem;">
+        <button onclick="goBackToEmail()" style="background:none;border:none;color:#aaa;font-size:.75rem;cursor:pointer;">← Different email</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Set password (after clicking setup/reset link in email) -->
+    <div id="stepSetPassword" style="display:none;">
+      <div style="font-family:var(--display);font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:.75rem;">Create Your Password</div>
+      <label>New Password</label>
+      <input type="password" id="newPwInput" placeholder="At least 8 characters" autocomplete="new-password"/>
+      <label style="margin-top:.5rem;">Confirm Password</label>
+      <input type="password" id="confirmPwInput" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter') saveNewPassword()"/>
+      <div id="setPwError" style="color:#c62828;font-size:.78rem;margin:.25rem 0 .5rem;display:none;"></div>
+      <button class="login-btn" id="setPwBtn" onclick="saveNewPassword()">Set Password & Log In</button>
+    </div>
+
+    <div class="login-success" id="loginSuccess" style="display:none;"></div>
+    <div class="login-error" id="loginError" style="display:none;">No approved contractor account found for that email.</div>
   </div>
 </div>
 
@@ -254,16 +290,177 @@ let currentView = 'day';
 let currentViewDate = new Date();
 currentViewDate.setHours(0,0,0,0);
 
+let loginAttempts   = 0;
+let currentLoginEmail = '';
+let inRecoveryMode  = false;
+
+function showStep(step) {
+  ['stepEmail','stepPassword','stepSetup','stepSetPassword'].forEach(id => {
+    document.getElementById(id).style.display = id === 'step' + step.charAt(0).toUpperCase() + step.slice(1) ? '' : 'none';
+  });
+  document.getElementById('loginError').style.display   = 'none';
+  document.getElementById('loginSuccess').style.display = 'none';
+}
+
+function goBackToEmail() {
+  loginAttempts = 0;
+  currentLoginEmail = '';
+  document.getElementById('emailInput').value = '';
+  showStep('email');
+  setTimeout(() => document.getElementById('emailInput').focus(), 50);
+}
+
+async function checkContractorEmail() {
+  const email = document.getElementById('emailInput').value.trim().toLowerCase();
+  if (!email.includes('@')) return;
+
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Checking...';
+  btn.disabled = true;
+  document.getElementById('loginError').style.display = 'none';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/contractors?email=eq.${encodeURIComponent(email)}&status=eq.approved&select=id,name,has_password`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const contractors = await res.json();
+
+    if (!contractors.length) {
+      document.getElementById('loginError').style.display = 'block';
+      btn.textContent = 'Continue →';
+      btn.disabled = false;
+      return;
+    }
+
+    currentLoginEmail = email;
+    if (contractors[0].has_password) {
+      document.getElementById('emailDisplay').textContent = email;
+      showStep('password');
+      setTimeout(() => document.getElementById('passwordInput').focus(), 50);
+    } else {
+      showStep('setup');
+    }
+  } catch(e) {
+    console.error('Email check error:', e);
+    btn.textContent = 'Continue →';
+    btn.disabled = false;
+  }
+}
+
+async function loginWithPassword() {
+  const password = document.getElementById('passwordInput').value;
+  if (!password) return;
+
+  const btn = document.getElementById('pwBtn');
+  btn.textContent = 'Logging in...';
+  btn.disabled = true;
+  document.getElementById('pwAttempts').style.display = 'none';
+
+  const { error } = await sb.auth.signInWithPassword({ email: currentLoginEmail, password });
+
+  if (!error) return; // onAuthStateChange will fire SIGNED_IN and load dashboard
+
+  loginAttempts++;
+  btn.textContent = 'Log In';
+  btn.disabled = false;
+  document.getElementById('passwordInput').value = '';
+
+  if (loginAttempts >= 3) {
+    await sb.auth.signInWithOtp({
+      email: currentLoginEmail,
+      options: { emailRedirectTo: `${window.location.origin}/contractor.html` }
+    });
+    document.getElementById('stepPassword').style.display = 'none';
+    const s = document.getElementById('loginSuccess');
+    s.innerHTML = '✅ Check your email! We sent you a backup login link.<br/><span style="font-size:.8rem;color:#555;">Password entered incorrectly 3 times — use the link to log in.</span>';
+    s.style.display = 'block';
+  } else {
+    const remaining = 3 - loginAttempts;
+    const el = document.getElementById('pwAttempts');
+    el.textContent = `Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} left before we send a login link.`;
+    el.style.display = 'block';
+  }
+}
+
+async function sendSetupEmail() {
+  const btn = document.getElementById('setupBtn');
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  const { error } = await sb.auth.resetPasswordForEmail(currentLoginEmail, {
+    redirectTo: `${window.location.origin}/contractor.html`
+  });
+
+  if (!error) {
+    document.getElementById('stepSetup').style.display = 'none';
+    const s = document.getElementById('loginSuccess');
+    s.innerHTML = '✅ Check your email! Click the link to create your password.<br/><span style="font-size:.8rem;color:#555;">The link expires in 1 hour.</span>';
+    s.style.display = 'block';
+  } else {
+    btn.textContent = 'Send Setup Link';
+    btn.disabled = false;
+    console.error('Setup email error:', error);
+  }
+}
+
+async function saveNewPassword() {
+  const pw      = document.getElementById('newPwInput').value;
+  const confirm = document.getElementById('confirmPwInput').value;
+  const errEl   = document.getElementById('setPwError');
+  errEl.style.display = 'none';
+
+  if (pw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pw !== confirm) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('setPwBtn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+
+  const { data, error } = await sb.auth.updateUser({ password: pw });
+
+  if (error) {
+    errEl.textContent = 'Error saving password: ' + error.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Set Password & Log In';
+    btn.disabled = false;
+    return;
+  }
+
+  // Mark has_password = true in contractors table
+  const email = data.user?.email;
+  if (email) {
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/contractors?email=eq.${encodeURIComponent(email)}`,
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
+        body: JSON.stringify({ has_password: true })
+      }
+    );
+  }
+
+  inRecoveryMode = false;
+  await loadContractorAndJobs(email);
+}
+
 // Check if returning from magic link or accept/decline link
 window.addEventListener('load', async () => {
-  const params     = new URLSearchParams(window.location.search);
-  const action     = params.get('action');
-  const leadId     = params.get('lead');
+  const params       = new URLSearchParams(window.location.search);
+  const action       = params.get('action');
+  const leadId       = params.get('lead');
   const contractorId = params.get('contractor');
 
   // Handle accept/decline from email link
   if (action && leadId && contractorId) {
-    // Clear URL params
     window.history.replaceState({}, '', window.location.pathname);
 
     if (action === 'decline') {
@@ -272,7 +469,6 @@ window.addEventListener('load', async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lead_id: parseInt(leadId), action: 'decline' })
       });
-      // Show declined message
       document.getElementById('loginScreen').innerHTML = `
         <div class="login-card">
           <div class="login-logo">That's Done Right</div>
@@ -286,56 +482,26 @@ window.addEventListener('load', async () => {
     }
 
     if (action === 'accept') {
-      // Store accept params and require login to set date/time
       sessionStorage.setItem('pendingAccept', JSON.stringify({ leadId, contractorId }));
     }
   }
 
+  // Detect password recovery link (redirected back from setup/reset email)
+  sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      inRecoveryMode = true;
+      window.history.replaceState({}, '', window.location.pathname);
+      showStep('setPassword');
+      setTimeout(() => document.getElementById('newPwInput').focus(), 100);
+    } else if (event === 'SIGNED_IN' && session && !inRecoveryMode) {
+      await loadContractorAndJobs(session.user.email);
+    }
+  });
+
   const { data: { session } } = await sb.auth.getSession();
-  if (session) await loadContractorAndJobs(session.user.email);
+  if (session && !inRecoveryMode) await loadContractorAndJobs(session.user.email);
 });
 
-async function sendMagicLink() {
-  const email = document.getElementById('emailInput').value.trim().toLowerCase();
-  if (!email.includes('@')) return;
-
-  const btn = document.getElementById('loginBtn');
-  btn.textContent = 'Checking...';
-  btn.disabled = true;
-  document.getElementById('loginError').style.display = 'none';
-
-  try {
-    // Verify they are an approved contractor first
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/contractors?email=eq.${encodeURIComponent(email)}&status=eq.approved&select=id,name`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-    );
-    const contractors = await res.json();
-
-    if (!contractors.length) {
-      document.getElementById('loginError').style.display = 'block';
-      btn.textContent = 'Send Login Link';
-      btn.disabled = false;
-      return;
-    }
-
-    // Send magic link
-    const { error } = await sb.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: `${window.location.origin}/contractor.html` }
-    });
-
-    if (error) throw error;
-
-    document.getElementById('loginSuccess').style.display = 'block';
-    btn.textContent = 'Link Sent!';
-
-  } catch(e) {
-    console.error('Magic link error:', e);
-    btn.textContent = 'Send Login Link';
-    btn.disabled = false;
-  }
-}
 
 async function loadContractorAndJobs(email) {
   try {
