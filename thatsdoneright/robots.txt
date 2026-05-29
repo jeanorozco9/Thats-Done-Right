@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Block admin and internal pages from indexing
+Disallow: /admin.html
+Disallow: /contractor.html
+Disallow: /client.html
+
+# Allow all public pages
+Allow: /index.html
+Allow: /apply.html
+
+# Sitemap location
+Sitemap: https://thatsdoneright.com/sitemap.xml
