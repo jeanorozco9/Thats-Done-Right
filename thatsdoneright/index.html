@@ -2087,19 +2087,27 @@ function submitDetails() {
   const notes    = document.getElementById('lawnNotes').value.trim();
 
   // Validate date range (handles iOS Safari which doesn't enforce min/max)
+  let dateErrEl = document.getElementById('prefDateErr');
+  if (!dateErrEl) {
+    dateErrEl = document.createElement('p');
+    dateErrEl.id = 'prefDateErr';
+    dateErrEl.style.cssText = 'color:#c0392b;font-size:.85rem;margin:.25rem 0 .5rem;';
+    document.getElementById('prefDate').insertAdjacentElement('afterend', dateErrEl);
+  }
+  dateErrEl.textContent = '';
+
+  if (!prefDate) {
+    dateErrEl.textContent = 'Please select a preferred service date to continue.';
+    document.getElementById('prefDate').focus();
+    return;
+  }
+
   if (prefDate) {
     const toISO = d => d.toISOString().split('T')[0];
     const today = new Date(); today.setHours(0,0,0,0);
     const minDay = new Date(today); minDay.setDate(today.getDate() + 2);
     const maxDay = new Date(today); maxDay.setDate(today.getDate() + 30);
     const selected = new Date(prefDate + 'T00:00:00');
-    let dateErrEl = document.getElementById('prefDateErr');
-    if (!dateErrEl) {
-      dateErrEl = document.createElement('p');
-      dateErrEl.id = 'prefDateErr';
-      dateErrEl.style.cssText = 'color:#c0392b;font-size:.85rem;margin:.25rem 0 .5rem;';
-      document.getElementById('prefDate').insertAdjacentElement('afterend', dateErrEl);
-    }
     if (selected < minDay) {
       dateErrEl.textContent = 'Please select a date at least 2 days from today.';
       document.getElementById('prefDate').focus();
