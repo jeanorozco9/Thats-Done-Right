@@ -2428,6 +2428,24 @@ function calculateQuote() {
     });
   }
 
+  // Notify admin when client enters their own size (address not in database)
+  if (!window.sizeAutoFilled) {
+    fetch(`${SUPABASE_URL}/functions/v1/notify-manual-size`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        name:     window.earlyName  || '',
+        email:    window.earlyEmail || '',
+        phone:    window.earlyPhone || '',
+        address:  document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value || '',
+        lot_size: lot,
+        home_size: home,
+        price,
+        lead_id: partialLeadId || null,
+      })
+    }).catch(() => {});
+  }
+
   document.getElementById('manualSection').classList.remove('show');
   hide('zoneOkBanner');
   show('resultPanel');
