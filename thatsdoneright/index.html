@@ -1453,9 +1453,13 @@ footer {
             <button class="option-btn" onclick="selectOpt(this,'lastcut')"><span class="opt-icon">🌾</span>3+ Weeks Ago</button>
           </div>
 
-          <!-- Q4: Special notes -->
-          <div class="question-title">4. Anything your lawn pro should know?</div>
-          <textarea id="lawnNotes" class="detail-textarea" placeholder="e.g. Fence gate is small, dog in backyard, avoid flower beds..."></textarea>
+          <!-- Q4: Gate code -->
+          <div class="question-title">4. Is there a gate code we need to access your property?</div>
+          <input type="text" id="gateCode" placeholder="e.g. #1234 (leave blank if none)" style="width:100%;padding:.7rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.92rem;font-family:var(--body);outline:none;background:var(--off-white);box-sizing:border-box;" />
+
+          <!-- Q5: Special notes -->
+          <div class="question-title" style="margin-top:1rem;">5. Anything else your lawn pro should know?</div>
+          <textarea id="lawnNotes" class="detail-textarea" placeholder="e.g. Dog in backyard, avoid flower beds, side gate is narrow..."></textarea>
 
           <button class="btn-primary" style="margin-top:1rem;" onclick="submitDetails()">
             Continue →
@@ -2273,6 +2277,7 @@ function submitDetails() {
   const prefDate = document.getElementById('prefDate').value;
   const pets     = document.querySelector('[data-group="pets"] .selected')?.textContent.trim() || '';
   const lastCut  = document.querySelector('[data-group="lastcut"] .selected')?.textContent.trim() || '';
+  const gateCode = document.getElementById('gateCode').value.trim();
   const notes    = document.getElementById('lawnNotes').value.trim();
 
   // Validate date range (handles iOS Safari which doesn't enforce min/max)
@@ -2310,7 +2315,7 @@ function submitDetails() {
     dateErrEl.textContent = '';
   }
 
-  window.lawnDetails = { prefDate, pets, lastCut, notes };
+  window.lawnDetails = { prefDate, pets, lastCut, gateCode, notes };
 
   document.getElementById('detailsSection').classList.remove('show');
 
@@ -2321,7 +2326,7 @@ function submitDetails() {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
       body: JSON.stringify({
-        job_notes:      [pets, lastCut, notes].filter(Boolean).join(' | ') || null,
+        job_notes:      [pets, lastCut, gateCode ? `Gate: ${gateCode}` : '', notes].filter(Boolean).join(' | ') || null,
         scheduled_date: prefDate || null
       })
     }).catch(e => console.error('Questions save error:', e));
@@ -2700,6 +2705,7 @@ function resetAll() {
   document.getElementById('earlyName').value  = '';
   document.getElementById('earlyEmail').value = '';
   document.getElementById('lawnNotes').value  = '';
+  document.getElementById('gateCode').value   = '';
   document.getElementById('contactCaptureSection').classList.remove('show');
   document.getElementById('detailsSection').classList.remove('show');
   document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
