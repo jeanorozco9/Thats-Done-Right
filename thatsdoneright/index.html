@@ -1563,7 +1563,7 @@ footer {
           <button class="btn-primary" onclick="handleBook()">
             📅 Book This Visit
           </button>
-          <button class="btn-ghost" onclick="goBackToDetails()">← Change Options</button>
+          <button class="btn-ghost" id="changeOptionsBtn" onclick="goBackToDetails()">← Change Options</button>
           <button class="btn-ghost" onclick="resetAll()">Try Another Address</button>
         </div>
 
@@ -2229,6 +2229,7 @@ function confirmAddress() {
     document.getElementById('addrHint').textContent = '✔ Property size auto-filled from public records';
     document.getElementById('addrHint').style.color = 'var(--green)';
     window.sizeAutoFilled = true;
+    document.getElementById('manualSection').classList.remove('show');
     calculateQuote();
   } else if (CROSBY_ZIPS.includes(currentZip)) {
     // Flat rate for Crosby when property data isn't in our database yet
@@ -2253,6 +2254,8 @@ function confirmAddress() {
     document.getElementById('manualSection').classList.remove('show');
     hide('zoneOkBanner');
     show('resultPanel');
+    const changeBtn = document.getElementById('changeOptionsBtn');
+    if (changeBtn) changeBtn.style.display = 'none';
     document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } else {
     showManual();
@@ -2425,9 +2428,29 @@ function calculateQuote() {
     });
   }
 
+  // Notify admin when client enters their own size (address not in database)
+  if (!window.sizeAutoFilled) {
+    fetch(`${SUPABASE_URL}/functions/v1/notify-manual-size`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({
+        name:     window.earlyName  || '',
+        email:    window.earlyEmail || '',
+        phone:    window.earlyPhone || '',
+        address:  document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value || '',
+        lot_size: lot,
+        home_size: home,
+        price,
+        lead_id: partialLeadId || null,
+      })
+    }).catch(() => {});
+  }
+
   document.getElementById('manualSection').classList.remove('show');
   hide('zoneOkBanner');
   show('resultPanel');
+  const changeBtn = document.getElementById('changeOptionsBtn');
+  if (changeBtn) changeBtn.style.display = window.sizeAutoFilled ? 'none' : '';
   document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -2440,6 +2463,7 @@ function joinWaitlist() {
 }
 
 function goBackToDetails() {
+  if (window.sizeAutoFilled) return;
   hide('resultPanel');
   document.getElementById('manualSection').classList.add('show');
   document.getElementById('manualSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2657,6 +2681,8 @@ function resetResults() {
   document.getElementById('homeError').classList.remove('show');
   document.getElementById('lotSize').style.borderColor  = '';
   document.getElementById('homeSize').style.borderColor = '';
+  const changeBtn = document.getElementById('changeOptionsBtn');
+  if (changeBtn) changeBtn.style.display = '';
 }
 
 function toggleAccountDrawer() {
