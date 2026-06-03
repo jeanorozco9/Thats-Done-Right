@@ -261,7 +261,8 @@ tr:hover td { background: var(--off-white); }
 }
 
 .badge-started  { background: #fff3e0; color: #e65100; }
-.badge-booked   { background: var(--green-tint); color: var(--green); }
+.badge-booked        { background: var(--green-tint); color: var(--green); }
+.badge-rescheduled   { background: var(--green-tint); color: var(--green); }
 .badge-weekly   { background: #e3f2fd; color: #1565c0; }
 .badge-twice    { background: #f3e5f5; color: #6a1b9a; }
 .badge-once     { background: #fce4ec; color: #880e4f; }
@@ -593,7 +594,7 @@ async function loadLeads() {
 
 function updateStats() {
   const total    = allLeads.length;
-  const booked   = allLeads.filter(l => l.status === 'booked').length;
+  const booked   = allLeads.filter(l => l.status === 'booked' || l.status === 'rescheduled').length;
   const prices   = allLeads.filter(l => l.price > 0).map(l => l.price);
   const avg      = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
   const monthly = allLeads.reduce((sum, l) => {
@@ -619,8 +620,8 @@ function renderTable() {
   const leads = currentFilter === 'all'
     ? allLeads
     : currentFilter === 'clients'
-      ? allLeads.filter(l => l.status === 'booked' || l.status === 'completed' || l.status === 'invoiced')
-      : allLeads.filter(l => l.status === currentFilter || (currentFilter === 'booked' && l.status === 'invoiced'));
+      ? allLeads.filter(l => l.status === 'booked' || l.status === 'rescheduled' || l.status === 'completed' || l.status === 'invoiced')
+      : allLeads.filter(l => l.status === currentFilter || (currentFilter === 'booked' && (l.status === 'invoiced' || l.status === 'rescheduled')));
 
   const filterLabel = currentFilter === 'all' ? 'All' : currentFilter === 'clients' ? 'Clients' : currentFilter === 'started' ? 'Leads' : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
   document.getElementById('tableTitle').textContent = filterLabel;
@@ -641,15 +642,17 @@ function renderTable() {
     const freqLabel = l.frequency === 'weekly' ? 'Weekly'
                     : l.frequency === 'twice'  ? 'Twice/Mo'
                     : 'Once/Mo';
-    const statusBadge = l.status === 'booked'    ? 'badge-booked'
-                      : l.status === 'invoiced'  ? 'badge-invoiced'
-                      : l.status === 'completed' ? 'badge-completed'
-                      : l.status === 'paid'      ? 'badge-paid'
+    const statusBadge = l.status === 'booked'        ? 'badge-booked'
+                      : l.status === 'rescheduled'  ? 'badge-booked'
+                      : l.status === 'invoiced'     ? 'badge-invoiced'
+                      : l.status === 'completed'    ? 'badge-completed'
+                      : l.status === 'paid'         ? 'badge-paid'
                       : 'badge-started';
-    const statusLabel = l.status === 'booked'    ? 'Booked'
-                      : l.status === 'invoiced'  ? 'Invoiced'
-                      : l.status === 'completed' ? 'Completed'
-                      : l.status === 'paid'      ? '💰 Paid'
+    const statusLabel = l.status === 'booked'        ? 'Booked'
+                      : l.status === 'rescheduled'  ? 'Rescheduled'
+                      : l.status === 'invoiced'     ? 'Invoiced'
+                      : l.status === 'completed'    ? 'Completed'
+                      : l.status === 'paid'         ? '💰 Paid'
                       : 'Pending';
 
     const invoiceBtn = (l.status === 'booked')
