@@ -959,9 +959,8 @@ function previewPhoto(jobId) {
 
 async function scheduleNextVisit(jobId) {
   try {
-    // Fetch the completed job's full data
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}&select=name,email,phone,address,zip,frequency,price,job_notes,contractor_id,stripe_customer_id,stripe_payment_method_id,scheduled_date`,
+      `${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}&select=frequency,scheduled_date`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const [job] = await res.json();
@@ -972,20 +971,12 @@ async function scheduleNextVisit(jobId) {
     next.setDate(next.getDate() + (job.frequency === 'weekly' ? 7 : 14));
     const nextDateStr = next.toISOString().split('T')[0];
 
-    await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
-      method: 'POST',
+    // Update the existing lead row instead of creating a new one — avoids
+    // triggering "new lead" notifications for recurring visits.
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}`, {
+      method: 'PATCH',
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({
-        name: job.name, email: job.email, phone: job.phone,
-        address: job.address, zip: job.zip,
-        frequency: job.frequency, price: job.price,
-        job_notes: job.job_notes, contractor_id: job.contractor_id,
-        stripe_customer_id: job.stripe_customer_id,
-        stripe_payment_method_id: job.stripe_payment_method_id,
-        scheduled_date: nextDateStr,
-        status: 'booked',
-        auto_scheduled: true
-      })
+      body: JSON.stringify({ scheduled_date: nextDateStr, status: 'booked' })
     });
   } catch(e) {
     console.error('Schedule next visit error:', e);
