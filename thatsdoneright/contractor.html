@@ -621,10 +621,11 @@ async function loadJobs(scrollToId) {
     );
     const jobs = await res.json();
 
-    const today       = new Date().toISOString().split('T')[0];
-    const todayJobs   = jobs.filter(j => j.scheduled_date === today && j.status !== 'completed');
-    const upcoming    = jobs.filter(j => j.scheduled_date > today && j.status !== 'completed');
-    const completed   = jobs.filter(j => j.status === 'completed');
+    const today     = new Date().toISOString().split('T')[0];
+    const DONE      = ['completed', 'paid', 'invoiced', 'rescheduled'];
+    const todayJobs = jobs.filter(j => j.scheduled_date === today && !DONE.includes(j.status));
+    const upcoming  = jobs.filter(j => j.scheduled_date > today && !DONE.includes(j.status));
+    const completed = jobs.filter(j => DONE.includes(j.status));
 
     document.getElementById('statToday').textContent     = todayJobs.length;
     document.getElementById('statUpcoming').textContent  = upcoming.length;
@@ -723,7 +724,7 @@ function renderDayView() {
   const rows = [...dayJobs, ...(isToday ? unscheduled : [])];
   let html = '<div class="timeline">';
   rows.forEach((job, i) => {
-    const isDone = job.status === 'completed';
+    const isDone = ['completed', 'paid', 'invoiced', 'rescheduled'].includes(job.status);
     const dotClass = isDone ? 'done' : job.scheduled_date ? (isToday ? '' : 'pending') : 'unscheduled';
     const isLast = i === rows.length - 1;
     const type = isDone ? 'completed' : !job.scheduled_date ? 'unscheduled' : isToday ? 'today' : 'upcoming';
@@ -1017,10 +1018,11 @@ async function submitPhoto(jobId) {
       body: JSON.stringify({ lead_id: jobId }),
     });
 
-    // 4. Auto-schedule next visit for recurring jobs
-    await scheduleNextVisit(jobId);
-
+    // 4. Refresh UI — show job as completed before rescheduling
     await loadJobs();
+
+    // 5. Quietly update lead with next visit date in the background
+    scheduleNextVisit(jobId);
 
   } catch(e) {
     console.error('Submit photo error:', e);
