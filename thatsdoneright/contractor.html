@@ -22,6 +22,21 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .nav-contractor span{color:var(--white)}
 .btn-logout{font-family:var(--display);font-size:.65rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:.35rem .8rem;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);border:none;border-radius:6px;cursor:pointer}
 .btn-logout:hover{background:rgba(255,255,255,0.15);color:var(--white)}
+/* Change-password modal */
+.cpw-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1rem}
+.cpw-card{background:var(--white);border-radius:16px;padding:2rem;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+.cpw-title{font-family:var(--display);font-size:.9rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dark);margin-bottom:1.25rem}
+.cpw-label{display:block;font-family:var(--display);font-size:.65rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--dark-mid);margin-bottom:.35rem}
+.cpw-input{width:100%;padding:.7rem .9rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.92rem;font-family:var(--body);outline:none;box-sizing:border-box;margin-bottom:.9rem}
+.cpw-input:focus{border-color:var(--green)}
+.cpw-error{color:#c62828;font-size:.78rem;margin-bottom:.75rem;display:none}
+.cpw-success{color:var(--green);font-size:.82rem;margin-bottom:.75rem;display:none}
+.cpw-actions{display:flex;gap:.75rem}
+.cpw-btn{flex:1;padding:.75rem;background:var(--green);color:var(--white);border:none;border-radius:var(--radius);font-family:var(--display);font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.cpw-btn:hover{background:var(--green-dark)}
+.cpw-btn:disabled{background:#aaa;cursor:not-allowed}
+.cpw-cancel{flex:1;padding:.75rem;background:transparent;color:var(--text-mid);border:2px solid var(--border);border-radius:var(--radius);font-family:var(--display);font-size:.8rem;font-weight:600;cursor:pointer}
+.cpw-cancel:hover{border-color:#aaa;color:var(--dark)}
 #loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--dark)}
 .login-card{background:var(--white);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,0.4);text-align:center}
 .login-logo{font-family:var(--script);font-size:2rem;color:var(--green);margin-bottom:.2rem}
@@ -230,9 +245,27 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div class="nav-logo">That's Done Right</div>
     <div class="nav-right">
       <div class="nav-contractor">Welcome, <span id="contractorName"></span></div>
+      <button class="btn-logout" onclick="openChangePw()" style="margin-right:.35rem;">Change Password</button>
       <button class="btn-logout" onclick="logout()">Log Out</button>
     </div>
   </nav>
+
+  <!-- Change Password Modal -->
+  <div class="cpw-overlay" id="cpwOverlay" style="display:none;" onclick="if(event.target===this)closeChangePw()">
+    <div class="cpw-card">
+      <div class="cpw-title">Change Password</div>
+      <label class="cpw-label">New Password</label>
+      <input type="password" id="cpwNew" class="cpw-input" placeholder="At least 8 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitChangePw()"/>
+      <label class="cpw-label">Confirm New Password</label>
+      <input type="password" id="cpwConfirm" class="cpw-input" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitChangePw()"/>
+      <div class="cpw-error" id="cpwError"></div>
+      <div class="cpw-success" id="cpwSuccess">Password updated successfully!</div>
+      <div class="cpw-actions">
+        <button class="cpw-cancel" onclick="closeChangePw()">Cancel</button>
+        <button class="cpw-btn" id="cpwBtn" onclick="submitChangePw()">Update Password</button>
+      </div>
+    </div>
+  </div>
   <div class="page-header">
     <div class="page-header-title">My Schedule</div>
     <div class="page-header-sub" id="pageHeaderSub">Loading your schedule...</div>
@@ -623,6 +656,59 @@ async function loadPayments() {
         </tbody>
       </table>
     </div>`;
+}
+
+function openChangePw() {
+  document.getElementById('cpwNew').value = '';
+  document.getElementById('cpwConfirm').value = '';
+  document.getElementById('cpwError').style.display = 'none';
+  document.getElementById('cpwSuccess').style.display = 'none';
+  document.getElementById('cpwBtn').disabled = false;
+  document.getElementById('cpwBtn').textContent = 'Update Password';
+  document.getElementById('cpwOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('cpwNew').focus(), 50);
+}
+
+function closeChangePw() {
+  document.getElementById('cpwOverlay').style.display = 'none';
+}
+
+async function submitChangePw() {
+  const pw      = document.getElementById('cpwNew').value;
+  const confirm = document.getElementById('cpwConfirm').value;
+  const errEl   = document.getElementById('cpwError');
+  const sucEl   = document.getElementById('cpwSuccess');
+  const btn     = document.getElementById('cpwBtn');
+
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  if (pw.length < 8) {
+    errEl.textContent = 'Password must be at least 8 characters.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (pw !== confirm) {
+    errEl.textContent = 'Passwords do not match.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Updating...';
+  btn.disabled = true;
+
+  const { error } = await sb.auth.updateUser({ password: pw });
+
+  if (error) {
+    errEl.textContent = 'Error: ' + error.message;
+    errEl.style.display = 'block';
+    btn.textContent = 'Update Password';
+    btn.disabled = false;
+  } else {
+    sucEl.style.display = 'block';
+    btn.textContent = 'Updated!';
+    setTimeout(() => closeChangePw(), 1800);
+  }
 }
 
 async function logout() {
