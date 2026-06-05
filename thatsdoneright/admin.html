@@ -597,10 +597,13 @@ function updateStats() {
   const booked   = allLeads.filter(l => l.status === 'booked' || l.status === 'rescheduled').length;
   const prices   = allLeads.filter(l => l.price > 0).map(l => l.price);
   const avg      = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
-  const monthly = allLeads.reduce((sum, l) => {
-    const mult = l.frequency === 'weekly' ? 4 : l.frequency === 'twice' ? 2 : 1;
-    return sum + (l.price || 0) * mult;
-  }, 0);
+  const ACTIVE = ['booked', 'rescheduled', 'completed', 'invoiced', 'paid'];
+  const monthly = allLeads
+    .filter(l => ACTIVE.includes(l.status) && l.price > 0 && l.frequency !== 'once')
+    .reduce((sum, l) => {
+      const mult = l.frequency === 'weekly' ? 4 : 2;
+      return sum + (l.price * mult);
+    }, 0);
 
   document.getElementById('statTotal').textContent    = total;
   document.getElementById('statBooked').textContent   = booked;
