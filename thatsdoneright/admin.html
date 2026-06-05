@@ -658,7 +658,7 @@ function renderTable() {
                       : l.status === 'paid'         ? '💰 Paid'
                       : 'Pending';
 
-    const invoiceBtn = (l.status === 'booked')
+    const invoiceBtn = (['booked', 'completed', 'rescheduled'].includes(l.status))
       ? `<button onclick="sendInvoice(${l.id})" style="margin-top:4px;font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.3rem .7rem;background:var(--green);color:#fff;border:none;border-radius:6px;cursor:pointer;">Send Invoice</button>`
       : '';
 
