@@ -133,6 +133,15 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .month-count{font-size:.6rem;font-family:var(--display);font-weight:700;color:var(--green);display:block}
 
 @media(max-width:480px){.stats-row{gap:.5rem}.stat-card{padding:.75rem;min-width:80px}.jobs-wrap{padding:0 1rem 3rem}.job-card{padding:1rem}.timeline{padding:1rem 1rem 3rem}}
+.forecast-week{margin-bottom:1.25rem;}
+.forecast-week-label{font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.5rem;}
+.forecast-row{display:flex;align-items:center;gap:.75rem;padding:.6rem .85rem;background:var(--white);border:1px solid var(--border);border-radius:8px;margin-bottom:.4rem;}
+.forecast-dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.forecast-date{font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.5px;color:var(--dark);width:80px;flex-shrink:0;}
+.forecast-client{font-size:.85rem;color:var(--dark);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.forecast-freq{font-family:var(--display);font-size:.6rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:.2rem .5rem;border-radius:4px;flex-shrink:0;}
+.forecast-freq.weekly{background:#e8f5e9;color:var(--green);}
+.forecast-freq.twice{background:#e3f2fd;color:#1565c0;}
 
 /* Main tabs */
 .main-tabs{display:flex;border-bottom:2px solid var(--border);background:var(--white);padding:0 1.5rem}
@@ -254,6 +263,15 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     <div id="scheduleWrap">
       <div class="empty-state"><span class="spinner"></span> Loading jobs...</div>
     </div>
+
+    <!-- 2-Month Forecast -->
+    <div style="padding:1.25rem 1.5rem 3rem;">
+      <div class="section-title">2-Month Forecast</div>
+      <div id="forecastWrap">
+        <div style="color:var(--text-lite);font-size:.85rem;">Loading forecast...</div>
+      </div>
+    </div>
+
   </div><!-- end scheduleSection -->
 
   <!-- Payments section -->
@@ -636,6 +654,7 @@ async function loadJobs(scrollToId) {
 
     allJobs = jobs;
     renderSchedule();
+    buildForecast(jobs);
 
     // Scroll to a specific job if requested (e.g. after assigning contractor_id)
     if (scrollToId) {
@@ -956,6 +975,76 @@ function previewPhoto(jobId) {
     reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; btn.style.display = 'inline-block'; };
     reader.readAsDataURL(input.files[0]);
   }
+}
+
+function buildForecast(jobs) {
+  const ACTIVE = ['booked', 'rescheduled'];
+  const recurring = jobs.filter(j =>
+    ACTIVE.includes(j.status) && j.scheduled_date && (j.frequency === 'weekly' || j.frequency === 'twice')
+  );
+
+  if (!recurring.length) {
+    document.getElementById('forecastWrap').innerHTML =
+      '<div style="color:var(--text-lite);font-size:.85rem;">No recurring clients assigned yet.</div>';
+    return;
+  }
+
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const twoMths = new Date(today); twoMths.setMonth(twoMths.getMonth() + 2);
+
+  // Generate all projected visits within the next 2 months
+  const visits = [];
+  recurring.forEach(job => {
+    const days = job.frequency === 'weekly' ? 7 : 14;
+    let cursor = new Date(job.scheduled_date + 'T12:00:00');
+    // Advance to first future date if anchor is in the past
+    while (cursor < today) cursor = new Date(cursor.getTime() + days * 86400000);
+    while (cursor <= twoMths) {
+      visits.push({ date: new Date(cursor), job });
+      cursor = new Date(cursor.getTime() + days * 86400000);
+    }
+  });
+
+  if (!visits.length) {
+    document.getElementById('forecastWrap').innerHTML =
+      '<div style="color:var(--text-lite);font-size:.85rem;">No upcoming visits in the next 2 months.</div>';
+    return;
+  }
+
+  // Sort by date
+  visits.sort((a, b) => a.date - b.date);
+
+  // Group by week
+  const weeks = {};
+  visits.forEach(v => {
+    const mon = new Date(v.date);
+    mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7)); // Monday of that week
+    const key = mon.toISOString().split('T')[0];
+    if (!weeks[key]) weeks[key] = { mon, rows: [] };
+    weeks[key].rows.push(v);
+  });
+
+  let html = '';
+  Object.values(weeks).forEach(({ mon, rows }) => {
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    const fmt = d => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    html += `<div class="forecast-week">
+      <div class="forecast-week-label">Week of ${fmt(mon)} – ${fmt(sun)}</div>`;
+    rows.forEach(({ date, job }) => {
+      const dateLabel = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const freqClass = job.frequency === 'weekly' ? 'weekly' : 'twice';
+      const freqLabel = job.frequency === 'weekly' ? 'Weekly' : 'Biweekly';
+      html += `<div class="forecast-row">
+        <div class="forecast-dot"></div>
+        <div class="forecast-date">${dateLabel}</div>
+        <div class="forecast-client">${job.name || job.address}</div>
+        <div class="forecast-freq ${freqClass}">${freqLabel}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('forecastWrap').innerHTML = html;
 }
 
 async function scheduleNextVisit(jobId) {
