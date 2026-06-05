@@ -117,6 +117,12 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .week-job-chip{background:var(--green-tint);border:1px solid #c8e6c9;border-radius:6px;padding:.2rem .4rem;font-size:.65rem;font-family:var(--display);font-weight:600;color:var(--green-dark);margin-bottom:.2rem;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;display:block}
 .week-job-chip:hover{background:#c8e6c9}
 .week-job-chip.done{background:#f5f5f5;border-color:#e0e0e0;color:#999}
+@media(pointer:fine){
+  .week-job-chip.draggable{cursor:grab}
+  .week-job-chip.draggable:active{cursor:grabbing;opacity:.7}
+  .week-job-chip.dragging{opacity:.4}
+  .week-col-body.drag-over{background:#e8f5e9;border-radius:6px;outline:2px dashed var(--green)}
+}
 
 /* Month view */
 .month-grid-wrap{padding:1rem 1rem 3rem}
@@ -789,12 +795,16 @@ function renderWeekView() {
         <div class="week-day-name">${dayNames[i]}</div>
         <div class="week-day-num${isToday ? ' today' : ''}">${day.getDate()}</div>
       </div>
-      <div class="week-col-body">`;
+      <div class="week-col-body" data-date="${ds}"
+        ondragover="weekDragOver(event)"
+        ondragleave="weekDragLeave(event)"
+        ondrop="weekDrop(event,'${ds}')">`;
     if (dayJobs.length) {
       dayJobs.forEach(j => {
-        const done = j.status === 'completed';
+        const done = ['completed','paid','invoiced','rescheduled'].includes(j.status);
         const addr = (j.address || '').split(',')[0];
-        html += `<span class="week-job-chip${done ? ' done' : ''}"
+        html += `<span class="week-job-chip${done ? ' done' : ' draggable'}"
+          ${!done ? `draggable="true" ondragstart="weekDragStart(event,${j.id})"` : ''}
           onclick="currentViewDate=new Date('${ds}T12:00:00');switchView('day')"
           title="${j.address || ''}">
           ${j.scheduled_time ? j.scheduled_time.substring(0,5)+' ' : ''}${addr}
@@ -974,6 +984,54 @@ function previewPhoto(jobId) {
     const reader = new FileReader();
     reader.onload = e => { preview.src = e.target.result; preview.style.display = 'block'; btn.style.display = 'inline-block'; };
     reader.readAsDataURL(input.files[0]);
+  }
+}
+
+// ── Week-view drag-to-reschedule (desktop only) ───────────────────────────
+let _dragJobId = null;
+
+function weekDragStart(e, jobId) {
+  _dragJobId = jobId;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function weekDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+
+function weekDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+async function weekDrop(e, newDate) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if (!_dragJobId) return;
+  const jobId = _dragJobId;
+  _dragJobId = null;
+
+  const job = allJobs.find(j => j.id === jobId);
+  if (!job || job.scheduled_date === newDate) return;
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ scheduled_date: newDate })
+    });
+    if (!res.ok) throw new Error('PATCH failed');
+    await loadJobs();
+  } catch(err) {
+    console.error('Reschedule error:', err);
+    alert('Could not reschedule. Please try again.');
   }
 }
 
