@@ -123,7 +123,7 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 
 /* Week view */
 .week-grid-wrap{padding:1rem 1rem 3rem;overflow-x:auto}
-.week-cols{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem;min-width:480px}
+.week-cols{display:grid;grid-template-columns:repeat(8,1fr);gap:.35rem;min-width:560px}
 .week-col-header{text-align:center;margin-bottom:.35rem}
 .week-day-name{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite)}
 .week-day-num{font-family:var(--display);font-size:.95rem;font-weight:700;color:var(--dark);width:26px;height:26px;line-height:26px;border-radius:50%;margin:.2rem auto 0;text-align:center}
@@ -860,25 +860,28 @@ function renderWeekView() {
   d.setDate(d.getDate() - ((dow + 6) % 7)); // shift to Monday
   const monday = new Date(d);
 
-  const weekLabel = monday.toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' – ' +
-    new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+6).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-  updateDateNav(weekLabel, 'WEEK VIEW');
-
-  const days = Array.from({length:7}, (_,i) => {
+  // 8 days: Mon–Sun + next Monday
+  const days = Array.from({length:8}, (_,i) => {
     const day = new Date(monday); day.setDate(monday.getDate()+i);
     return day;
   });
+  const weekLabel = days[0].toLocaleDateString('en-US', { month:'short', day:'numeric' }) + ' – ' +
+    days[7].toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  updateDateNav(weekLabel, 'WEEK VIEW');
+
   const todayStr = toISO(new Date());
-  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon →'];
 
   let html = '<div class="week-grid-wrap"><div class="week-cols">';
   days.forEach((day, i) => {
     const ds = toISO(day);
     const dayJobs = allJobs.filter(j => j.scheduled_date === ds);
     const isToday = ds === todayStr;
-    html += `<div>
+    const isNextWeek = i === 7;
+    const colStyle = isNextWeek ? 'border-left:2px dashed var(--border);padding-left:.35rem;' : '';
+    html += `<div style="${colStyle}">
       <div class="week-col-header">
-        <div class="week-day-name">${dayNames[i]}</div>
+        <div class="week-day-name" style="${isNextWeek ? 'color:var(--text-mid);' : ''}">${dayNames[i]}</div>
         <div class="week-day-num${isToday ? ' today' : ''}">${day.getDate()}</div>
       </div>
       <div class="week-col-body" data-date="${ds}"
