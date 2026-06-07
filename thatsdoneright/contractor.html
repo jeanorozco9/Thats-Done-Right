@@ -732,7 +732,7 @@ async function loadJobs(scrollToId) {
     const jobs = await res.json();
 
     const today     = new Date().toISOString().split('T')[0];
-    const DONE      = ['completed', 'paid', 'invoiced', 'rescheduled'];
+    const DONE      = ['completed', 'paid', 'invoiced'];
     const todayJobs = jobs.filter(j => j.scheduled_date === today && !DONE.includes(j.status));
     const upcoming  = jobs.filter(j => j.scheduled_date > today && !DONE.includes(j.status));
     const completed = jobs.filter(j => DONE.includes(j.status));
@@ -835,7 +835,7 @@ function renderDayView() {
   const rows = [...dayJobs, ...(isToday ? unscheduled : [])];
   let html = '<div class="timeline">';
   rows.forEach((job, i) => {
-    const isDone = ['completed', 'paid', 'invoiced', 'rescheduled'].includes(job.status);
+    const isDone = ['completed', 'paid', 'invoiced'].includes(job.status);
     const dotClass = isDone ? 'done' : job.scheduled_date ? (isToday ? '' : 'pending') : 'unscheduled';
     const isLast = i === rows.length - 1;
     const type = isDone ? 'completed' : !job.scheduled_date ? 'unscheduled' : isToday ? 'today' : 'upcoming';
@@ -890,7 +890,7 @@ function renderWeekView() {
         ondrop="weekDrop(event,'${ds}')">`;
     if (dayJobs.length) {
       dayJobs.forEach(j => {
-        const done = ['completed','paid','invoiced','rescheduled'].includes(j.status);
+        const done = ['completed','paid','invoiced'].includes(j.status);
         const addr = (j.address || '').split(',')[0];
         html += `<span class="week-job-chip${done ? ' done' : ' draggable'}"
           ${!done ? `draggable="true" ondragstart="weekDragStart(event,${j.id})"` : ''}
