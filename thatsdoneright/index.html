@@ -1311,6 +1311,10 @@ footer {
   ]
 }
 </script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+  .flatpickr-day.flatpickr-disabled,.flatpickr-day.flatpickr-disabled:hover{color:#ccc;background:transparent;cursor:not-allowed;text-decoration:line-through}
+</style>
 </head>
 <body>
 
@@ -2302,6 +2306,12 @@ function submitDetails() {
     const minDay = new Date(today); minDay.setDate(today.getDate() + 2);
     const maxDay = new Date(today); maxDay.setDate(today.getDate() + 30);
     const selected = new Date(prefDate + 'T00:00:00');
+    const dow = selected.getDay();
+    if (dow === 0 || dow === 6) {
+      dateErrEl.textContent = 'We don\'t service on weekends. Please select a weekday (Mon–Fri).';
+      document.getElementById('prefDate').focus();
+      return;
+    }
     if (selected < minDay) {
       dateErrEl.textContent = 'Please select a date at least 2 days from today.';
       document.getElementById('prefDate').focus();
@@ -2554,13 +2564,8 @@ async function submitLead() {
 
   // Show quick questions next
   hide('contactPanel');
-  const _today = new Date();
-  const _minDate = new Date(_today); _minDate.setDate(_today.getDate() + 2);
-  const _maxDate = new Date(_today); _maxDate.setDate(_today.getDate() + 30);
-  const _pf = document.getElementById('prefDate');
-  _pf.min   = _minDate.toISOString().split('T')[0];
-  _pf.max   = _maxDate.toISOString().split('T')[0];
-  _pf.value = '';
+  if (window._prefDatePicker) { window._prefDatePicker.clear(); }
+  else { document.getElementById('prefDate').value = ''; }
   document.getElementById('detailsSection').classList.add('show');
   document.getElementById('detailsSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -2665,14 +2670,23 @@ function hide(id) { document.getElementById(id).classList.remove('show'); }
 
 
 
-// Set date picker limits: 2 days from today → today+30 days
+// Date picker: weekdays only, 2–30 days from today
 (function() {
-  const toISO = d => d.toISOString().split('T')[0];
-  const today  = new Date();
-  const minDay = new Date(); minDay.setDate(today.getDate() + 2);
-  const maxDay = new Date(); maxDay.setDate(today.getDate() + 30);
-  const el = document.getElementById('prefDate');
-  if (el) { el.min = toISO(minDay); el.max = toISO(maxDay); }
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const minDay = new Date(today); minDay.setDate(today.getDate() + 2);
+  const maxDay = new Date(today); maxDay.setDate(today.getDate() + 30);
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
+  script.onload = function() {
+    window._prefDatePicker = flatpickr('#prefDate', {
+      dateFormat: 'Y-m-d',
+      minDate: minDay,
+      maxDate: maxDay,
+      disable: [function(date) { return date.getDay() === 0 || date.getDay() === 6; }],
+      disableMobile: false
+    });
+  };
+  document.body.appendChild(script);
 })();
 
 function resetResults() {
