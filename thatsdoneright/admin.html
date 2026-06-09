@@ -683,7 +683,6 @@ function renderTable() {
       <td>${l.phone ? `<a href="tel:${l.phone}" style="color:var(--dark);text-decoration:none;">${l.phone}</a>` : '—'}</td>
       <td style="max-width:180px;font-size:.8rem;color:var(--text-mid);">${l.address || '—'}</td>
       <td>${l.zip || '—'}</td>
-      <td style="font-family:var(--display);font-size:.82rem;font-weight:600;color:var(--dark-mid);white-space:nowrap;">${l.lawn_sqft ? Number(l.lawn_sqft).toLocaleString() + ' <span style="font-size:.65rem;color:var(--text-lite);">sqft</span>' : '<span style="color:var(--text-lite);">—</span>'}</td>
       <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
       <td class="price-cell">${l.price ? '$' + l.price : '—'}</td>
       <td>${photoCell}</td>
@@ -707,7 +706,6 @@ function renderTable() {
           <th>Phone</th>
           <th>Address</th>
           <th>Zip</th>
-          <th>Sq Ft</th>
           <th>Frequency</th>
           <th>Price</th>
           <th>Photo</th>
@@ -1077,12 +1075,12 @@ async function updateDisputeStatus(disputeId, newStatus) {
 
 function exportCSV() {
   if (!allLeads.length) return;
-  const headers = ['Date','Name','Email','Phone','Address','Zip','Sq Ft','Frequency','Price','Status'];
+  const headers = ['Date','Name','Email','Phone','Address','Zip','Frequency','Price','Status'];
   const rows = allLeads.map(l => [
     l.created_at ? new Date(l.created_at).toLocaleDateString() : '',
     l.name || '', l.email || '', l.phone || '',
-    l.address || '', l.zip || '', l.lawn_sqft || '',
-    l.frequency || '', l.price || '', l.status || ''
+    l.address || '', l.zip || '', l.frequency || '',
+    l.price || '', l.status || ''
   ].map(v => `"${v}"`).join(','));
 
   const csv = [headers.join(','), ...rows].join('\n');
@@ -1129,11 +1127,6 @@ function openLeadDrawer(id) {
     <div class="drawer-row">
       <div class="drawer-section-label">Address</div>
       <div class="drawer-value">${l.address || '—'}${l.zip ? ', ' + l.zip : ''}</div>
-    </div>
-    <hr class="drawer-divider"/>
-    <div class="drawer-row">
-      <div class="drawer-section-label">Lawn Size</div>
-      <div class="drawer-value" style="font-family:var(--display);font-weight:700;font-size:1.05rem;">${l.lawn_sqft ? Number(l.lawn_sqft).toLocaleString() + ' sqft' : '<span style="color:var(--text-lite);font-weight:400;font-size:.9rem;">Not provided</span>'}</div>
     </div>
     <hr class="drawer-divider"/>
     <div class="drawer-row">
