@@ -256,7 +256,26 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
       <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
 
-      <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+      <!-- ── RESCHEDULE ── -->
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Reschedule Visit</p>
+        <button onclick="toggleReschedulePanel()" style="width:100%;padding:.85rem 1rem;background:rgba(46,125,50,0.08);color:#2e7d32;border:2px solid rgba(46,125,50,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(46,125,50,0.15)';this.style.borderColor='rgba(46,125,50,0.6)'" onmouseout="this.style.background='rgba(46,125,50,0.08)';this.style.borderColor='rgba(46,125,50,0.3)'">📅 Reschedule Visit</button>
+        <div id="reschedulePanel" style="display:none;margin-top:.75rem;">
+          <input type="date" id="rescheduleDate" style="width:100%;padding:.65rem .75rem;border:2px solid #e8e2dc;border-radius:8px;font-size:16px;outline:none;font-family:var(--body);box-sizing:border-box;"/>
+          <button onclick="submitReschedule()" style="width:100%;margin-top:.5rem;padding:.8rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Confirm New Date →</button>
+          <div id="rescheduleSuccess" style="display:none;color:#2e7d32;font-size:.85rem;margin-top:.5rem;text-align:center;font-weight:600;">✅ Visit rescheduled!</div>
+        </div>
+      </div>
+
+      <!-- ── SKIP SERVICE ── -->
+      <div style="margin-top:1rem;">
+        <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Skip This Visit</p>
+        <button onclick="skipServiceDate()" style="width:100%;padding:.85rem 1rem;background:rgba(245,124,0,0.08);color:#f57c00;border:2px solid rgba(245,124,0,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(245,124,0,0.15)';this.style.borderColor='rgba(245,124,0,0.6)'" onmouseout="this.style.background='rgba(245,124,0,0.08)';this.style.borderColor='rgba(245,124,0,0.3)'">⏭ Skip to Next Service Date</button>
+        <div id="skipSuccess" style="display:none;font-size:.85rem;margin-top:.5rem;text-align:center;font-weight:600;color:#f57c00;"></div>
+      </div>
+
+      <!-- ── CANCEL SUBSCRIPTION ── -->
+      <div style="margin-top:1rem;padding-top:1.25rem;border-top:1px solid var(--border);">
         <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Cancel Subscription</p>
         <button onclick="cancelMembership()" style="width:100%;padding:.85rem 1rem;background:rgba(229,57,53,0.08);color:#e53935;border:2px solid rgba(229,57,53,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(229,57,53,0.15)';this.style.borderColor='rgba(229,57,53,0.6)'" onmouseout="this.style.background='rgba(229,57,53,0.08)';this.style.borderColor='rgba(229,57,53,0.3)'">Cancel Membership</button>
       </div>
@@ -1031,6 +1050,64 @@ async function reEnableAccount() {
   } catch(e) {
     console.error('Re-enable error:', e);
     alert('Something went wrong. Please contact us at team@thatsdoneright.com');
+  }
+}
+
+// ── RESCHEDULE ──────────────────────────────────────────
+function toggleReschedulePanel() {
+  const panel = document.getElementById('reschedulePanel');
+  const open  = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'block';
+  if (!open) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('rescheduleDate').min = tomorrow.toISOString().split('T')[0];
+    document.getElementById('rescheduleDate').value = '';
+    document.getElementById('rescheduleSuccess').style.display = 'none';
+  }
+}
+
+async function submitReschedule() {
+  const newDate = document.getElementById('rescheduleDate').value;
+  if (!newDate) { alert('Please select a date.'); return; }
+  if (!activePlanLeadId) { alert('No active booking found.'); return; }
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${activePlanLeadId}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ scheduled_date: newDate, status: 'rescheduled' })
+    });
+    document.getElementById('reschedulePanel').style.display = 'none';
+    document.getElementById('rescheduleSuccess').style.display = 'block';
+    const label = new Date(newDate + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+    document.getElementById('rescheduleSuccess').textContent = `✅ Rescheduled to ${label}!`;
+    setTimeout(() => document.getElementById('rescheduleSuccess').style.display = 'none', 4000);
+  } catch(e) {
+    alert('Could not reschedule. Please try again.');
+  }
+}
+
+// ── SKIP SERVICE ─────────────────────────────────────────
+async function skipServiceDate() {
+  if (!activePlanLeadId) { alert('No active booking found.'); return; }
+  const daysToAdd = activePlanFreq === 'weekly' ? 7 : 14;
+  const next = new Date();
+  next.setDate(next.getDate() + daysToAdd);
+  const nextDate = next.toISOString().split('T')[0];
+  const nextLabel = next.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  if (!confirm(`Skip this visit and move to ${nextLabel}?`)) return;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${activePlanLeadId}`, {
+      method: 'PATCH',
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ scheduled_date: nextDate, status: 'booked' })
+    });
+    const el = document.getElementById('skipSuccess');
+    el.textContent = `✅ Skipped! Next visit: ${nextLabel}`;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 4000);
+  } catch(e) {
+    alert('Could not skip. Please try again.');
   }
 }
 
