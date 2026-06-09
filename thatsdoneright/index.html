@@ -1453,7 +1453,7 @@ footer {
 
           <!-- Q1: Preferred date -->
           <div class="question-title">1. When do you want your lawn cut?</div>
-          <input type="date" id="prefDate" style="width:100%;padding:.7rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.92rem;font-family:var(--body);outline:none;background:var(--off-white);margin-bottom:.25rem;" />
+          <input type="date" id="prefDate" readonly style="width:100%;padding:.7rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.92rem;font-family:var(--body);outline:none;background:var(--off-white);margin-bottom:.25rem;cursor:pointer;" />
 
           <!-- Q2: Outdoor pets -->
           <div class="question-title">2. Do you have outdoor pets?</div>
@@ -2717,7 +2717,9 @@ function hide(id) { document.getElementById(id).classList.remove('show'); }
       minDate: minDay,
       maxDate: maxDay,
       disable: [function(date) { return date.getDay() === 0 || date.getDay() === 6; }],
-      disableMobile: false
+      disableMobile: false,
+      allowInput: false,
+      clickOpens: true
     });
   };
   document.body.appendChild(script);
