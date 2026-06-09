@@ -256,28 +256,45 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
       <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
       <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
 
-      <!-- ── RESCHEDULE ── -->
-      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-        <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Reschedule Visit</p>
-        <button onclick="toggleReschedulePanel()" style="width:100%;padding:.85rem 1rem;background:rgba(46,125,50,0.08);color:#2e7d32;border:2px solid rgba(46,125,50,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(46,125,50,0.15)';this.style.borderColor='rgba(46,125,50,0.6)'" onmouseout="this.style.background='rgba(46,125,50,0.08)';this.style.borderColor='rgba(46,125,50,0.3)'">📅 Reschedule Visit</button>
-        <div id="reschedulePanel" style="display:none;margin-top:.75rem;">
-          <input type="date" id="rescheduleDate" style="width:100%;padding:.65rem .75rem;border:2px solid #e8e2dc;border-radius:8px;font-size:16px;outline:none;font-family:var(--body);box-sizing:border-box;"/>
-          <button onclick="submitReschedule()" style="width:100%;margin-top:.5rem;padding:.8rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Confirm New Date →</button>
-          <div id="rescheduleSuccess" style="display:none;color:#2e7d32;font-size:.85rem;margin-top:.5rem;text-align:center;font-weight:600;">✅ Visit rescheduled!</div>
-        </div>
-      </div>
+      <!-- ── RESCHEDULE + SKIP ── -->
+      <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <p style="font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.75rem;">Manage My Visit</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.65rem;">
 
-      <!-- ── SKIP SERVICE ── -->
-      <div style="margin-top:1rem;">
-        <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Skip This Visit</p>
-        <button onclick="skipServiceDate()" style="width:100%;padding:.85rem 1rem;background:rgba(245,124,0,0.08);color:#f57c00;border:2px solid rgba(245,124,0,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(245,124,0,0.15)';this.style.borderColor='rgba(245,124,0,0.6)'" onmouseout="this.style.background='rgba(245,124,0,0.08)';this.style.borderColor='rgba(245,124,0,0.3)'">⏭ Skip to Next Service Date</button>
-        <div id="skipSuccess" style="display:none;font-size:.85rem;margin-top:.5rem;text-align:center;font-weight:600;color:#f57c00;"></div>
+          <!-- Reschedule card-button -->
+          <button onclick="toggleReschedulePanel()" style="display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.9rem .5rem;background:#f4faf4;border:1.5px solid #c8e6c9;border-radius:14px;cursor:pointer;transition:background .15s,border-color .15s;" onmouseover="this.style.background='#e8f5e9';this.style.borderColor='#81c784'" onmouseout="this.style.background='#f4faf4';this.style.borderColor='#c8e6c9'">
+            <span style="font-size:1.4rem;">📅</span>
+            <span style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#2e7d32;">Reschedule</span>
+            <span style="font-size:.68rem;color:#888;font-family:var(--body);">Pick a new date</span>
+          </button>
+
+          <!-- Skip card-button -->
+          <button onclick="skipServiceDate()" style="display:flex;flex-direction:column;align-items:center;gap:.35rem;padding:.9rem .5rem;background:#fff8f0;border:1.5px solid #ffe0b2;border-radius:14px;cursor:pointer;transition:background .15s,border-color .15s;" onmouseover="this.style.background='#fff3e0';this.style.borderColor='#ffb74d'" onmouseout="this.style.background='#fff8f0';this.style.borderColor='#ffe0b2'">
+            <span style="font-size:1.4rem;">⏭</span>
+            <span style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#e65100;">Skip Visit</span>
+            <span style="font-size:.68rem;color:#888;font-family:var(--body);">Move to next date</span>
+          </button>
+
+        </div>
+
+        <!-- Reschedule date picker (slides in) -->
+        <div id="reschedulePanel" style="display:none;margin-top:.75rem;background:#f9fdf9;border:1.5px solid #c8e6c9;border-radius:12px;padding:.85rem;">
+          <p style="font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#2e7d32;margin:0 0 .5rem;">Select New Date</p>
+          <input type="date" id="rescheduleDate" style="width:100%;padding:.6rem .75rem;border:1.5px solid #c8e6c9;border-radius:8px;font-size:16px;outline:none;font-family:var(--body);box-sizing:border-box;background:#fff;"/>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.5rem;">
+            <button onclick="toggleReschedulePanel()" style="padding:.65rem;background:#fff;color:#888;border:1.5px solid #ddd;border-radius:10px;font-family:var(--display);font-size:.72rem;font-weight:600;cursor:pointer;">Cancel</button>
+            <button onclick="submitReschedule()" style="padding:.65rem;background:#2e7d32;color:#fff;border:none;border-radius:10px;font-family:var(--display);font-size:.72rem;font-weight:700;cursor:pointer;">Confirm →</button>
+          </div>
+          <div id="rescheduleSuccess" style="display:none;color:#2e7d32;font-size:.82rem;margin-top:.5rem;text-align:center;font-weight:600;"></div>
+        </div>
+
+        <!-- Feedback messages -->
+        <div id="skipSuccess" style="display:none;margin-top:.6rem;padding:.6rem .75rem;background:#fff8f0;border-radius:10px;font-size:.82rem;text-align:center;font-weight:600;color:#e65100;"></div>
       </div>
 
       <!-- ── CANCEL SUBSCRIPTION ── -->
-      <div style="margin-top:1rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-        <p style="font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.6rem;">Cancel Subscription</p>
-        <button onclick="cancelMembership()" style="width:100%;padding:.85rem 1rem;background:rgba(229,57,53,0.08);color:#e53935;border:2px solid rgba(229,57,53,0.3);border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:border-color .15s,background .15s;" onmouseover="this.style.background='rgba(229,57,53,0.15)';this.style.borderColor='rgba(229,57,53,0.6)'" onmouseout="this.style.background='rgba(229,57,53,0.08)';this.style.borderColor='rgba(229,57,53,0.3)'">Cancel Membership</button>
+      <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);text-align:center;">
+        <button onclick="cancelMembership()" style="background:none;border:none;font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#bbb;cursor:pointer;text-decoration:underline;padding:.25rem;" onmouseover="this.style.color='#e53935'" onmouseout="this.style.color='#bbb'">Cancel Membership</button>
       </div>
     </div>
   </div>
