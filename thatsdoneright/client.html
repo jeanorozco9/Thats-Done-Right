@@ -292,9 +292,11 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
         <div id="skipSuccess" style="display:none;margin-top:.6rem;padding:.6rem .75rem;background:#fff8f0;border-radius:10px;font-size:.82rem;text-align:center;font-weight:600;color:#e65100;"></div>
       </div>
 
-      <!-- ── CANCEL SUBSCRIPTION ── -->
-      <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);text-align:center;">
-        <button onclick="cancelMembership()" style="background:none;border:none;font-family:var(--display);font-size:.72rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#bbb;cursor:pointer;text-decoration:underline;padding:.25rem;" onmouseover="this.style.color='#e53935'" onmouseout="this.style.color='#bbb'">Cancel Membership</button>
+      <!-- ── CANCEL ACCOUNT ── -->
+      <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+        <button onclick="cancelMembership()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.75rem 1rem;background:#fff5f5;color:#c62828;border:1.5px solid #ffcdd2;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s,border-color .15s;" onmouseover="this.style.background='#ffebee';this.style.borderColor='#ef9a9a'" onmouseout="this.style.background='#fff5f5';this.style.borderColor='#ffcdd2'">
+          <span style="font-size:1rem;">🚫</span> Cancel Account
+        </button>
       </div>
     </div>
   </div>
@@ -346,25 +348,38 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 
 <!-- Cancel membership modal -->
 <div class="modal-overlay" id="cancelModal">
-  <div class="modal-card" style="max-width:340px;text-align:center;">
-    <div style="font-size:4.5rem;line-height:1;margin-bottom:.5rem;">🥺</div>
-    <div style="font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;color:var(--dark);">Wait… Don't Go!</div>
-    <div style="font-size:.88rem;color:var(--text-mid);line-height:1.6;margin-bottom:1.5rem;">Your lawn will miss you. 😢<br>Are you <em>sure</em> you want to cancel your membership?</div>
-    <div style="display:flex;flex-direction:column;gap:.65rem;">
-      <button onclick="confirmCancelMembership()" style="padding:.85rem;background:#e53935;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Cancel My Membership</button>
-      <button onclick="document.getElementById('cancelModal').classList.remove('open')" style="padding:.85rem;background:#f0f0f0;color:var(--dark-mid);border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">🌿 Keep My Lawn Looking Good</button>
+  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
+    <!-- Red header -->
+    <div style="background:linear-gradient(135deg,#c62828,#e53935);padding:2rem 1.75rem 1.5rem;">
+      <div style="font-size:2.8rem;line-height:1;margin-bottom:.6rem;">🥺</div>
+      <div style="font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Wait… Don't Go!</div>
+    </div>
+    <!-- Body -->
+    <div style="padding:1.5rem 1.75rem 1.75rem;">
+      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.5rem;">Your lawn will miss you. 😢<br>Are you <em>sure</em> you want to cancel your account? This will stop all future services.</p>
+      <div style="display:flex;flex-direction:column;gap:.6rem;">
+        <button onclick="document.getElementById('cancelModal').classList.remove('open')" style="width:100%;padding:.9rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🌿 Keep My Lawn Looking Good</button>
+        <button onclick="confirmCancelMembership()" style="width:100%;padding:.75rem;background:none;color:#e53935;border:1.5px solid #ffcdd2;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='none'">Yes, Cancel My Account</button>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- Goodbye modal -->
 <div class="modal-overlay" id="goodbyeModal">
-  <div class="modal-card" style="max-width:340px;text-align:center;">
-    <div style="font-size:4.5rem;line-height:1;margin-bottom:.5rem;">😢</div>
-    <div style="font-family:var(--script);font-size:2rem;color:var(--green);margin-bottom:.4rem;">Goodbye, Friend.</div>
-    <div style="font-family:var(--display);font-size:.95rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.5rem;color:var(--dark);">Your membership has been cancelled.</div>
-    <div style="font-size:.88rem;color:var(--text-mid);line-height:1.7;margin-bottom:1.5rem;">We're truly sorry to see you go. 💔<br>Your lawn was looking <em>amazing</em>.<br><br>Whenever you're ready to come back — we'll be here. 🌿</div>
-    <button onclick="document.getElementById('goodbyeModal').classList.remove('open'); sb.auth.signOut().then(() => { window.location.href = 'index.html'; });" style="width:100%;padding:.85rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Take Me Home 🏡</button>
+  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
+    <!-- Dark green header -->
+    <div style="background:linear-gradient(135deg,#1b5e20,#2e7d32);padding:2rem 1.75rem 1.5rem;">
+      <div style="font-size:2.8rem;line-height:1;margin-bottom:.6rem;">💔</div>
+      <div style="font-family:var(--script);font-size:2rem;color:#fff;margin-bottom:.1rem;">Goodbye, Friend.</div>
+      <div style="font-size:.78rem;color:rgba(255,255,255,0.65);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--display);">Account Cancelled</div>
+    </div>
+    <!-- Body -->
+    <div style="padding:1.5rem 1.75rem 1.75rem;">
+      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.8;margin:0 0 .75rem;">We're truly sorry to see you go.<br>Your lawn was looking <em>amazing</em>. 🌿</p>
+      <p style="font-size:.85rem;color:#aaa;line-height:1.6;margin:0 0 1.5rem;">Whenever you're ready to come back,<br>we'll be right here.</p>
+      <button onclick="document.getElementById('goodbyeModal').classList.remove('open'); sb.auth.signOut().then(() => { window.location.href = 'index.html'; });" style="width:100%;padding:.9rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Take Me Home 🏡</button>
+    </div>
   </div>
 </div>
 
@@ -1131,6 +1146,7 @@ async function skipServiceDate() {
 function cancelMembership() {
   document.getElementById('cancelModal').classList.add('open');
 }
+
 
 async function confirmCancelMembership() {
   document.getElementById('cancelModal').classList.remove('open');
