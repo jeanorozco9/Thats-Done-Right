@@ -726,7 +726,7 @@ async function loadJobs(scrollToId) {
   try {
     // Only fetch safe columns — no price, no email, no phone
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url,lot_size,home_size,price&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const jobs = await res.json();
@@ -1004,6 +1004,8 @@ function renderJob(job, type) {
       <div class="job-meta-item"><div class="job-meta-label">Date</div><div class="job-meta-val">${dateStr}</div></div>
       <div class="job-meta-item"><div class="job-meta-label">Time</div><div class="job-meta-val">${timeStr}</div></div>
       <div class="job-meta-item"><div class="job-meta-label">Frequency</div><div class="job-meta-val">${freqLabel}</div></div>
+      <div class="job-meta-item"><div class="job-meta-label">Lot Size</div><div class="job-meta-val">${job.lot_size ? job.lot_size.toLocaleString() + ' sqft' : '—'}</div></div>
+      <div class="job-meta-item"><div class="job-meta-label">Vendor Pay</div><div class="job-meta-val" style="color:var(--green);font-weight:700;">${job.price ? '$' + job.price : '—'}</div></div>
     </div>
     ${job.job_notes ? (() => {
       const parts = job.job_notes.split(' | ').map(s => s.trim()).filter(Boolean);
