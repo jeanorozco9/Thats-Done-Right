@@ -321,26 +321,30 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
           <div class="action-row-divider"></div>
 
           <!-- Reschedule row -->
-          <button class="action-row-btn" onclick="openRescheduleModal()">
-            <div class="action-icon action-icon-green">📅</div>
-            <div class="action-info">
-              <div class="action-title">Reschedule Visit</div>
-              <div class="action-sub">Pick a new date for your next visit</div>
-            </div>
-            <span class="action-arrow">›</span>
-          </button>
-          <div class="action-row-divider"></div>
+          <div id="rescheduleRowWrap">
+            <button class="action-row-btn" onclick="openRescheduleModal()">
+              <div class="action-icon action-icon-green">📅</div>
+              <div class="action-info">
+                <div class="action-title">Reschedule Visit</div>
+                <div class="action-sub">Pick a new date for your next visit</div>
+              </div>
+              <span class="action-arrow">›</span>
+            </button>
+            <div class="action-row-divider"></div>
+          </div>
 
           <!-- Skip row -->
-          <button class="action-row-btn" onclick="openSkipModal()">
-            <div class="action-icon action-icon-orange">⏭</div>
-            <div class="action-info">
-              <div class="action-title">Skip This Visit</div>
-              <div class="action-sub">Move ahead to the next service date</div>
-            </div>
-            <span class="action-arrow">›</span>
-          </button>
-          <div class="action-row-divider"></div>
+          <div id="skipRowWrap">
+            <button class="action-row-btn" onclick="openSkipModal()">
+              <div class="action-icon action-icon-orange">⏭</div>
+              <div class="action-info">
+                <div class="action-title">Skip This Visit</div>
+                <div class="action-sub">Move ahead to the next service date</div>
+              </div>
+              <span class="action-arrow">›</span>
+            </button>
+            <div class="action-row-divider"></div>
+          </div>
 
           <!-- Cancel Account row -->
           <button class="action-row-btn" onclick="cancelMembership()">
@@ -1273,6 +1277,11 @@ function renderPauseBtn() {
          </div>
          <span class="action-arrow">›</span>
        </button>`;
+
+  const rescheduleRow = document.getElementById('rescheduleRowWrap');
+  const skipRow       = document.getElementById('skipRowWrap');
+  if (rescheduleRow) rescheduleRow.style.display = paused ? 'none' : '';
+  if (skipRow)       skipRow.style.display       = paused ? 'none' : '';
 }
 
 async function confirmPause() {
