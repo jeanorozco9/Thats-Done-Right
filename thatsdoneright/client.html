@@ -473,16 +473,25 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 <div class="modal-overlay" id="skipModal">
   <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
     <div style="background:linear-gradient(135deg,#e65100,#f57c00);padding:1.75rem 1.75rem 1.25rem;">
-      <div style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">⏭</div>
-      <div style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Skip This Visit?</div>
-      <div style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.25rem;font-family:var(--body);">Your next service will be moved forward</div>
+      <div id="skipModalIcon" style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">⏭</div>
+      <div id="skipModalTitle" style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Skip This Visit?</div>
+      <div id="skipModalSub" style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.25rem;font-family:var(--body);">Your next service will be moved forward</div>
     </div>
     <div style="padding:1.5rem 1.75rem 1.75rem;">
-      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 .5rem;">We'll skip your upcoming visit and schedule you for:</p>
-      <div id="skipNextDateLabel" style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);background:#fff8f0;border:1.5px solid #ffe0b2;border-radius:10px;padding:.65rem .75rem;margin-bottom:1.25rem;"></div>
-      <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="confirmSkip()" style="width:100%;padding:.9rem;background:#f57c00;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Skip This Visit</button>
-        <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Current Date</button>
+      <div id="skipNormalContent">
+        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 .5rem;">We'll skip your upcoming visit and schedule you for:</p>
+        <div id="skipNextDateLabel" style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);background:#fff8f0;border:1.5px solid #ffe0b2;border-radius:10px;padding:.65rem .75rem;margin-bottom:1.25rem;"></div>
+        <div style="display:flex;flex-direction:column;gap:.6rem;">
+          <button onclick="confirmSkip()" style="width:100%;padding:.9rem;background:#f57c00;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Skip This Visit</button>
+          <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Current Date</button>
+        </div>
+      </div>
+      <div id="skipLimitContent" style="display:none;">
+        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">You've already skipped your last 2 visits in a row. If you need more time, pausing your service might be a better fit — your spot stays held and you can resume whenever you're ready.</p>
+        <div style="display:flex;flex-direction:column;gap:.6rem;">
+          <button onclick="document.getElementById('skipModal').classList.remove('open');document.getElementById('pauseModal').classList.add('open')" style="width:100%;padding:.9rem;background:#7b1fa2;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Pause My Service Instead</button>
+          <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
@@ -592,6 +601,8 @@ let activePlanLeadId        = null;
 let activePlanFreq          = null;
 let activePlanPrice         = null;
 let activePlanStatus        = null;
+let activePlanScheduledDate = null;
+let activePlanSkipCount     = 0;
 let pendingFreq             = null;
 let activeContractorId      = null;
 let pendingDisputeId        = null;
@@ -659,7 +670,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id,skip_count&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -687,6 +698,8 @@ async function loadClientDashboard(email) {
     activePlanFreq          = planLead.frequency;
     activePlanPrice         = planLead.price || 0;
     activePlanStatus        = planLead.status || 'booked';
+    activePlanScheduledDate = planLead.scheduled_date || null;
+    activePlanSkipCount     = planLead.skip_count || 0;
     activeContractorId      = planLead.contractor_id || null;
     renderPauseBtn();
     currentStripeCustomerId = leads.find(l => l.stripe_customer_id)?.stripe_customer_id || null;
@@ -1405,15 +1418,27 @@ async function submitReschedule() {
 
 // ── SKIP SERVICE ─────────────────────────────────────────
 let _skipNextDate = '';
+const SKIP_LIMIT = 2;
 
 function openSkipModal() {
   if (!activePlanLeadId) { alert('No active booking found.'); return; }
-  const daysToAdd = activePlanFreq === 'weekly' ? 7 : 14;
-  const next = new Date();
-  next.setDate(next.getDate() + daysToAdd);
-  _skipNextDate = next.toISOString().split('T')[0];
-  const label = next.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
-  document.getElementById('skipNextDateLabel').textContent = label;
+
+  const limitReached = activePlanSkipCount >= SKIP_LIMIT;
+  document.getElementById('skipNormalContent').style.display = limitReached ? 'none' : 'block';
+  document.getElementById('skipLimitContent').style.display  = limitReached ? 'block' : 'none';
+  document.getElementById('skipModalIcon').textContent  = limitReached ? '⏸️' : '⏭';
+  document.getElementById('skipModalTitle').textContent = limitReached ? 'Skip Limit Reached' : 'Skip This Visit?';
+  document.getElementById('skipModalSub').textContent   = limitReached ? "You've used both skips for this cycle" : 'Your next service will be moved forward';
+
+  if (!limitReached) {
+    const daysToAdd = activePlanFreq === 'weekly' ? 7 : 14;
+    const base = activePlanScheduledDate ? new Date(activePlanScheduledDate + 'T12:00:00') : new Date();
+    base.setDate(base.getDate() + daysToAdd);
+    _skipNextDate = base.toISOString().split('T')[0];
+    const label = base.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    document.getElementById('skipNextDateLabel').textContent = label;
+  }
+
   document.getElementById('skipModal').classList.add('open');
 }
 
@@ -1423,14 +1448,17 @@ async function confirmSkip() {
     await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${activePlanLeadId}`, {
       method: 'PATCH',
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
-      body: JSON.stringify({ scheduled_date: _skipNextDate, status: 'booked' })
+      body: JSON.stringify({ scheduled_date: _skipNextDate, status: 'booked', skip_count: activePlanSkipCount + 1 })
     });
+    activePlanScheduledDate = _skipNextDate;
+    activePlanSkipCount    += 1;
     document.getElementById('skipModal').classList.remove('open');
     const label = new Date(_skipNextDate + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
     const el = document.getElementById('skipSuccess');
     el.textContent = `✅ Skipped! Next visit: ${label}`;
     el.style.display = 'block';
     setTimeout(() => el.style.display = 'none', 4000);
+    if (currentClientEmail) await loadClientDashboard(currentClientEmail);
   } catch(e) {
     alert('Could not skip. Please try again.');
   }
