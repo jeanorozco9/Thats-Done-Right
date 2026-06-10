@@ -308,7 +308,7 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     </div>
     <div class="membership-panel-body open" id="membershipPanelBody">
       <div class="plan-options" id="planOptions"><!-- populated by JS --></div>
-      <p class="plan-change-note">Switching plans takes effect on your next scheduled visit.</p>
+      <p class="plan-change-note" id="planChangeNote">Switching plans takes effect on your next scheduled visit.</p>
       <div class="modal-success" id="planChangeSuccess">Your plan has been updated! Your contractor has been notified.</div>
 
       <!-- ── MANAGE MY VISIT ── -->
@@ -1282,6 +1282,11 @@ function renderPauseBtn() {
   const skipRow       = document.getElementById('skipRowWrap');
   if (rescheduleRow) rescheduleRow.style.display = paused ? 'none' : '';
   if (skipRow)       skipRow.style.display       = paused ? 'none' : '';
+
+  const planOptions  = document.getElementById('planOptions');
+  const planNote     = document.getElementById('planChangeNote');
+  if (planOptions) planOptions.style.display = paused ? 'none' : '';
+  if (planNote)    planNote.style.display    = paused ? 'none' : '';
 }
 
 async function confirmPause() {
