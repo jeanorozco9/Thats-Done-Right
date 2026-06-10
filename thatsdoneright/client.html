@@ -1064,6 +1064,7 @@ function buildUpcomingSchedule(leads) {
 
   const anchor = dated[0];
   const freq   = anchor.frequency;
+  if (freq === 'once') return [];
   const days   = freq === 'weekly' ? 7 : 14;
   const freqLabel = freq === 'weekly' ? 'Weekly service' : 'Every 2 weeks';
 
