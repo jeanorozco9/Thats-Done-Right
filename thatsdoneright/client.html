@@ -1074,6 +1074,9 @@ function buildUpcomingSchedule(leads) {
   let cursor = new Date(anchor.scheduled_date + 'T12:00:00');
   const upcoming = [];
 
+  // Skip the anchor date itself — it's already shown as "Next Appointment"
+  cursor.setDate(cursor.getDate() + days);
+
   // Advance past today
   while (cursor <= today) cursor.setDate(cursor.getDate() + days);
 
