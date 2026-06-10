@@ -43,6 +43,15 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .page-header-title{font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--dark)}
 .page-header-sub{font-size:.82rem;color:var(--text-mid);margin-top:2px}
 
+/* Paused service banner */
+.paused-banner{background:#f3e5f5;border-bottom:1px solid #ce93d8;padding:1rem 1.5rem;display:flex;align-items:center;gap:.85rem;flex-wrap:wrap}
+.paused-banner-icon{font-size:1.6rem;line-height:1;flex-shrink:0}
+.paused-banner-text{flex:1;min-width:200px}
+.paused-banner-title{font-family:var(--display);font-size:.85rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#6a1b9a}
+.paused-banner-sub{font-size:.8rem;color:#7b1fa2;margin-top:2px}
+.paused-banner-btn{background:#7b1fa2;color:#fff;border:none;border-radius:10px;padding:.65rem 1.1rem;font-family:var(--display);font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.paused-banner-btn:hover{opacity:.85}
+
 /* Plan summary */
 .plan-banner{background:var(--green);color:var(--white);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
 .plan-label{font-family:var(--display);font-size:.65rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:.75;margin-bottom:.2rem}
@@ -164,9 +173,9 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
 .resched-cal-nav:hover{background:#e8f5e9;}
 .resched-cal-nav:disabled{color:#ddd;cursor:not-allowed;}
 .resched-cal-nav:disabled:hover{background:none;}
-.resched-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.2rem;text-align:center;}
-.resched-cal-dow{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;color:#aaa;text-transform:uppercase;padding:.3rem 0;}
-.resched-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.85rem;font-family:var(--body);color:var(--dark);cursor:pointer;border:none;background:none;transition:background .12s,color .12s;}
+.resched-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.2rem;text-align:center;width:100%;box-sizing:border-box;}
+.resched-cal-dow{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;color:#aaa;text-transform:uppercase;padding:.3rem 0;min-width:0;}
+.resched-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.85rem;font-family:var(--body);color:var(--dark);cursor:pointer;border:none;outline:none;appearance:none;-webkit-appearance:none;background:none;font:inherit;width:100%;min-width:0;padding:0;margin:0;transition:background .12s,color .12s;}
 .resched-cal-day:hover:not(.disabled):not(.empty){background:#e8f5e9;}
 .resched-cal-day.disabled{color:#ddd;cursor:not-allowed;background:none;}
 .resched-cal-day.empty{cursor:default;visibility:hidden;}
@@ -263,6 +272,15 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   <div class="page-header">
     <div class="page-header-title">My Account</div>
     <div class="page-header-sub" id="pageHeaderSub">Loading your account...</div>
+  </div>
+
+  <div class="paused-banner" id="pausedBanner" style="display:none;">
+    <div class="paused-banner-icon">⏸️</div>
+    <div class="paused-banner-text">
+      <div class="paused-banner-title">Service Paused</div>
+      <div class="paused-banner-sub">Your visits are on hold. Click Resume to get back on the schedule.</div>
+    </div>
+    <button class="paused-banner-btn" onclick="document.getElementById('resumeModal').classList.add('open')">▶️ Resume</button>
   </div>
 
   <div class="plan-banner" id="planBanner" style="display:none;">
@@ -1217,6 +1235,10 @@ function renderPauseBtn() {
   const wrap = document.getElementById('pauseBtnWrap');
   if (!wrap) return;
   const paused = activePlanStatus === 'paused';
+
+  const banner = document.getElementById('pausedBanner');
+  if (banner) banner.style.display = paused ? 'flex' : 'none';
+
   wrap.innerHTML = paused
     ? `<button class="action-row-btn" onclick="document.getElementById('resumeModal').classList.add('open')">
          <div class="action-icon action-icon-purple">▶️</div>
