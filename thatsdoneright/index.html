@@ -2286,21 +2286,22 @@ function editAddress() {
 async function confirmAddress() {
   document.getElementById('mapConfirmSection').classList.remove('show');
 
-  // If promo URL param is active, verify this address exists in DB with followup_special=true.
-  // If not found, silently drop the promo — regular price shown, no message.
-  if (window.firstMowPromo) {
-    const addr = document.getElementById('confirmedAddrText').textContent.trim();
-    const streetPart = addr.split(',')[0].trim();
-    const promoCheckRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?address=ilike.*${encodeURIComponent(streetPart)}*&followup_special=eq.true&select=id&limit=1`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
-    );
-    const promoMatches = await promoCheckRes.json();
-    if (!Array.isArray(promoMatches) || promoMatches.length === 0) {
-      window.firstMowPromo = false;
-      const banner = document.getElementById('promoTopBanner');
-      if (banner) banner.style.display = 'none';
-    }
+  // Always check if this address was sent the $19.99 promo (followup_special=true).
+  // Applies whether they came via ?promo=first-mow URL or typed their address directly.
+  const addr = document.getElementById('confirmedAddrText').textContent.trim();
+  const streetPart = addr.split(',')[0].trim();
+  const promoCheckRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/leads?address=ilike.*${encodeURIComponent(streetPart)}*&followup_special=eq.true&select=id&limit=1`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+  );
+  const promoMatches = await promoCheckRes.json();
+  const banner = document.getElementById('promoTopBanner');
+  if (Array.isArray(promoMatches) && promoMatches.length > 0) {
+    window.firstMowPromo = true;
+    if (banner) banner.style.display = 'block';
+  } else {
+    window.firstMowPromo = false;
+    if (banner) banner.style.display = 'none';
   }
 
   const prop = window.cachedProp;
