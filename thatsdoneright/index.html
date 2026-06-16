@@ -1355,10 +1355,6 @@ footer {
   </div>
 </nav>
 
-<!-- Promo top banner — shown only when ?promo=first-mow is in the URL -->
-<div id="promoTopBanner" style="display:none;background:#16a34a;color:#fff;text-align:center;padding:11px 16px;font-size:14px;font-weight:600;letter-spacing:.2px;">
-  🎉 Your <strong>$19.99 first mow promo</strong> is applied — enter your address below to see it!
-</div>
 
 <main id="main-content">
 
@@ -1369,7 +1365,14 @@ footer {
   </div>
   <h1 class="hero-logo">That's Done Right</h1>
   <p class="hero-tagline">Lawn Mowing Service &nbsp;·&nbsp; Katy &nbsp;·&nbsp; Crosby &nbsp;·&nbsp; Houston TX</p>
-  <br><br>
+  <!-- Promo announcement pill — shown only when ?promo=first-mow is verified -->
+  <div id="promoTopBanner" style="display:none;text-align:center;margin-bottom:1.1rem;">
+    <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1.5px solid rgba(22,163,74,0.35);border-radius:100px;padding:7px 18px 7px 8px;box-shadow:0 4px 28px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.06);">
+      <span style="background:#16a34a;color:#fff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:100px;padding:4px 11px;white-space:nowrap;">&#x2728; Promo Applied</span>
+      <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap;">Your <span style="color:#15803d;font-weight:800;">$19.99 first mow</span> is locked in &mdash; enter your address below</span>
+    </div>
+  </div>
+
   <!-- ── QUOTE CARD ── -->
   <div class="quote-card-wrap">
     <div class="quote-card">
