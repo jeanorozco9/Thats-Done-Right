@@ -41,6 +41,15 @@
 
   // ── Read discount from URL (e.g. ?discount=15 set by follow-up emails) ──
   window.discountPct = parseInt(new URLSearchParams(window.location.search).get('discount') || '0', 10) || 0;
+
+  // ── $19.99 first-mow promo (set by promotional email CTA link) ──
+  window.firstMowPromo = new URLSearchParams(window.location.search).get('promo') === 'first-mow';
+  if (window.firstMowPromo) {
+    document.addEventListener('DOMContentLoaded', function() {
+      const banner = document.getElementById('promoTopBanner');
+      if (banner) banner.style.display = 'block';
+    });
+  }
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet" />
@@ -1346,6 +1355,11 @@ footer {
   </div>
 </nav>
 
+<!-- Promo top banner — shown only when ?promo=first-mow is in the URL -->
+<div id="promoTopBanner" style="display:none;background:#16a34a;color:#fff;text-align:center;padding:11px 16px;font-size:14px;font-weight:600;letter-spacing:.2px;">
+  🎉 Your <strong>$19.99 first mow promo</strong> is applied — enter your address below to see it!
+</div>
+
 <main id="main-content">
 
 <!-- ── HERO ── -->
@@ -1543,12 +1557,16 @@ footer {
           </div>
 
           <div class="price-block">
-            <div class="price-label">Your Price Per Visit</div>
+            <div class="price-label" id="priceLabel">Your Price Per Visit</div>
             <div class="price-amount"><sup>$</sup><span id="priceNum">--</span></div>
-            <div class="price-sub">Flat rate · No hidden fees · Pay after service</div>
+            <div class="price-sub" id="priceSub">Flat rate · No hidden fees · Pay after service</div>
+            <!-- Shown only when $19.99 promo is active -->
+            <div id="promoInfoStrip" style="display:none;margin-top:.6rem;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:9px 14px;text-align:center;font-size:13px;color:#374151;">
+              🌿 Then <strong style="color:#16a34a;">$<span id="promoRegularRate">--</span>/visit</strong> after that (your recurring rate)
+            </div>
             <div style="margin-top:.75rem;font-size:.85rem;color:#666;display:flex;flex-direction:column;gap:.25rem;text-align:left;padding:0 .5rem;">
               <div style="display:flex;justify-content:space-between;"><span>Tax (8.25%)</span><span>$<span id="taxAmount">--</span></span></div>
-              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;color:#1C1C1C;border-top:1px solid #E8E2DC;padding-top:.25rem;"><span>Total Per Visit</span><span>$<span id="totalAmount">--</span></span></div>
+              <div style="display:flex;justify-content:space-between;font-weight:700;font-size:.95rem;color:#1C1C1C;border-top:1px solid #E8E2DC;padding-top:.25rem;"><span id="totalLabel">Total Per Visit</span><span>$<span id="totalAmount">--</span></span></div>
             </div>
           </div>
 
@@ -2415,14 +2433,38 @@ function updatePrice() {
   const base  = window.basePrice;
   const twice = window.flatRate ? window.flatRate : Math.round(base * 1.10);
 
-  // Update frequency card labels
+  // Update frequency card labels (always show regular recurring rates)
   document.getElementById('price-weekly').textContent = '$' + base;
   document.getElementById('price-twice').textContent  = '$' + twice;
 
-  // Selected price before discount
   const rawPrice = window.currentFreq === 'twice' ? twice : base;
 
-  // Apply discount if customer came from a follow-up email
+  // $19.99 first-mow promo — override the displayed price for visit 1 only
+  if (window.firstMowPromo) {
+    const promoPrice = 19.99;
+    const TAX_RATE   = 0.0825;
+    const tax   = parseFloat((promoPrice * TAX_RATE).toFixed(2));
+    const total = parseFloat((promoPrice + tax).toFixed(2));
+    window.totalPrice = Math.round(total);
+
+    document.getElementById('priceNum').textContent    = '19.99';
+    document.getElementById('taxAmount').textContent   = tax.toFixed(2);
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+    document.getElementById('priceLabel').textContent  = 'Your First Mow';
+    document.getElementById('priceSub').textContent    = 'Promo price · Pay after service';
+    document.getElementById('totalLabel').textContent  = 'Total First Visit';
+
+    const strip = document.getElementById('promoInfoStrip');
+    if (strip) {
+      document.getElementById('promoRegularRate').textContent = rawPrice;
+      strip.style.display = 'block';
+    }
+    const discBanner = document.getElementById('discountBanner');
+    if (discBanner) discBanner.style.display = 'none';
+    return;
+  }
+
+  // Apply percentage discount if customer came from a follow-up email
   const discount = window.discountPct || 0;
   const price    = discount > 0 ? Math.round(rawPrice * (1 - discount / 100)) : rawPrice;
   const savings  = rawPrice - price;
@@ -2436,7 +2478,6 @@ function updatePrice() {
   document.getElementById('taxAmount').textContent   = tax.toFixed(2);
   document.getElementById('totalAmount').textContent = total.toFixed(2);
 
-  // Show discount badge if active
   const banner = document.getElementById('discountBanner');
   if (banner) {
     if (discount > 0) {
@@ -2526,7 +2567,12 @@ function handleBook() {
   const price = document.getElementById('priceNum').textContent;
   const freq  = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq || 'weekly'];
   const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
-  document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
+  if (window.firstMowPromo) {
+    document.getElementById('contactSummary').innerHTML =
+      `<strong>${addr}</strong><br>${freq} · First mow $19.99 → then $${window.basePrice}/visit`;
+  } else {
+    document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
+  }
 
   // Pre-fill name, email, and phone from early capture
   if (window.earlyName)  document.getElementById('contactName').value  = window.earlyName;
@@ -2570,7 +2616,8 @@ async function submitLead() {
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled,
     lot_size: lotVal,
-    home_size: homeVal
+    home_size: homeVal,
+    ...(window.firstMowPromo ? { followup_special: true } : {})
     // job_notes and scheduled_date saved after quick questions in submitDetails()
   };
 
