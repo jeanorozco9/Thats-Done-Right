@@ -13,9 +13,16 @@ Deno.serve(async (req) => {
     const SUPABASE_SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const RESEND_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 
-    // Fetch leads who received all 3 followups, haven't booked, and haven't received the special offer yet
+    const body = await req.json().catch(() => ({}));
+    const testEmail: string | null = body.test_email ?? null;
+
+    // If test_email is provided, only fetch that one record (ignores followup flags so no SQL changes needed)
+    const query = testEmail
+      ? `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(testEmail)}&select=id,name,email,price`
+      : `${SUPABASE_URL}/rest/v1/leads?followup1_sent=eq.true&followup2_sent=eq.true&followup3_sent=eq.true&followup_special=eq.false&status=neq.booked&select=id,name,email,price`;
+
     const leadsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?followup1_sent=eq.true&followup2_sent=eq.true&followup3_sent=eq.true&followup_special=eq.false&status=neq.booked&select=id,name,email,price`,
+      query,
       {
         headers: {
           apikey: SUPABASE_SERVICE_KEY,
