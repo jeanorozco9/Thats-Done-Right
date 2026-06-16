@@ -301,6 +301,30 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
     </button>
   </div>
 
+  <!-- First-mow promo banner — shown only when first_mow_promo=true on account -->
+  <div id="promoBanner" style="display:none;margin:0 0 0;">
+    <div style="position:relative;overflow:hidden;background:linear-gradient(135deg,#14532d 0%,#166534 45%,#15803d 100%);border-radius:0;padding:28px 32px;color:#fff;">
+      <div style="position:absolute;inset:0;background:repeating-linear-gradient(50deg,transparent,transparent 60px,rgba(255,255,255,0.025) 60px,rgba(255,255,255,0.025) 61px);pointer-events:none;"></div>
+      <div style="position:absolute;right:-40px;top:-40px;width:220px;height:220px;background:rgba(255,255,255,0.04);border-radius:50%;pointer-events:none;"></div>
+      <div style="position:relative;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:24px;">
+        <div style="flex:1;min-width:260px;">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,215,0,0.18);border:1px solid rgba(255,215,0,0.35);border-radius:100px;padding:4px 13px;font-size:11px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:#fde68a;margin-bottom:14px;">&#x2728; Exclusive One-Time Offer</div>
+          <div style="font-size:24px;font-weight:800;line-height:1.25;margin-bottom:10px;">Great news, <span id="promoClientName">there</span>! &#x1F389;</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.82);line-height:1.65;max-width:420px;">We're offering you your <strong style="color:#bbf7d0;">first mow for just $19.99</strong> — a private deal we don't offer to the public. <strong style="color:#fde68a;">This is a one-time offer only</strong> and cannot be applied to any future visit once used.</div>
+        </div>
+        <div id="promoClaimBox" style="text-align:center;background:rgba(0,0,0,0.18);border:1px solid rgba(255,255,255,0.18);border-radius:16px;padding:22px 28px;min-width:190px;">
+          <div style="font-size:12px;color:rgba(255,255,255,0.55);text-decoration:line-through;margin-bottom:2px;">Regular: $<span id="promoRegPrice">—</span>/visit</div>
+          <div style="font-size:54px;font-weight:900;line-height:1;letter-spacing:-2px;">$19.99</div>
+          <div style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:16px;letter-spacing:.4px;text-transform:uppercase;">First mow only</div>
+          <button onclick="claimFirstMowPromo()" style="background:#fff;color:#15803d;font-size:13px;font-weight:800;border:none;border-radius:100px;padding:11px 22px;cursor:pointer;letter-spacing:.3px;white-space:nowrap;width:100%;">&#x2713; Apply My $19.99 Promo</button>
+        </div>
+      </div>
+      <div style="position:relative;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.13);font-size:11px;color:rgba(255,255,255,0.45);letter-spacing:.3px;">
+        &#x26A0; This offer is exclusive to your account and valid for your next mow only. Cannot be reused, transferred, or combined with other offers. Once invoiced, regular pricing resumes automatically.
+      </div>
+    </div>
+  </div>
+
   <div class="membership-panel" id="membershipPanel">
     <div class="membership-panel-header" onclick="toggleMembership()">
       <span class="membership-panel-title">Change My Plan</span>
@@ -700,6 +724,17 @@ async function loadClientDashboard(email) {
     document.getElementById('planAddr').textContent  = planLead.address || '—';
     document.getElementById('planBanner').style.display = 'flex';
 
+    // Promo banner
+    const promoBannerEl = document.getElementById('promoBanner');
+    if (promoBannerEl) {
+      promoBannerEl.style.display = hasFirstMowPromo ? 'block' : 'none';
+      if (hasFirstMowPromo) {
+        const firstName = (planLead.name || '').split(' ')[0] || 'there';
+        document.getElementById('promoClientName').textContent = firstName;
+        document.getElementById('promoRegPrice').textContent = planLead.price || '—';
+      }
+    }
+
     // Store for plan change / payment
     activePlanLeadId        = planLead.id;
     activePlanFreq          = planLead.frequency;
@@ -1018,6 +1053,16 @@ function toggleMembership() {
   document.getElementById('membershipPanelBody').classList.toggle('open');
   document.getElementById('panelChevron').classList.toggle('open');
   document.getElementById('membershipBtn').classList.toggle('open');
+}
+
+function claimFirstMowPromo() {
+  const box = document.getElementById('promoClaimBox');
+  if (!box) return;
+  box.innerHTML = `
+    <div style="font-size:36px;margin-bottom:8px;">&#x2705;</div>
+    <div style="font-size:15px;font-weight:800;color:#bbf7d0;margin-bottom:6px;">Promo Confirmed!</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5;">Your $19.99 first mow is locked in.<br/>We'll apply it automatically on your first invoice.</div>
+  `;
 }
 
 function hoverStars(leadId, n) {
