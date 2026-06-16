@@ -302,10 +302,10 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 
   <!-- First-mow promo banner — shown only when first_mow_promo=true on account -->
-  <div id="promoBanner" style="display:none;background:#161616;border-bottom:1px solid #252525;padding:11px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+  <div id="promoBanner" style="display:none;background:#f0fdf4;border-top:1px solid #bbf7d0;border-bottom:1px solid #bbf7d0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.25);color:#4ade80;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:3px 9px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
-      <span style="font-size:13.5px;color:rgba(255,255,255,0.88);font-weight:500;">Hey <strong style="color:#fff;" id="promoClientName">there</strong> &mdash; your <strong style="color:#4ade80;">$19.99 first mow</strong> is waiting. <span style="color:rgba(255,255,255,0.38);font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
+      <span style="display:inline-flex;align-items:center;gap:5px;background:#16a34a;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:4px 10px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
+      <span style="font-size:13.5px;color:#1a2e1a;font-weight:500;">Hey <strong id="promoClientName">there</strong> &mdash; your <strong style="color:#15803d;">$19.99 first mow</strong> is waiting. <span style="color:#6b7280;font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
       <span id="promoRegPrice" style="display:none;"></span>
     </div>
     <div id="promoClaimBox" style="flex-shrink:0;">
@@ -1073,7 +1073,7 @@ async function claimFirstMowPromo() {
   }
 
   box.innerHTML = `
-    <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:100px;padding:8px 18px;font-size:13px;font-weight:700;color:#fef3c7;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:#dcfce7;border:1px solid #86efac;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:700;color:#15803d;">
       &#x2705; Promo locked in &mdash; applied to your first invoice
     </div>
   `;
