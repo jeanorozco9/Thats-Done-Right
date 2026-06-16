@@ -2603,8 +2603,8 @@ async function submitLead() {
   btn.textContent = 'Saving...';
   btn.disabled = true;
 
-  // If promo URL param is set, verify this phone/email was actually sent the special offer email.
-  // Prevents random people from using the link without having received it.
+  // Verify this phone/email was actually sent the special offer email (followup_special=true).
+  // If not found in DB, promo is invalid — revert price display and block submission.
   if (window.firstMowPromo) {
     const checkRes = await fetch(
       `${SUPABASE_URL}/rest/v1/leads?followup_special=eq.true&or=(phone.eq.${encodeURIComponent(phone)},email.eq.${encodeURIComponent(email)})&select=id&limit=1`,
@@ -2612,7 +2612,17 @@ async function submitLead() {
     );
     const matches = await checkRes.json();
     if (!Array.isArray(matches) || matches.length === 0) {
-      window.firstMowPromo = false; // Not a valid promo recipient — silently drop the promo
+      // Invalid promo — revert everything and let the user see the regular price
+      window.firstMowPromo = false;
+      btn.textContent = 'Book This Visit';
+      btn.disabled = false;
+      const promoBanner = document.getElementById('promoTopBanner');
+      if (promoBanner) promoBanner.style.display = 'none';
+      const promoStrip = document.getElementById('promoInfoStrip');
+      if (promoStrip) promoStrip.style.display = 'none';
+      updatePrice();
+      alert('This promo offer is only valid for customers who received our special offer email.\n\nYour regular rate has been applied — you can still book below.');
+      return;
     }
   }
 
