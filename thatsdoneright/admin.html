@@ -784,57 +784,52 @@ async function assignContractor(leadId, contractorId) {
 }
 
 async function sendInvoice(leadId) {
-  const lead       = allLeads.find(l => l.id === leadId);
-  const hasPromo   = !!(lead && lead.first_mow_promo);
-  const origPrice  = lead?.price || 0;
-  const PROMO_PRICE = 20; // $19.99 rounded — stored as int in DB
+  // Always fetch fresh from DB to verify first_mow_promo status — never trust cache alone
+  const freshRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}&select=id,name,price,first_mow_promo`,
+    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+  );
+  const [freshLead] = await freshRes.json();
+  if (!freshLead) { alert('Could not load lead data.'); return; }
+
+  const hasPromo  = !!freshLead.first_mow_promo;
+  const origPrice = freshLead.price || 0;
+  const PROMO_AMT = 20; // $19.99 advertised, billed as $20 (int column)
 
   const msg = hasPromo
-    ? `This customer has the $19.99 first mow promo.\n\nThey will be invoiced for $${PROMO_PRICE} (promo rate).\nAfter this invoice their account reverts to $${origPrice}/visit.\n\nSend invoice?`
+    ? `This customer has the $19.99 first mow promo.\n\nThey will be invoiced for $${PROMO_AMT} (promo rate).\nAfter this invoice their account reverts to $${origPrice}/visit.\n\nSend invoice?`
     : 'Send invoice to this customer?';
 
   if (!confirm(msg)) return;
 
   try {
-    // If promo is active, temporarily set price to the promo rate so the
-    // invoice edge function picks up the correct amount
-    if (hasPromo) {
-      await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
-        body: JSON.stringify({ price: PROMO_PRICE })
-      });
-    }
+    // Pass amount_override when promo is active — edge function uses it instead of lead.price
+    const payload = hasPromo
+      ? { lead_id: leadId, amount_override: PROMO_AMT }
+      : { lead_id: leadId };
 
     const res = await fetch(FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + SUPABASE_KEY },
-      body: JSON.stringify({ lead_id: leadId })
+      body: JSON.stringify(payload)
     });
     const data = await res.json();
 
     if (data.ok) {
-      // Restore original price and clear promo in one PATCH
       if (hasPromo) {
+        // Clear promo flag only — original price was never touched in DB
         await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
-          body: JSON.stringify({ price: origPrice, first_mow_promo: false })
+          body: JSON.stringify({ first_mow_promo: false })
         });
-        if (lead) { lead.price = origPrice; lead.first_mow_promo = false; }
+        const cached = allLeads.find(l => l.id === leadId);
+        if (cached) cached.first_mow_promo = false;
         renderTable();
       }
-      alert('Invoice sent! ' + (hasPromo ? `Charged $${PROMO_PRICE} (promo). Account reverted to $${origPrice}/visit.` : ''));
+      alert('Invoice sent! ' + (hasPromo ? `Charged $${PROMO_AMT} (promo). Account reverted to $${origPrice}/visit.` : ''));
       loadLeads();
     } else {
-      // Invoice failed — restore original price so nothing is left broken
-      if (hasPromo) {
-        await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
-          body: JSON.stringify({ price: origPrice })
-        });
-      }
       alert('Error: ' + (data.error || 'Unknown error'));
     }
   } catch(e) {
