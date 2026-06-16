@@ -2280,8 +2280,25 @@ function editAddress() {
   document.getElementById('addressInput').focus();
 }
 
-function confirmAddress() {
+async function confirmAddress() {
   document.getElementById('mapConfirmSection').classList.remove('show');
+
+  // If promo URL param is active, verify this address exists in DB with followup_special=true.
+  // If not found, silently drop the promo — regular price shown, no message.
+  if (window.firstMowPromo) {
+    const addr = document.getElementById('confirmedAddrText').textContent.trim();
+    const streetPart = addr.split(',')[0].trim();
+    const promoCheckRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?address=ilike.*${encodeURIComponent(streetPart)}*&followup_special=eq.true&select=id&limit=1`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
+    );
+    const promoMatches = await promoCheckRes.json();
+    if (!Array.isArray(promoMatches) || promoMatches.length === 0) {
+      window.firstMowPromo = false;
+      const banner = document.getElementById('promoTopBanner');
+      if (banner) banner.style.display = 'none';
+    }
+  }
 
   const prop = window.cachedProp;
   const CROSBY_ZIPS = ["77532"];
@@ -2602,29 +2619,6 @@ async function submitLead() {
   const btn = document.getElementById('submitBtn');
   btn.textContent = 'Saving...';
   btn.disabled = true;
-
-  // Verify this phone/email was actually sent the special offer email (followup_special=true).
-  // If not found in DB, promo is invalid — revert price display and block submission.
-  if (window.firstMowPromo) {
-    const checkRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?followup_special=eq.true&or=(phone.eq.${encodeURIComponent(phone)},email.eq.${encodeURIComponent(email)})&select=id&limit=1`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
-    );
-    const matches = await checkRes.json();
-    if (!Array.isArray(matches) || matches.length === 0) {
-      // Invalid promo — revert everything and let the user see the regular price
-      window.firstMowPromo = false;
-      btn.textContent = 'Book This Visit';
-      btn.disabled = false;
-      const promoBanner = document.getElementById('promoTopBanner');
-      if (promoBanner) promoBanner.style.display = 'none';
-      const promoStrip = document.getElementById('promoInfoStrip');
-      if (promoStrip) promoStrip.style.display = 'none';
-      updatePrice();
-      alert('This promo offer is only valid for customers who received our special offer email.\n\nYour regular rate has been applied — you can still book below.');
-      return;
-    }
-  }
 
   const lotVal  = parseFloat(document.getElementById('lotSize').value)  || null;
   const homeVal = parseFloat(document.getElementById('homeSize').value) || null;
