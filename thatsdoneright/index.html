@@ -2617,7 +2617,7 @@ async function submitLead() {
     manual_size_entry: !window.sizeAutoFilled,
     lot_size: lotVal,
     home_size: homeVal,
-    ...(window.firstMowPromo ? { followup_special: true } : {})
+    ...(window.firstMowPromo ? { followup_special: true, first_mow_promo: true } : {})
     // job_notes and scheduled_date saved after quick questions in submitDetails()
   };
 

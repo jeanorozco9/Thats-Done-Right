@@ -1179,6 +1179,14 @@ function openLeadDrawer(id) {
       <div class="drawer-section-label">Service</div>
       <div class="drawer-value">${freqLabel} · ${l.price ? '$' + l.price + '/visit' : '—'}</div>
       <div class="drawer-value" style="color:var(--text-mid);font-size:.8rem;">Status: ${statusLabel}</div>
+      ${l.first_mow_promo ? `
+        <div style="margin-top:.5rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
+          <span style="background:#dcfce7;color:#16a34a;font-size:.75rem;font-weight:700;padding:.3rem .75rem;border-radius:100px;border:1px solid #bbf7d0;">🎉 $19.99 First Mow Promo Active</span>
+          <button id="firstMowDoneBtn" onclick="markFirstMowDone(${l.id})"
+            style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.4rem .9rem;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;">
+            ✅ Mark First Mow Done
+          </button>
+        </div>` : ''}
     </div>
     <hr class="drawer-divider"/>
     <div class="drawer-row">
@@ -1255,6 +1263,27 @@ async function saveVendorPay(leadId) {
   } catch {
     msg.textContent = 'Error saving. Please try again.';
     msg.style.color = '#c62828';
+  }
+}
+
+async function markFirstMowDone(leadId) {
+  const btn = document.getElementById('firstMowDoneBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({ first_mow_promo: false })
+    });
+    if (!res.ok) throw new Error('Failed');
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) lead.first_mow_promo = false;
+    btn.textContent = '✅ Done — reverted to regular rate';
+    btn.style.background = '#6b7280';
+  } catch {
+    btn.textContent = 'Error — try again';
+    btn.disabled = false;
   }
 }
 
