@@ -309,13 +309,13 @@ nav{background:var(--dark);padding:0 1.5rem;height:62px;display:flex;align-items
   </div>
 
   <!-- First-mow promo banner — shown only when first_mow_promo=true on account -->
-  <div id="promoBanner" style="display:none;background:#f0fdf4;border-top:1px solid #bbf7d0;border-bottom:1px solid #bbf7d0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
-    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-      <span style="display:inline-flex;align-items:center;gap:5px;background:#16a34a;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:4px 10px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
+  <div id="promoBanner" style="display:none;background:#f0fdf4;border-top:1px solid #bbf7d0;border-bottom:1px solid #bbf7d0;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="display:inline-flex;align-items:center;gap:5px;background:#16a34a;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:5px 11px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
       <span style="font-size:13.5px;color:#1a2e1a;font-weight:500;">Hey <strong id="promoClientName">there</strong> &mdash; your <strong style="color:#15803d;">$19.99 first mow</strong> is waiting. <span style="color:#6b7280;font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
       <span id="promoRegPrice" style="display:none;"></span>
     </div>
-    <div id="promoClaimBox" style="flex-shrink:0;">
+    <div id="promoClaimBox" style="flex-shrink:0;margin-left:auto;">
       <button id="promoApplyBtn" onclick="claimFirstMowPromo(event)">Apply $19.99 Promo &rarr;</button>
     </div>
   </div>
