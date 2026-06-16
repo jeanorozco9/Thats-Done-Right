@@ -471,6 +471,7 @@ tr.clickable-row { cursor: pointer; }
     <div class="nav-title"><span>That's Done Right</span> &nbsp;·&nbsp; Leads</div>
     <div class="nav-actions">
       <button class="btn-sm btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn-sm" id="specialCampaignBtn" onclick="sendSpecialCampaign()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:600;cursor:pointer;">🌿 Send $19.99 Promo</button>
       <button class="btn-sm btn-logout" onclick="logout()">Log Out</button>
     </div>
   </nav>
@@ -1070,6 +1071,29 @@ async function updateDisputeStatus(disputeId, newStatus) {
     showDisputes(document.getElementById('disputesTab'));
   } catch(e) {
     console.error('Update dispute status error:', e);
+  }
+}
+
+async function sendSpecialCampaign() {
+  const btn = document.getElementById('specialCampaignBtn');
+  const confirmed = confirm('Send the $19.99 promo email to all leads who received all 3 followups but never booked?\n\nThis cannot be undone.');
+  if (!confirmed) return;
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending...';
+  try {
+    const res = await fetch('https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-special-followup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    alert(`✅ Done! Sent to ${data.sent} of ${data.total} eligible leads.${data.errors?.length ? '\n\nFailed: ' + data.errors.join('\n') : ''}`);
+  } catch (e) {
+    alert('❌ Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🌿 Send $19.99 Promo';
   }
 }
 
