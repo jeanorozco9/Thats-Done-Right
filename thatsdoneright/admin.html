@@ -1374,6 +1374,9 @@ async function adminSubmitPhoto(leadId) {
     const lead = allLeads.find(l => l.id === leadId);
     if (lead) { lead.status = 'completed'; lead.photo_url = publicUrl; }
 
+    // 4. Schedule next visit for recurring clients (background)
+    adminScheduleNextVisit(leadId);
+
     msg.textContent = '✓ Job submitted and client charged';
     msg.style.color = 'var(--green)';
     msg.style.display = 'block';
@@ -1385,6 +1388,33 @@ async function adminSubmitPhoto(leadId) {
     msg.style.display = 'block';
     btn.textContent = '✅ Submit & Charge Client';
     btn.disabled = false;
+  }
+}
+
+async function adminScheduleNextVisit(leadId) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}&select=frequency,scheduled_date`, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    const [job] = await res.json();
+    if (!job || !job.scheduled_date) return;
+    if (job.frequency !== 'weekly' && job.frequency !== 'twice') return;
+    const days = job.frequency === 'weekly' ? 7 : 14;
+    const next = new Date(job.scheduled_date + 'T12:00:00');
+    next.setDate(next.getDate() + days);
+    const nextDateStr = next.toISOString().split('T')[0];
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ scheduled_date: nextDateStr, status: 'rescheduled' })
+    });
+  } catch(e) {
+    console.error('Admin schedule next visit error:', e);
   }
 }
 
