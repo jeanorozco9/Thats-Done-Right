@@ -190,6 +190,9 @@ body{background:#f3f4f6;font-family:'Inter',Arial,sans-serif;-webkit-font-smooth
         }),
       });
 
+      // Pause 500ms between sends to stay within Resend rate limits
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       if (emailRes.ok) {
         // Mark followup_special as sent
         await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}`, {
