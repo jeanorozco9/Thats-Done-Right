@@ -698,7 +698,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id,skip_count,first_mow_promo&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id,skip_count,first_mow_promo,followup_special&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -716,22 +716,33 @@ async function loadClientDashboard(email) {
     // Plan banner — use most recent booked or completed lead for plan info
     const planLead = leads.find(l => l.status === 'booked') || leads[0];
     const freqLabel = FREQ_LABELS[planLead.frequency] || planLead.frequency;
+    // Promo is active if first_mow_promo=true OR followup_special=true (email was sent, promo available)
     const hasFirstMowPromo = !!planLead.first_mow_promo;
+    const promoAvailable   = hasFirstMowPromo || !!planLead.followup_special;
     document.getElementById('planFreq').textContent  = freqLabel;
-    document.getElementById('planPrice').textContent = hasFirstMowPromo
+    document.getElementById('planPrice').textContent = promoAvailable
       ? `$19.99 first mow · then $${planLead.price}/visit`
       : (planLead.price ? `$${planLead.price}/visit` : '—');
     document.getElementById('planAddr').textContent  = planLead.address || '—';
     document.getElementById('planBanner').style.display = 'flex';
 
-    // Promo banner
+    // Promo banner — show whenever followup_special=true (promo was sent to this account)
     const promoBannerEl = document.getElementById('promoBanner');
     if (promoBannerEl) {
-      promoBannerEl.style.display = hasFirstMowPromo ? 'block' : 'none';
-      if (hasFirstMowPromo) {
-        const firstName = (planLead.name || '').split(' ')[0] || 'there';
-        document.getElementById('promoClientName').textContent = firstName;
+      promoBannerEl.style.display = promoAvailable ? 'block' : 'none';
+      if (promoAvailable) {
+        const pFirstName = (planLead.name || '').split(' ')[0] || 'there';
+        document.getElementById('promoClientName').textContent = pFirstName;
         document.getElementById('promoRegPrice').textContent = planLead.price || '—';
+        // If already formally applied in DB, show the confirmed state immediately
+        if (hasFirstMowPromo) {
+          const box = document.getElementById('promoClaimBox');
+          if (box) box.innerHTML = `
+            <div style="font-size:36px;margin-bottom:8px;">&#x2705;</div>
+            <div style="font-size:15px;font-weight:800;color:#bbf7d0;margin-bottom:6px;">Promo Confirmed!</div>
+            <div style="font-size:12px;color:rgba(255,255,255,0.7);line-height:1.5;">Your $19.99 first mow is locked in.<br/>We'll apply it automatically on your first invoice.</div>
+          `;
+        }
       }
     }
 
@@ -1055,9 +1066,24 @@ function toggleMembership() {
   document.getElementById('membershipBtn').classList.toggle('open');
 }
 
-function claimFirstMowPromo() {
+async function claimFirstMowPromo() {
   const box = document.getElementById('promoClaimBox');
   if (!box) return;
+
+  // Write first_mow_promo=true to DB so admin sees it applied
+  if (activePlanLeadId) {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${activePlanLeadId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        Prefer: 'return=minimal'
+      },
+      body: JSON.stringify({ first_mow_promo: true })
+    });
+  }
+
   box.innerHTML = `
     <div style="font-size:36px;margin-bottom:8px;">&#x2705;</div>
     <div style="font-size:15px;font-weight:800;color:#bbf7d0;margin-bottom:6px;">Promo Confirmed!</div>
