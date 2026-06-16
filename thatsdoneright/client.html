@@ -715,7 +715,7 @@ async function loadClientDashboard(email) {
     const hasFirstMowPromo = !!planLead.first_mow_promo;
     const promoAvailable   = hasFirstMowPromo || !!planLead.followup_special;
     document.getElementById('planFreq').textContent  = freqLabel;
-    document.getElementById('planPrice').textContent = promoAvailable
+    document.getElementById('planPrice').textContent = hasFirstMowPromo
       ? `$19.99 first mow · then $${planLead.price}/visit`
       : (planLead.price ? `$${planLead.price}/visit` : '—');
     document.getElementById('planAddr').textContent  = planLead.address || '—';
