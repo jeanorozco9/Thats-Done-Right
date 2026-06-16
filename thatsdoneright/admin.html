@@ -686,7 +686,9 @@ function renderTable() {
       <td style="max-width:180px;font-size:.8rem;color:var(--text-mid);">${l.address || '—'}</td>
       <td>${l.zip || '—'}</td>
       <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
-      <td class="price-cell">${l.price ? '$' + l.price : '—'}</td>
+      <td class="price-cell">${l.first_mow_promo
+        ? `<span style="color:#d97706;font-weight:700;">$19.99</span><div style="font-size:.65rem;color:#9ca3af;text-decoration:line-through;">${l.price ? '$' + l.price : ''}</div>`
+        : (l.price ? '$' + l.price : '—')}</td>
       <td onclick="event.stopPropagation()" style="text-align:center;vertical-align:middle;">
         <label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
           <input type="checkbox" ${l.first_mow_promo ? 'checked' : ''}
