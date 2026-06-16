@@ -670,7 +670,7 @@ function renderTable() {
          </a>`
       : '<span style="font-size:.75rem;color:var(--text-lite);">—</span>';
 
-    return `<tr class="clickable-row" onclick="openLeadDrawer(${l.id})">
+    return `<tr class="clickable-row" style="${l.first_mow_promo ? 'background:#fefce8;' : ''}" onclick="openLeadDrawer(${l.id})">
       <td class="date-cell">${date}${l.invoice_number ? `<div style="font-size:.65rem;color:var(--text-lite);font-family:var(--display);letter-spacing:.3px;margin-top:2px;">${l.invoice_number}</div>` : ''}</td>
       <td>
         <strong>${l.name || '—'}</strong>
@@ -687,6 +687,14 @@ function renderTable() {
       <td>${l.zip || '—'}</td>
       <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
       <td class="price-cell">${l.price ? '$' + l.price : '—'}</td>
+      <td onclick="event.stopPropagation()" style="text-align:center;vertical-align:middle;">
+        <label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
+          <input type="checkbox" ${l.first_mow_promo ? 'checked' : ''}
+            onchange="togglePromo(${l.id}, this.checked)"
+            style="width:16px;height:16px;cursor:pointer;accent-color:#f59e0b;"/>
+          <span style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${l.first_mow_promo ? '#92400e' : 'var(--text-lite)'};">Promo</span>
+        </label>
+      </td>
       <td>${photoCell}</td>
       <td onclick="event.stopPropagation()">
         <select class="contractor-select ${l.contractor_id ? 'assigned' : ''}"
@@ -710,6 +718,7 @@ function renderTable() {
           <th>Zip</th>
           <th>Frequency</th>
           <th>Price</th>
+          <th>Promo</th>
           <th>Photo</th>
           <th>Contractor</th>
           <th>Status</th>
@@ -1284,6 +1293,21 @@ async function saveVendorPay(leadId) {
   } catch {
     msg.textContent = 'Error saving. Please try again.';
     msg.style.color = '#c62828';
+  }
+}
+
+async function togglePromo(leadId, checked) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({ first_mow_promo: checked })
+    });
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) lead.first_mow_promo = checked;
+    renderTable();
+  } catch(e) {
+    console.error('Toggle promo error:', e);
   }
 }
 
