@@ -2222,30 +2222,22 @@ function bookAgain() {
   document.getElementById('confirmedAddrText').textContent = lead.address || '';
   document.getElementById('addressInput').value = lead.address || '';
 
-  // Restore price and frequency
-  window.currentFreq = lead.frequency || 'weekly';
-  window.basePrice   = lead.price || 0;
-  window.totalPrice  = lead.price || 0;
-
   // Flag so submitLead PATCHes this lead instead of creating a new one
   window.returningLeadId = lead.id;
 
-  // Populate contact summary
-  const freqLabel = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq] || window.currentFreq;
-  if (window.firstMowPromo) {
-    window.totalPrice = Math.round(19.99 * 1.0825);
-    document.getElementById('contactSummary').innerHTML =
-      `<strong>${lead.address || ''}</strong><br>${freqLabel} · First mow $19.99 → then $${lead.price}/visit`;
-  } else {
-    document.getElementById('contactSummary').innerHTML =
-      `<strong>${lead.address || ''}</strong><br>${freqLabel} · $${window.totalPrice}/visit — No charge today`;
+  // Pre-store contact info so it auto-fills when they reach the contact panel
+  if (lead.name  && !window.earlyName)  window.earlyName  = lead.name;
+  if (lead.phone && !window.earlyPhone) window.earlyPhone = lead.phone;
+
+  // Make sure the confirmed address text is set for the map/price step
+  if (!document.getElementById('confirmedAddrText').textContent && lead.address) {
+    document.getElementById('confirmedAddrText').textContent = lead.address;
   }
 
-  // Jump straight to contact panel
+  // Hide returning banner and contact capture, then run full price calculation
+  document.getElementById('returningBanner').style.display = 'none';
   document.getElementById('contactCaptureSection').classList.remove('show');
-  hide('resultPanel');
-  show('contactPanel');
-  document.getElementById('contactPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  confirmAddress();
 }
 
 function startFresh() {
