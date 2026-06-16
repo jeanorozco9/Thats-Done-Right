@@ -2223,16 +2223,23 @@ function bookAgain() {
   document.getElementById('addressInput').value = lead.address || '';
 
   // Restore price and frequency
-  window.currentFreq  = lead.frequency || 'weekly';
-  window.totalPrice   = lead.price || 0;
+  window.currentFreq = lead.frequency || 'weekly';
+  window.basePrice   = lead.price || 0;
+  window.totalPrice  = lead.price || 0;
 
   // Flag so submitLead PATCHes this lead instead of creating a new one
   window.returningLeadId = lead.id;
 
   // Populate contact summary
   const freqLabel = { weekly: 'Weekly', twice: 'Every 2 Weeks' }[window.currentFreq] || window.currentFreq;
-  document.getElementById('contactSummary').innerHTML =
-    `<strong>${lead.address || ''}</strong><br>${freqLabel} · $${window.totalPrice}/visit — No charge today`;
+  if (window.firstMowPromo) {
+    window.totalPrice = Math.round(19.99 * 1.0825);
+    document.getElementById('contactSummary').innerHTML =
+      `<strong>${lead.address || ''}</strong><br>${freqLabel} · First mow $19.99 → then $${lead.price}/visit`;
+  } else {
+    document.getElementById('contactSummary').innerHTML =
+      `<strong>${lead.address || ''}</strong><br>${freqLabel} · $${window.totalPrice}/visit — No charge today`;
+  }
 
   // Jump straight to contact panel
   document.getElementById('contactCaptureSection').classList.remove('show');
