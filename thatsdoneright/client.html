@@ -693,7 +693,7 @@ async function loadClientDashboard(email) {
     const today = new Date().toISOString().split('T')[0];
 
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id,skip_count,first_mow_promo,followup_special&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(email)}&select=id,name,address,scheduled_date,scheduled_time,frequency,price,status,contractor_id,stripe_customer_id,skip_count,first_mow_promo,followup_special,lot_size,home_size&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const leads = await res.json();
@@ -712,8 +712,11 @@ async function loadClientDashboard(email) {
     const planLead = leads.find(l => l.status === 'booked') || leads[0];
     const freqLabel = FREQ_LABELS[planLead.frequency] || planLead.frequency;
     // Promo is active if first_mow_promo=true OR followup_special=true (email was sent, promo available)
+    // New offers are also gated to yards between 4,000-7,000 sqft (lot_size minus home_size)
+    const yardSize     = (planLead.lot_size && planLead.home_size) ? (planLead.lot_size - planLead.home_size) : null;
+    const sizeEligible  = yardSize !== null && yardSize >= 4000 && yardSize <= 7000;
     const hasFirstMowPromo = !!planLead.first_mow_promo;
-    const promoAvailable   = hasFirstMowPromo || !!planLead.followup_special;
+    const promoAvailable   = hasFirstMowPromo || (!!planLead.followup_special && sizeEligible);
     document.getElementById('planFreq').textContent  = freqLabel;
     document.getElementById('planPrice').textContent = hasFirstMowPromo
       ? `$19.99 first mow · then $${planLead.price}/visit`

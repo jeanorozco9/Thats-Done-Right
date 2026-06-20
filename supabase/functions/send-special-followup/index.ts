@@ -18,8 +18,8 @@ Deno.serve(async (req) => {
 
     // If test_email is provided, only fetch that one record (ignores followup flags so no SQL changes needed)
     const query = testEmail
-      ? `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(testEmail)}&select=id,name,email,price`
-      : `${SUPABASE_URL}/rest/v1/leads?followup1_sent=eq.true&followup2_sent=eq.true&followup3_sent=eq.true&followup_special=eq.false&status=neq.booked&select=id,name,email,price`;
+      ? `${SUPABASE_URL}/rest/v1/leads?email=eq.${encodeURIComponent(testEmail)}&select=id,name,email,price,lot_size,home_size`
+      : `${SUPABASE_URL}/rest/v1/leads?followup1_sent=eq.true&followup2_sent=eq.true&followup3_sent=eq.true&followup_special=eq.false&status=neq.booked&select=id,name,email,price,lot_size,home_size`;
 
     const leadsRes = await fetch(
       query,
@@ -31,10 +31,23 @@ Deno.serve(async (req) => {
       }
     );
 
-    const leads = await leadsRes.json();
+    const allLeads = await leadsRes.json();
 
-    if (!Array.isArray(leads) || leads.length === 0) {
+    if (!Array.isArray(allLeads) || allLeads.length === 0) {
       return new Response(JSON.stringify({ sent: 0, message: "No eligible leads found." }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // $19.99 first-mow offer is only honored for yards 4,000-7,000 sqft (lot_size minus home_size)
+    const leads = allLeads.filter((lead: any) => {
+      if (!lead.lot_size || !lead.home_size) return false;
+      const yardSize = lead.lot_size - lead.home_size;
+      return yardSize >= 4000 && yardSize <= 7000;
+    });
+
+    if (leads.length === 0) {
+      return new Response(JSON.stringify({ sent: 0, total: allLeads.length, message: "No leads in the 4,000-7,000 sqft yard size range." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

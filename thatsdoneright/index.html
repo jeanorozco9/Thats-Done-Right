@@ -2291,12 +2291,16 @@ async function confirmAddress() {
   const addr = document.getElementById('confirmedAddrText').textContent.trim();
   const streetPart = addr.split(',')[0].trim();
   const promoCheckRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/leads?address=ilike.*${encodeURIComponent(streetPart)}*&followup_special=eq.true&select=id&limit=1`,
+    `${SUPABASE_URL}/rest/v1/leads?address=ilike.*${encodeURIComponent(streetPart)}*&followup_special=eq.true&select=id,lot_size,home_size&limit=1`,
     { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } }
   );
   const promoMatches = await promoCheckRes.json();
   const banner = document.getElementById('promoTopBanner');
-  if (Array.isArray(promoMatches) && promoMatches.length > 0) {
+  // $19.99 first-mow offer is only honored for yards 4,000-7,000 sqft (lot_size minus home_size)
+  const promoMatch  = Array.isArray(promoMatches) && promoMatches.length > 0 ? promoMatches[0] : null;
+  const yardSize    = (promoMatch && promoMatch.lot_size && promoMatch.home_size) ? (promoMatch.lot_size - promoMatch.home_size) : null;
+  const sizeEligible = yardSize !== null && yardSize >= 4000 && yardSize <= 7000;
+  if (promoMatch && sizeEligible) {
     window.firstMowPromo = true;
     if (banner) banner.style.display = 'block';
   } else {
