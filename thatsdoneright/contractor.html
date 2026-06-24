@@ -604,58 +604,107 @@ async function loadPayments() {
 
   const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString();
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/invoices?contractor_id=eq.${currentContractor.id}&select=id,invoice_number,amount_cents,status,created_at,paid_at,leads(name,address,scheduled_date)&order=created_at.desc`,
-    { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
-  );
-  const invoices = await res.json();
+  // Fetch client invoices + completed jobs (for earnings history) in parallel
+  const [invoiceRes, earningsRes] = await Promise.all([
+    fetch(
+      `${SUPABASE_URL}/rest/v1/invoices?contractor_id=eq.${currentContractor.id}&select=id,invoice_number,amount_cents,status,created_at,paid_at,leads(name,address,scheduled_date)&order=created_at.desc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    ),
+    fetch(
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&status=in.(completed,paid,invoiced,rescheduled)&vendor_pay=gt.0&select=id,address,scheduled_date,name,vendor_pay,contractor_paid&order=scheduled_date.desc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    )
+  ]);
 
-  if (!invoices.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-msg">No invoices yet</div></div>';
-    document.getElementById('ytdJobs').textContent = '0';
-    document.getElementById('ytdPaid').textContent = '0';
-    document.getElementById('ytdPending').textContent = '0';
-    return;
-  }
+  const invoices = await invoiceRes.json();
+  const earnings = await earningsRes.json();
 
-  const ytd = invoices.filter(i => i.created_at >= yearStart);
+  // ── YTD stats ──
+  const ytd        = (Array.isArray(invoices) ? invoices : []).filter(i => i.created_at >= yearStart);
   const ytdPaid    = ytd.filter(i => i.status === 'paid');
   const ytdPending = ytd.filter(i => i.status !== 'paid');
+  document.getElementById('ytdJobs').textContent    = ytd.length || '0';
+  document.getElementById('ytdPaid').textContent    = ytdPaid.length || '0';
+  document.getElementById('ytdPending').textContent = ytdPending.length || '0';
 
-  document.getElementById('ytdJobs').textContent    = ytd.length;
-  document.getElementById('ytdPaid').textContent    = ytdPaid.length;
-  document.getElementById('ytdPending').textContent = ytdPending.length;
+  // ── Invoice history table ──
+  const invoiceHtml = !invoices.length
+    ? '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-msg">No invoices yet</div></div>'
+    : `<div style="overflow-x:auto;">
+        <table class="pay-table">
+          <thead><tr>
+            <th>Invoice #</th><th>Date</th><th>Client</th><th>Address</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+            ${invoices.map(inv => {
+              const lead = inv.leads || {};
+              const d = lead.scheduled_date
+                ? new Date(lead.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                : new Date(inv.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+              const paid = inv.status === 'paid';
+              return `<tr>
+                <td><span class="inv-num">${inv.invoice_number || '#' + inv.id}</span></td>
+                <td>${d}</td>
+                <td>${(lead.name || '').split(' ')[0] || '—'}</td>
+                <td style="font-size:.8rem;color:var(--text-mid)">${lead.address || '—'}</td>
+                <td><span class="${paid ? 'badge-paid' : 'badge-pending'}">${paid ? 'Paid' : 'Pending'}</span></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
 
-  list.innerHTML = `
-    <div style="overflow-x:auto;">
-      <table class="pay-table">
-        <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Date</th>
-            <th>Client</th>
-            <th>Address</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${invoices.map(inv => {
-            const lead = inv.leads || {};
-            const d = lead.scheduled_date
-              ? new Date(lead.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
-              : new Date(inv.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-            const paid = inv.status === 'paid';
-            return `<tr>
-              <td><span class="inv-num">${inv.invoice_number || '#' + inv.id}</span></td>
-              <td>${d}</td>
-              <td>${(lead.name || '').split(' ')[0] || '—'}</td>
-              <td style="font-size:.8rem;color:var(--text-mid)">${lead.address || '—'}</td>
-              <td><span class="${paid ? 'badge-paid' : 'badge-pending'}">${paid ? 'Paid' : 'Pending'}</span></td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table>
+  // ── Earnings history section ──
+  const jobs = Array.isArray(earnings) ? earnings : [];
+  const totalEarned  = jobs.reduce((s, j) => s + (j.vendor_pay || 0), 0);
+  const totalPaid    = jobs.filter(j => j.contractor_paid).reduce((s, j) => s + (j.vendor_pay || 0), 0);
+  const totalPending = totalEarned - totalPaid;
+
+  const earningsHtml = `
+    <div style="margin-top:2rem;">
+      <div class="section-title">My Earnings</div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem;">
+        <div style="flex:1;min-width:110px;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;">
+          <div style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.4rem;">Total Earned</div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--dark);">$${totalEarned}</div>
+        </div>
+        <div style="flex:1;min-width:110px;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;">
+          <div style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.4rem;">Paid to Me</div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--green);">$${totalPaid}</div>
+        </div>
+        <div style="flex:1;min-width:110px;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;">
+          <div style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.4rem;">Pending</div>
+          <div style="font-size:1.3rem;font-weight:800;color:${totalPending > 0 ? 'var(--yellow)' : 'var(--dark)'};">$${totalPending}</div>
+        </div>
+      </div>
+      ${!jobs.length
+        ? '<div class="empty-state"><div class="empty-icon">🌿</div><div class="empty-msg">No completed jobs yet</div></div>'
+        : `<div style="overflow-x:auto;">
+            <table class="pay-table">
+              <thead><tr>
+                <th>Date</th><th>Address</th><th>Amount</th><th>Paid by TDR</th>
+              </tr></thead>
+              <tbody>
+                ${jobs.map(j => {
+                  const d = j.scheduled_date
+                    ? new Date(j.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+                    : '—';
+                  return `<tr>
+                    <td>${d}</td>
+                    <td style="font-size:.8rem;color:var(--text-mid);">${(j.address || '').split(',')[0] || '—'}</td>
+                    <td style="font-weight:700;color:var(--green);">$${j.vendor_pay}</td>
+                    <td>${j.contractor_paid
+                      ? '<span style="color:var(--green);font-size:1.1rem;font-weight:700;">✓</span>'
+                      : '<span style="color:var(--yellow);font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;">Pending</span>'}</td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>`
+      }
     </div>`;
+
+  list.innerHTML = invoiceHtml + earningsHtml;
 }
 
 function openChangePw() {
@@ -726,7 +775,7 @@ async function loadJobs(scrollToId) {
   try {
     // Only fetch safe columns — no price, no email, no phone
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url,lot_size,home_size,price,vendor_pay&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${currentContractor.id}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url,lot_size,home_size,price,vendor_pay,contractor_paid&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     const jobs = (await res.json()).filter(j => j.status !== 'cancelled' && j.status !== 'payment_failed');
