@@ -1250,11 +1250,34 @@ async function submitPhoto(jobId) {
     btn.textContent = 'Sending invoice...';
 
     // 3. Auto-trigger invoice — sends email + text to customer
-    await fetch('https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice', {
+    const invoiceRes = await fetch('https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ lead_id: jobId }),
     });
+    const invoiceData = await invoiceRes.json().catch(() => ({}));
+
+    if (!invoiceData.ok) {
+      // Payment failed — mark lead so admin sees it and gets alerted
+      await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}`, {
+        method: 'PATCH',
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ status: 'payment_failed' }),
+      });
+      // Notify the team
+      const job = allJobs.find(j => j.id === jobId);
+      fetch(`${SUPABASE_URL}/functions/v1/notify-payment-failed`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
+        body: JSON.stringify({
+          lead_id: jobId,
+          name:    job?.name,
+          address: job?.address,
+          amount:  job?.price,
+        }),
+      }).catch(() => {});
+      btn.textContent = 'Payment Failed — Admin Notified';
+    }
 
     // 4. Refresh UI — show job as completed before rescheduling
     await loadJobs();

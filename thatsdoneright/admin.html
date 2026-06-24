@@ -529,8 +529,9 @@ tr.clickable-row { cursor: pointer; }
 
 <script>
 const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
-const FUNCTION_URL          = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice";
-const NOTIFY_CONTRACTOR_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-contractor";
+const FUNCTION_URL              = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice";
+const NOTIFY_CONTRACTOR_URL     = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-contractor";
+const NOTIFY_PAYMENT_FAILED_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-payment-failed";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
 const ADMIN_PASS = "kike";
 
@@ -856,6 +857,18 @@ async function sendInvoice(leadId) {
         });
         if (currentLead) currentLead.status = 'payment_failed';
         renderTable();
+        // Alert the team via email
+        fetch(NOTIFY_PAYMENT_FAILED_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
+          body: JSON.stringify({
+            lead_id: leadId,
+            name: currentLead.name,
+            email: currentLead.email,
+            address: currentLead.address,
+            amount: currentLead.price
+          })
+        }).catch(() => {}); // fire-and-forget
       }
       alert('Payment failed: ' + (data.error || 'Unknown error') + '\n\nThis client has been flagged as Needs Payment.');
     }
@@ -1414,6 +1427,14 @@ async function markPaymentFailed(leadId) {
     renderTable();
     document.getElementById('leadDrawer').classList.remove('open');
     document.getElementById('drawerOverlay').classList.remove('open');
+    // Alert the team via email
+    if (lead) {
+      fetch(NOTIFY_PAYMENT_FAILED_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SUPABASE_KEY}` },
+        body: JSON.stringify({ lead_id: leadId, name: lead.name, email: lead.email, address: lead.address, amount: lead.price })
+      }).catch(() => {});
+    }
   } catch(e) {
     alert('Failed to update status. Please try again.');
   }
