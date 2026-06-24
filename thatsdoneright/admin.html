@@ -518,6 +518,7 @@ tr.clickable-row { cursor: pointer; }
           <span class="dispute-count" id="disputeTabCount" style="display:none;">0</span>
         </div>
         <button class="filter-btn" id="invoicesTab" onclick="showInvoices(this)" style="margin-left:.25rem;border-color:#1565c0;color:#1565c0;font-weight:700;">🧾 Invoices</button>
+        <button class="filter-btn" id="payContractorsTab" onclick="showPayContractors(this)" style="margin-left:.25rem;border-color:#6a1b9a;color:#6a1b9a;font-weight:700;">💸 Pay Contractors</button>
       </div>
     </div>
 
@@ -1137,6 +1138,114 @@ async function showInvoices(btn) {
   } catch(e) {
     document.getElementById('tableContainer').innerHTML =
       '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load invoices</div></div>';
+  }
+}
+
+async function showPayContractors(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'Pay Contractors';
+  document.getElementById('refreshBtn').onclick = () => showPayContractors(btn);
+
+  document.getElementById('tableContainer').innerHTML =
+    '<div class="loading-state"><span class="spinner"></span> Loading...</div>';
+
+  try {
+    // Fetch all completed jobs that have a contractor assigned and a vendor_pay amount
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=not.is.null&vendor_pay=gt.0&status=in.(completed,paid,invoiced,rescheduled,cancelled)&select=id,address,scheduled_date,name,vendor_pay,contractor_paid,contractor_id&order=contractor_id.asc,scheduled_date.desc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const jobs = await res.json();
+
+    // Also fetch contractor names
+    const cRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/contractors?select=id,name`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const contractors = await cRes.json();
+    const cMap = Object.fromEntries((Array.isArray(contractors) ? contractors : []).map(c => [c.id, c.name]));
+
+    if (!jobs.length) {
+      document.getElementById('tableContainer').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">💸</div><div class="empty-state-msg">No contractor payments on record</div></div>';
+      return;
+    }
+
+    const unpaid = jobs.filter(j => !j.contractor_paid);
+    const totalOwed = unpaid.reduce((s, j) => s + (j.vendor_pay || 0), 0);
+
+    const summaryBar = `
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem;padding:.75rem 1rem;background:#f3e5f5;border:1px solid #ce93d8;border-radius:12px;align-items:center;">
+        <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#6a1b9a;">Total Owed to Contractors</div>
+        <div style="font-size:1.4rem;font-weight:800;color:#6a1b9a;">$${totalOwed}</div>
+        <div style="font-size:.8rem;color:#888;margin-left:auto;">${unpaid.length} unpaid job${unpaid.length !== 1 ? 's' : ''}</div>
+      </div>`;
+
+    const rows = jobs.map(j => {
+      const d = j.scheduled_date
+        ? new Date(j.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+        : '—';
+      const contractorName = cMap[j.contractor_id] || `#${j.contractor_id}`;
+      const addr = (j.address || '').split(',')[0];
+      return `<tr style="${!j.contractor_paid ? '' : 'opacity:.55;'}">
+        <td style="font-weight:600;">${contractorName}</td>
+        <td>${d}</td>
+        <td style="font-size:.8rem;color:var(--text-mid);">${addr}</td>
+        <td style="font-weight:700;color:#6a1b9a;">$${j.vendor_pay}</td>
+        <td>${j.contractor_paid
+          ? '<span style="color:var(--green);font-size:1.1rem;font-weight:700;">✓ Paid</span>'
+          : `<button onclick="markContractorPaid(${j.id}, this)"
+               style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.35rem .8rem;background:#6a1b9a;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+               Mark Paid
+             </button>`
+        }</td>
+      </tr>`;
+    }).join('');
+
+    document.getElementById('tableContainer').innerHTML = `
+      <div style="padding:1rem 0;">
+        ${summaryBar}
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:.85rem;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border);">
+                <th style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);padding:.6rem .75rem;text-align:left;">Contractor</th>
+                <th style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);padding:.6rem .75rem;text-align:left;">Service Date</th>
+                <th style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);padding:.6rem .75rem;text-align:left;">Address</th>
+                <th style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);padding:.6rem .75rem;text-align:left;">Amount</th>
+                <th style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);padding:.6rem .75rem;text-align:left;">Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load contractor payments</div></div>';
+  }
+}
+
+async function markContractorPaid(leadId, btn) {
+  btn.textContent = '...';
+  btn.disabled = true;
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({ contractor_paid: true })
+    });
+    // Update the row in place
+    const td = btn.closest('td');
+    td.innerHTML = '<span style="color:var(--green);font-size:1.1rem;font-weight:700;">✓ Paid</span>';
+    btn.closest('tr').style.opacity = '.55';
+    // Update summary bar total
+    showPayContractors(document.getElementById('payContractorsTab'));
+  } catch(e) {
+    btn.textContent = 'Mark Paid';
+    btn.disabled = false;
+    alert('Failed to mark as paid. Please try again.');
   }
 }
 
