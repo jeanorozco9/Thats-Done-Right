@@ -215,6 +215,62 @@ nav {
 
 .hero > * { position: relative; z-index: 1; }
 
+.hero-tree {
+  position: absolute;
+  bottom: 24%;
+  width: min(24vw, 320px);
+  opacity: .32;
+  pointer-events: none;
+  z-index: 0;
+  filter: saturate(.85);
+}
+
+.hero-tree svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero-tree-left {
+  left: 3%;
+  transform: scale(1.02);
+}
+
+.hero-tree-right {
+  right: 4%;
+  transform: scaleX(-1);
+}
+
+.hero-tree .trunk {
+  stroke: rgba(96, 91, 72, 0.42);
+  stroke-width: 7;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.hero-tree .branch {
+  stroke: rgba(112, 109, 84, 0.26);
+  stroke-width: 3.25;
+  stroke-linecap: round;
+  fill: none;
+}
+
+.hero-tree .foliage {
+  fill: rgba(126, 142, 103, 0.22);
+}
+
+@media (max-width: 900px) {
+  .hero-tree {
+    width: min(22vw, 190px);
+    bottom: 28%;
+    opacity: .22;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-tree { display: none; }
+}
+
 .hero-eyebrow {
   display: inline-flex;
   align-items: center;
@@ -1443,6 +1499,38 @@ footer {
 
 <!-- ── HERO ── -->
 <section class="hero" aria-label="Lawn mowing service quote for Katy TX and Crosby TX">
+  <div class="hero-tree hero-tree-left" aria-hidden="true">
+    <svg viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg">
+      <path class="trunk" d="M96 248 C92 210, 102 174, 111 146 C119 118, 116 86, 104 56"/>
+      <path class="branch" d="M112 146 C84 124, 69 102, 62 76"/>
+      <path class="branch" d="M113 142 C134 120, 151 97, 157 72"/>
+      <path class="branch" d="M105 118 C79 109, 56 92, 42 69"/>
+      <path class="branch" d="M118 112 C147 104, 168 89, 181 66"/>
+      <path class="branch" d="M107 94 C89 80, 79 63, 77 42"/>
+      <path class="branch" d="M117 92 C135 79, 146 62, 150 40"/>
+      <ellipse class="foliage" cx="64" cy="72" rx="38" ry="28"/>
+      <ellipse class="foliage" cx="104" cy="60" rx="44" ry="31"/>
+      <ellipse class="foliage" cx="148" cy="74" rx="40" ry="28"/>
+      <ellipse class="foliage" cx="90" cy="100" rx="36" ry="24"/>
+      <ellipse class="foliage" cx="138" cy="104" rx="30" ry="22"/>
+    </svg>
+  </div>
+  <div class="hero-tree hero-tree-right" aria-hidden="true">
+    <svg viewBox="0 0 220 260" xmlns="http://www.w3.org/2000/svg">
+      <path class="trunk" d="M96 248 C92 210, 102 174, 111 146 C119 118, 116 86, 104 56"/>
+      <path class="branch" d="M112 146 C84 124, 69 102, 62 76"/>
+      <path class="branch" d="M113 142 C134 120, 151 97, 157 72"/>
+      <path class="branch" d="M105 118 C79 109, 56 92, 42 69"/>
+      <path class="branch" d="M118 112 C147 104, 168 89, 181 66"/>
+      <path class="branch" d="M107 94 C89 80, 79 63, 77 42"/>
+      <path class="branch" d="M117 92 C135 79, 146 62, 150 40"/>
+      <ellipse class="foliage" cx="64" cy="72" rx="38" ry="28"/>
+      <ellipse class="foliage" cx="104" cy="60" rx="44" ry="31"/>
+      <ellipse class="foliage" cx="148" cy="74" rx="40" ry="28"/>
+      <ellipse class="foliage" cx="90" cy="100" rx="36" ry="24"/>
+      <ellipse class="foliage" cx="138" cy="104" rx="30" ry="22"/>
+    </svg>
+  </div>
   <div class="hero-eyebrow">
     ⚡ Serving Katy TX &amp; Crosby TX &nbsp;·&nbsp; No Contracts &nbsp;·&nbsp; Instant Quote
   </div>
