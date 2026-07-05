@@ -169,6 +169,31 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
 .modal-btn-cancel:hover{background:#ECE4D5}
 .modal-success{display:none;background:var(--green-tint);border:1px solid #EDE6D4;border-radius:10px;padding:.85rem 1rem;font-size:.85rem;color:var(--green);margin-top:1rem;line-height:1.5}
 
+.modal-shell{max-width:380px;padding:0;overflow:hidden;text-align:center}
+.modal-head{padding:1.8rem 1.75rem 1.3rem;color:#fffdf8}
+.modal-head.pause{background:linear-gradient(135deg,#7A4AA6 0%,#64349C 100%)}
+.modal-head.resume,.modal-head.reschedule{background:linear-gradient(135deg,#8D9D76 0%,#768864 100%)}
+.modal-head.skip{background:linear-gradient(135deg,#D8882F 0%,#C96F16 100%)}
+.modal-head.cancel{background:linear-gradient(135deg,#C95E4D 0%,#B44A39 100%)}
+.modal-head .emoji{font-size:2.7rem;line-height:1;margin-bottom:.55rem}
+.modal-head-title{font-family:var(--display);font-size:1.12rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#fffdf8}
+.modal-head-sub{font-size:.82rem;color:rgba(255,253,248,0.82);margin-top:.3rem;line-height:1.55}
+.modal-content{padding:1.55rem 1.75rem 1.75rem}
+.modal-copy{font-size:.96rem;color:var(--dark-mid);line-height:1.75;margin:0 0 1.25rem}
+.modal-copy strong,.modal-copy em{color:var(--dark)}
+.modal-stack{display:flex;flex-direction:column;gap:.7rem;margin-top:1rem}
+.modal-action{width:100%;padding:1rem 1.1rem;border:none;border-radius:14px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.6px;text-transform:uppercase;cursor:pointer;transition:transform .15s,box-shadow .18s,opacity .18s}
+.modal-action:hover{transform:translateY(-1px)}
+.modal-action.primary{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fffdf8;box-shadow:0 14px 30px rgba(152,121,71,0.22)}
+.modal-action.primary-green{background:linear-gradient(135deg,var(--green) 0%,var(--green-dark) 100%);color:#fffdf8;box-shadow:0 14px 30px rgba(95,110,80,0.2)}
+.modal-action.primary-purple{background:linear-gradient(135deg,#7A4AA6 0%,#64349C 100%);color:#fffdf8;box-shadow:0 14px 30px rgba(100,52,156,0.24)}
+.modal-action.primary-orange{background:linear-gradient(135deg,#D8882F 0%,#C96F16 100%);color:#fffdf8;box-shadow:0 14px 30px rgba(201,111,22,0.24)}
+.modal-action.secondary{background:#F7F3EB;color:var(--dark-mid);border:1px solid rgba(228,216,197,0.9);box-shadow:none}
+.modal-action.danger-outline{background:#FFF8F6;color:#B55A49;border:1px solid rgba(181,90,73,0.28);box-shadow:none}
+.modal-action.secondary:hover,.modal-action.danger-outline:hover{background:#F1EADD}
+.modal-date-pill{font-family:var(--display);font-size:1.02rem;font-weight:700;color:var(--dark);background:#FBF8F1;border:1.5px solid rgba(184,154,100,0.35);border-radius:14px;padding:.8rem .9rem;margin-bottom:1.2rem}
+.modal-note{font-size:.84rem;color:var(--text-mid);line-height:1.65;margin:0 0 1rem}
+
 /* Reschedule custom calendar */
 .resched-cal-wrap{background:#FBF8F1;border:1.5px solid rgba(228,216,197,0.9);border-radius:16px;padding:.9rem;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);}
 .resched-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
@@ -436,17 +461,17 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
 
 <!-- Pause service modal -->
 <div class="modal-overlay" id="pauseModal">
-  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <div style="background:linear-gradient(135deg,#4a148c,#7b1fa2);padding:1.75rem 1.75rem 1.25rem;">
-      <div style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">⏸️</div>
-      <div style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Pause Your Service?</div>
-      <div style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.25rem;font-family:var(--body);">You can resume anytime</div>
+  <div class="modal-card modal-shell">
+    <div class="modal-head pause">
+      <div class="emoji">⏸️</div>
+      <div class="modal-head-title">Pause Your Service?</div>
+      <div class="modal-head-sub">You can resume anytime</div>
     </div>
-    <div style="padding:1.5rem 1.75rem 1.75rem;">
-      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">We'll hold your spot and pause all upcoming visits. Your account stays active — just come back whenever you're ready. 🌿</p>
-      <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="confirmPause()" style="width:100%;padding:.9rem;background:#7b1fa2;color:#3F4130;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Yes, Pause My Service</button>
-        <button onclick="document.getElementById('pauseModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Service Active</button>
+    <div class="modal-content">
+      <p class="modal-copy">We'll hold your spot and pause all upcoming visits. Your account stays active — just come back whenever you're ready. 🌿</p>
+      <div class="modal-stack">
+        <button onclick="confirmPause()" class="modal-action primary-purple">⏸️ Yes, Pause My Service</button>
+        <button onclick="document.getElementById('pauseModal').classList.remove('open')" class="modal-action secondary">Keep Service Active</button>
       </div>
     </div>
   </div>
@@ -454,17 +479,17 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
 
 <!-- Resume service modal -->
 <div class="modal-overlay" id="resumeModal">
-  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <div style="background:linear-gradient(135deg,#94906C,#AEA781);padding:1.75rem 1.75rem 1.25rem;">
-      <div style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">🌿</div>
-      <div style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Welcome Back!</div>
-      <div style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.25rem;font-family:var(--body);">Ready to get your lawn looking great again?</div>
+  <div class="modal-card modal-shell">
+    <div class="modal-head resume">
+      <div class="emoji">🌿</div>
+      <div class="modal-head-title">Welcome Back!</div>
+      <div class="modal-head-sub">Ready to get your lawn looking great again?</div>
     </div>
-    <div style="padding:1.5rem 1.75rem 1.75rem;">
-      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">We'll reactivate your service and get your lawn back on the schedule. Your contractor will be in touch soon. 🏡</p>
-      <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="confirmResume()" style="width:100%;padding:.9rem;background:var(--green);color:#3F4130;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">✅ Yes, Resume My Service</button>
-        <button onclick="document.getElementById('resumeModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Not Yet</button>
+    <div class="modal-content">
+      <p class="modal-copy">We'll reactivate your service and get your lawn back on the schedule. Your contractor will be in touch soon. 🏡</p>
+      <div class="modal-stack">
+        <button onclick="confirmResume()" class="modal-action primary-green">✅ Yes, Resume My Service</button>
+        <button onclick="document.getElementById('resumeModal').classList.remove('open')" class="modal-action secondary">Not Yet</button>
       </div>
     </div>
   </div>
@@ -472,13 +497,13 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
 
 <!-- Reschedule modal -->
 <div class="modal-overlay" id="rescheduleModal">
-  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <div style="background:linear-gradient(135deg,#94906C,#AEA781);padding:1.75rem 1.75rem 1.25rem;">
-      <div style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">📅</div>
-      <div style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Reschedule Visit</div>
-      <div style="font-size:.75rem;color:rgba(255,255,255,0.65);margin-top:.25rem;font-family:var(--body);">Pick a new date for your service</div>
+  <div class="modal-card modal-shell">
+    <div class="modal-head reschedule">
+      <div class="emoji">📅</div>
+      <div class="modal-head-title">Reschedule Visit</div>
+      <div class="modal-head-sub">Pick a new date for your service</div>
     </div>
-    <div style="padding:1.5rem 1.75rem 1.75rem;">
+    <div class="modal-content">
       <div class="resched-cal-wrap">
         <div class="resched-cal-header">
           <button type="button" class="resched-cal-nav" id="reschedPrevBtn" onclick="reschedCalNav(-1)">‹</button>
@@ -488,9 +513,9 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
         <div class="resched-cal-grid" id="reschedCalGrid"></div>
       </div>
       <div id="reschedSelectedLabel" class="resched-selected-label">Please select a weekday above</div>
-      <div style="display:flex;flex-direction:column;gap:.6rem;margin-top:1rem;">
-        <button onclick="submitReschedule()" style="width:100%;padding:.9rem;background:var(--green);color:#3F4130;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">✅ Confirm New Date</button>
-        <button onclick="document.getElementById('rescheduleModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Current Date</button>
+      <div class="modal-stack">
+        <button onclick="submitReschedule()" class="modal-action primary-green">✅ Confirm New Date</button>
+        <button onclick="document.getElementById('rescheduleModal').classList.remove('open')" class="modal-action secondary">Keep Current Date</button>
       </div>
     </div>
   </div>
@@ -498,26 +523,26 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
 
 <!-- Skip visit modal -->
 <div class="modal-overlay" id="skipModal">
-  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <div style="background:linear-gradient(135deg,#e65100,#f57c00);padding:1.75rem 1.75rem 1.25rem;">
-      <div id="skipModalIcon" style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">⏭</div>
-      <div id="skipModalTitle" style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Skip This Visit?</div>
-      <div id="skipModalSub" style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.25rem;font-family:var(--body);">Your next service will be moved forward</div>
+  <div class="modal-card modal-shell">
+    <div class="modal-head skip">
+      <div id="skipModalIcon" class="emoji">⏭</div>
+      <div id="skipModalTitle" class="modal-head-title">Skip This Visit?</div>
+      <div id="skipModalSub" class="modal-head-sub">Your next service will be moved forward</div>
     </div>
-    <div style="padding:1.5rem 1.75rem 1.75rem;">
+    <div class="modal-content">
       <div id="skipNormalContent">
-        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 .5rem;">We'll skip your upcoming visit and schedule you for:</p>
-        <div id="skipNextDateLabel" style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);background:#fff8f0;border:1.5px solid #ffe0b2;border-radius:10px;padding:.65rem .75rem;margin-bottom:1.25rem;"></div>
-        <div style="display:flex;flex-direction:column;gap:.6rem;">
-          <button onclick="confirmSkip()" style="width:100%;padding:.9rem;background:#f57c00;color:#3F4130;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Skip This Visit</button>
-          <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Current Date</button>
+        <p class="modal-copy">We'll skip your upcoming visit and schedule you for:</p>
+        <div id="skipNextDateLabel" class="modal-date-pill"></div>
+        <div class="modal-stack">
+          <button onclick="confirmSkip()" class="modal-action primary-orange">Yes, Skip This Visit</button>
+          <button onclick="document.getElementById('skipModal').classList.remove('open')" class="modal-action secondary">Keep Current Date</button>
         </div>
       </div>
       <div id="skipLimitContent" style="display:none;">
-        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">You've already skipped your last 2 visits in a row. If you need more time, pausing your service might be a better fit — your spot stays held and you can resume whenever you're ready.</p>
-        <div style="display:flex;flex-direction:column;gap:.6rem;">
-          <button onclick="document.getElementById('skipModal').classList.remove('open');document.getElementById('pauseModal').classList.add('open')" style="width:100%;padding:.9rem;background:#7b1fa2;color:#3F4130;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Pause My Service Instead</button>
-          <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Cancel</button>
+        <p class="modal-copy">You've already skipped your last 2 visits in a row. If you need more time, pausing your service might be a better fit — your spot stays held and you can resume whenever you're ready.</p>
+        <div class="modal-stack">
+          <button onclick="document.getElementById('skipModal').classList.remove('open');document.getElementById('pauseModal').classList.add('open')" class="modal-action primary-purple">⏸️ Pause My Service Instead</button>
+          <button onclick="document.getElementById('skipModal').classList.remove('open')" class="modal-action secondary">Cancel</button>
         </div>
       </div>
     </div>
@@ -526,18 +551,17 @@ nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdro
 
 <!-- Cancel membership modal -->
 <div class="modal-overlay" id="cancelModal">
-  <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <!-- Red header -->
-    <div style="background:linear-gradient(135deg,#c62828,#e53935);padding:2rem 1.75rem 1.5rem;">
-      <div style="font-size:2.8rem;line-height:1;margin-bottom:.6rem;">🥺</div>
-      <div style="font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Wait… Don't Go!</div>
+  <div class="modal-card modal-shell">
+    <div class="modal-head cancel">
+      <div class="emoji">🥺</div>
+      <div class="modal-head-title">Wait… Don't Go!</div>
+      <div class="modal-head-sub">Please review before ending service</div>
     </div>
-    <!-- Body -->
-    <div style="padding:1.5rem 1.75rem 1.75rem;">
-      <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.5rem;">Your lawn will miss you. 😢<br>Are you <em>sure</em> you want to cancel your account? This will stop all future services.</p>
-      <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="document.getElementById('cancelModal').classList.remove('open')" style="width:100%;padding:.9rem;background:var(--green);color:#3F4130;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🌿 Keep My Lawn Looking Good</button>
-        <button onclick="confirmCancelMembership()" style="width:100%;padding:.75rem;background:none;color:#e53935;border:1.5px solid #ffcdd2;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='none'">Yes, Cancel My Account</button>
+    <div class="modal-content">
+      <p class="modal-copy">Your lawn will miss you. 😢<br>Are you <em>sure</em> you want to cancel your account? This will stop all future services.</p>
+      <div class="modal-stack">
+        <button onclick="document.getElementById('cancelModal').classList.remove('open')" class="modal-action primary-green">🌿 Keep My Lawn Looking Good</button>
+        <button onclick="confirmCancelMembership()" class="modal-action danger-outline">Yes, Cancel My Account</button>
       </div>
     </div>
   </div>
