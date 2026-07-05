@@ -52,8 +52,11 @@
   }
 </script>
 
-<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Archivo:wght@300;400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
-<script src="https://js.stripe.com/v3/"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" as="image" href="backgroundg-hero.jpg" />
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://js.stripe.com/v3/" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
@@ -74,13 +77,12 @@ h1, h2, h3, h4, h5, h6 { font-weight: inherit; font-size: inherit; margin: 0; pa
   --border:     #E3DAC6;
   --green:      #AEA781;
   --green-tint: #F7F2E6;
-  --shadow:     0 2px 20px rgba(0,0,0,0.08);
-  --shadow-lg:  0 12px 48px rgba(0,0,0,0.14);
-  --radius:     10px;
+  --shadow:     0 1px 2px rgba(69,72,58,0.05), 0 8px 28px rgba(69,72,58,0.09);
+  --shadow-lg:  0 2px 6px rgba(69,72,58,0.06), 0 24px 64px rgba(69,72,58,0.14);
+  --radius:     16px;
   --script:     'Pacifico', cursive;
   --display:    'Fraunces', serif;
   --body:       'Archivo', sans-serif;
-  --serif:      'Source Serif 4', serif;
 }
 
 html { scroll-behavior: smooth; }
@@ -157,88 +159,9 @@ nav {
   letter-spacing: .5px;
 }
 
-/* ── TABLET (768px) ── */
-@media (max-width: 768px) {
-  .hero { padding: 5.5rem 1.25rem 6rem; }
-  .quote-card-wrap { padding: 0 1rem; }
-}
-
-/* ── MOBILE (480px) ── */
-@media (max-width: 480px) {
-  /* Nav */
-  .nav-badge { display: none; }
-  .nav-divider { display: none; }
-  .nav-sub { display: none; }
-  .nav-phone { font-size: .8rem; }
-  nav { padding: 0 1rem; height: 56px; }
-
-  /* Hero */
-  .hero { padding: 4.5rem 1rem 5.5rem; }
-  .hero-eyebrow {
-    font-size: .7rem;
-    letter-spacing: 1px;
-    padding: .3rem .75rem;
-    text-align: center;
-    white-space: normal;
-    max-width: 90%;
-  }
-  .hero-logo { font-size: clamp(2.4rem, 11vw, 3.5rem); }
-  .hero-tagline { font-size: .65rem; letter-spacing: 2px; }
-  .hero-sub { font-size: 1rem; margin-bottom: 1.75rem; }
-
-  /* Quote card */
-  .quote-card-wrap { padding: 0 .75rem; }
-  .quote-card-header { padding: .75rem 1rem; }
-  .quote-card-body { padding: 1.25rem 1rem; }
-  .quote-card { margin-bottom: -2.5rem; }
-
-  /* Inputs — 16px prevents iOS auto-zoom */
-  input, select, textarea { font-size: 16px !important; }
-
-  /* Frequency cards — stack on very small screens */
-  .freq-card { flex-direction: row; }
-  .freq-card-price { min-width: 80px; padding: .75rem 1rem; }
-  .freq-card-price-num { font-size: 1.1rem; }
-
-  /* Price display */
-  .price-amount { font-size: 2.8rem; }
-
-  /* Stat boxes */
-  .stats-row { gap: .35rem; }
-  .stat-box { padding: .5rem .35rem; }
-  .stat-label { font-size: .55rem; letter-spacing: 1px; }
-  .stat-val { font-size: .75rem; }
-
-  /* Buttons — comfortable tap targets */
-  .btn-primary { padding: 1rem 1.5rem; font-size: .88rem; min-height: 48px; }
-  .btn-ghost { padding: .85rem 1.5rem; min-height: 44px; }
-
-  /* Steps */
-  .steps { gap: .75rem; }
-  .step-card { padding: 1.25rem 1rem; }
-
-  /* Trust bar */
-  .trust-inner { gap: 1rem; flex-wrap: wrap; justify-content: center; }
-  .trust-item-num { font-size: 1.6rem; }
-
-  /* Service area pills */
-  .zone-pill { font-size: .68rem; padding: .4rem .85rem; }
-
-  /* Footer */
-  footer { padding: 1.75rem 1rem; }
-  .footer-logo { font-size: 1.5rem; }
-
-  /* Result panel — full width booking button */
-  .includes-grid { grid-template-columns: 1fr; }
-
-  /* Section padding tighter */
-  .section-title { font-size: 1.5rem; }
-  section { padding-left: 1rem; padding-right: 1rem; }
-}
-
 /* ── HERO ── */
 .hero {
-  background: url('backgroundg.png') center top / cover no-repeat;
+  background: url('backgroundg-hero.jpg') center top / cover no-repeat;
   padding: 7rem 1.5rem 8rem;
   text-align: center;
   position: relative;
@@ -323,9 +246,10 @@ nav {
 }
 
 .quote-card-header {
-  background: var(--red);
+  background: #F6F1E4;
+  border-bottom: 1px solid var(--border);
   padding: .9rem 1.5rem;
-  border-radius: 16px 16px 0 0;
+  border-radius: var(--radius) var(--radius) 0 0;
   display: flex;
   align-items: center;
   gap: .75rem;
@@ -334,8 +258,8 @@ nav {
 .qch-icon {
   width: 34px;
   height: 34px;
-  background: rgba(255,255,255,0.45);
-  border-radius: 8px;
+  background: var(--green-tint, #EDE6D4);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -346,15 +270,15 @@ nav {
 .qch-title {
   font-family: var(--display);
   font-size: .72rem;
-  font-weight: 400;
-  color: #3F4130;
+  font-weight: 600;
+  color: var(--dark);
   letter-spacing: .5px;
   text-transform: uppercase;
 }
 
 .qch-sub {
   font-size: .65rem;
-  color: rgba(63,65,48,0.7);
+  color: var(--text-mid);
   margin-top: 2px;
 }
 
@@ -872,7 +796,8 @@ input:disabled {
 
 /* Trust bar */
 .trust-bar {
-  background: var(--red);
+  background: #F1EBDC;
+  border-bottom: 1px solid var(--border);
   padding: 1.25rem 1.5rem;
 }
 
@@ -1196,6 +1121,89 @@ footer {
 }
 
 .faq-item.open .faq-a { display: block; }
+
+/* ── TABLET (768px) ── */
+@media (max-width: 768px) {
+  .hero { padding: 5.5rem 1.25rem 6rem; }
+  .quote-card-wrap { padding: 0 1rem; }
+}
+
+/* ── MOBILE (480px) ── */
+@media (max-width: 480px) {
+  /* Nav */
+  .nav-badge { display: none; }
+  .nav-divider { display: none; }
+  .nav-sub { display: none; }
+  .nav-phone { font-size: .8rem; }
+  nav { padding: 0 1rem; height: 56px; }
+
+  /* Hero */
+  .hero { padding: 4.5rem 1rem 5.5rem; }
+  .hero-eyebrow {
+    font-size: .7rem;
+    letter-spacing: 1px;
+    padding: .3rem .75rem;
+    text-align: center;
+    white-space: normal;
+    max-width: 90%;
+  }
+  .hero-logo { font-size: clamp(2.4rem, 11vw, 3.5rem); }
+  .hero-tagline { font-size: .65rem; letter-spacing: 2px; }
+  .hero-sub { font-size: 1rem; margin-bottom: 1.75rem; }
+
+  /* Quote card */
+  .quote-card-wrap { padding: 0 .75rem; }
+  .quote-card-header { padding: .75rem 1rem; }
+  .quote-card-body { padding: 1.25rem 1rem; }
+  .quote-card { margin-bottom: -2.5rem; }
+
+  /* Inputs — 16px prevents iOS auto-zoom */
+  input, select, textarea { font-size: 16px !important; }
+
+  /* Frequency cards — stack on very small screens */
+  .freq-card { flex-direction: row; }
+  .freq-card-price { min-width: 80px; padding: .75rem 1rem; }
+  .freq-card-price-num { font-size: 1.1rem; }
+
+  /* Price display */
+  .price-amount { font-size: 2.8rem; }
+
+  /* Stat boxes */
+  .stats-row { gap: .35rem; }
+  .stat-box { padding: .5rem .35rem; }
+  .stat-label { font-size: .55rem; letter-spacing: 1px; }
+  .stat-val { font-size: .75rem; }
+
+  /* Buttons — comfortable tap targets */
+  .btn-primary { padding: 1rem 1.5rem; font-size: .88rem; min-height: 48px; }
+  .btn-ghost { padding: .85rem 1.5rem; min-height: 44px; }
+
+  /* Steps */
+  .steps { gap: .75rem; }
+  .step-card { padding: 1.25rem 1rem; }
+
+  /* Trust bar */
+  .trust-inner { gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .trust-item-num { font-size: 1.6rem; }
+
+  /* Hero eyebrow pill — keep to two lines max */
+  .hero-eyebrow { font-size: .58rem; letter-spacing: 1px; padding: .3rem .8rem; margin-bottom: 1rem; }
+
+  /* Service area pills */
+  .zone-pill { font-size: .68rem; padding: .4rem .85rem; }
+
+  /* Footer */
+  footer { padding: 1.75rem 1rem; }
+  .footer-logo { font-size: 1.5rem; }
+
+  /* Result panel — full width booking button */
+  .includes-grid { grid-template-columns: 1fr; }
+
+  /* Section padding tighter */
+  .section-title { font-size: 1.5rem; }
+  section { padding-left: 1rem; padding-right: 1rem; }
+}
+
 </style>
 
 <!-- ── STRUCTURED DATA (JSON-LD) ── -->
