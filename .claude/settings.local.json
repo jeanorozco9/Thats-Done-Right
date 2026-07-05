@@ -6,7 +6,28 @@
       "Bash(git add *)",
       "Bash(git commit *)",
       "Bash(git push *)",
-      "WebFetch(domain:indigotransistor.com)"
+      "WebFetch(domain:indigotransistor.com)",
+      "Bash(python3 -c \"from PIL import Image; [print\\(f, Image.open\\(f\\).size\\) for f in ['done1.jpeg','done2.jpeg']]\")",
+      "Bash(ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,codec_name -of default=noprint_wrappers=1 done3.mov)",
+      "Bash(ffprobe -v error -show_entries format=duration,size -show_entries stream=width,height,codec_name -of default=noprint_wrappers=1 done4.MOV)",
+      "Bash(brew list *)",
+      "Bash(brew --prefix ffmpeg)",
+      "Read(//opt/homebrew/**)",
+      "Bash(brew install *)",
+      "Bash(python3 -)",
+      "Bash(ffmpeg -y -i done3.mov -vf \"scale=576:-2\" -c:v libx264 -preset slow -crf 26 -c:a aac -b:a 96k -movflags +faststart done3.mp4)",
+      "Bash(ffmpeg -y -i done4.MOV -vf \"scale=576:-2\" -c:v libx264 -preset slow -crf 26 -c:a aac -b:a 96k -movflags +faststart done4.mp4)",
+      "Bash(ffmpeg -y -i done3.mp4 -ss 00:00:01 -vframes 1 -vf \"scale=576:-2\" done3-poster.jpg)",
+      "Bash(ffmpeg -y -i done4.mp4 -ss 00:00:01 -vframes 1 -vf \"scale=576:-2\" done4-poster.jpg)",
+      "Bash(awk -F: '{print $1\" \"$3}')",
+      "Bash(git fetch *)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(sips -s format jpeg -s formatOptions 72 backgroundg.png --out backgroundg-hero.jpg)",
+      "Bash(sips -s format jpeg -s formatOptions 55 backgroundg.png --out backgroundg-hero.jpg)",
+      "Bash(awk -F'border-radius: ' '{print $2}')",
+      "WebSearch",
+      "WebFetch(domain:www.pexels.com)",
+      "WebFetch(domain:unsplash.com)"
     ]
   }
 }

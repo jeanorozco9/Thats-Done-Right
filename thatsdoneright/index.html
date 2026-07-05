@@ -857,7 +857,8 @@ input:disabled {
   color: var(--dark);
   letter-spacing: .5px;
   text-transform: uppercase;
-  margin-bottom: .4rem;
+  line-height: 1.08;
+  margin-bottom: .55rem;
 }
 
 .section-title span { color: var(--red); }
@@ -865,7 +866,9 @@ input:disabled {
 .section-sub {
   font-size: .9rem;
   color: var(--text-mid);
-  margin-bottom: 2rem;
+  line-height: 1.6;
+  max-width: 34rem;
+  margin: 0 auto 2rem;
 }
 
 .steps {
@@ -1084,6 +1087,22 @@ footer {
 }
 
 .btn-account-login:hover { background: var(--green-dark); }
+
+.faq-heading {
+  max-width: 40rem;
+  margin: 0 auto 2.5rem;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.faq-heading .section-title {
+  margin-bottom: .7rem;
+}
+
+.faq-heading .section-sub {
+  max-width: 31rem;
+  margin-bottom: 0;
+}
 
 /* ── FAQ ── */
 .faq-section {
@@ -1793,7 +1812,7 @@ footer {
 
   <!-- FAQ -->
   <section id="faq" style="background:var(--white);padding:3.5rem 1.5rem 0;" aria-labelledby="faq-heading">
-    <div style="max-width:720px;margin:0 auto;text-align:center;margin-bottom:2rem;">
+    <div class="faq-heading">
       <h2 class="section-title" id="faq-heading">Frequently Asked <span>Questions</span></h2>
       <p class="section-sub">Everything you need to know about That's Done Right lawn care in Katy TX and Crosby TX</p>
     </div>
