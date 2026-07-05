@@ -217,53 +217,64 @@ nav {
 
 .hero-tree {
   position: absolute;
-  bottom: 24%;
-  width: min(24vw, 320px);
-  opacity: .32;
+  bottom: 11%;
+  width: min(31vw, 560px);
+  height: clamp(280px, 40vw, 520px);
   pointer-events: none;
-  z-index: 0;
-  filter: saturate(.85);
+  z-index: 1;
+  opacity: .92;
+  background-image: url('hero-olive-premium.png');
+  background-repeat: no-repeat;
+  background-size: 1780px auto;
+  filter: saturate(.92) sepia(.08) brightness(1.02);
+  mix-blend-mode: multiply;
+  transform-origin: center bottom;
+  will-change: transform;
 }
 
 .hero-tree svg {
-  display: block;
-  width: 100%;
-  height: auto;
+  display: none;
 }
 
 .hero-tree-left {
-  left: 3%;
-  transform: scale(1.02);
+  left: 0;
+  background-position: left bottom;
+  animation: oliveSway 8s ease-in-out infinite;
 }
 
 .hero-tree-right {
-  right: 4%;
-  transform: scaleX(-1);
+  right: 0;
+  background-position: right bottom;
+  animation: oliveSwayAlt 9.5s ease-in-out infinite -1.2s;
 }
 
-.hero-tree .trunk {
-  stroke: rgba(96, 91, 72, 0.42);
-  stroke-width: 7;
-  stroke-linecap: round;
-  fill: none;
+@keyframes oliveSway {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1.05deg); }
+  50% { transform: translate3d(10px, -3px, 0) rotate(1.2deg); }
 }
 
-.hero-tree .branch {
-  stroke: rgba(112, 109, 84, 0.26);
-  stroke-width: 3.25;
-  stroke-linecap: round;
-  fill: none;
+@keyframes oliveSwayAlt {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(1deg); }
+  50% { transform: translate3d(-12px, -2px, 0) rotate(-1.15deg); }
 }
 
-.hero-tree .foliage {
-  fill: rgba(126, 142, 103, 0.22);
+@media (max-width: 1100px) {
+  .hero-tree {
+    width: min(28vw, 430px);
+    height: clamp(220px, 34vw, 380px);
+    background-size: 1480px auto;
+    opacity: .84;
+    bottom: 13%;
+  }
 }
 
 @media (max-width: 900px) {
   .hero-tree {
-    width: min(22vw, 190px);
-    bottom: 28%;
-    opacity: .22;
+    width: min(26vw, 250px);
+    height: 240px;
+    background-size: 1080px auto;
+    opacity: .74;
+    bottom: 17%;
   }
 }
 
