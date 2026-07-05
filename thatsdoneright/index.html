@@ -948,16 +948,22 @@ input:disabled {
 }
 
 .step-num {
-  font-family: var(--display);
-  font-size: 2.9rem;
-  font-weight: 700;
-  color: var(--red);
-  line-height: 1;
-  margin-bottom: .5rem;
-  opacity: .12;
   position: absolute;
-  top: .7rem;
+  top: 1rem;
   right: 1rem;
+  width: 2.35rem;
+  height: 2.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #FFFDF8;
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+  box-shadow: 0 10px 24px rgba(152,121,71,0.22);
 }
 
 .step-title {
@@ -1274,6 +1280,7 @@ footer {
   /* Steps */
   .steps { gap: .75rem; }
   .step-card { padding: 1.25rem 1rem; }
+  .step-num { width: 2.1rem; height: 2.1rem; font-size: 1rem; top: .9rem; right: .9rem; }
 
   /* Trust bar */
   .trust-inner { gap: 1rem; flex-wrap: wrap; justify-content: center; }
