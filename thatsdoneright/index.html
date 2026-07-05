@@ -61,10 +61,10 @@
 h1, h2, h3, h4, h5, h6 { font-weight: inherit; font-size: inherit; margin: 0; padding: 0; }
 
 :root {
-  --red:        #10B981;
-  --red-dark:   #059669;
-  --red-lite:   #34D399;
-  --red-tint:   #ECFDF5;
+  --red:        #B5C99A;
+  --red-dark:   #9DB380;
+  --red-lite:   #CBDCB4;
+  --red-tint:   #F2F6EA;
   --dark:       #1F2937;
   --dark-mid:   #4B5563;
   --text-mid:   #6B7280;
@@ -72,8 +72,8 @@ h1, h2, h3, h4, h5, h6 { font-weight: inherit; font-size: inherit; margin: 0; pa
   --white:      #FFFFFF;
   --off-white:  #F9FAFB;
   --border:     #E5E7EB;
-  --green:      #10B981;
-  --green-tint: #ECFDF5;
+  --green:      #B5C99A;
+  --green-tint: #F2F6EA;
   --shadow:     0 2px 20px rgba(0,0,0,0.08);
   --shadow-lg:  0 12px 48px rgba(0,0,0,0.14);
   --radius:     10px;
@@ -143,7 +143,7 @@ nav {
   letter-spacing: 1.5px;
   text-transform: uppercase;
   background: var(--red);
-  color: var(--white);
+  color: #3A4526;
   padding: .3rem .7rem;
   border-radius: 100px;
 }
@@ -263,8 +263,8 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: .4rem;
-  background: rgba(16,185,129,0.15);
-  border: 1px solid rgba(16,185,129,0.3);
+  background: rgba(181,201,154,0.15);
+  border: 1px solid rgba(181,201,154,0.3);
   color: #ffffff;
   font-family: var(--display);
   font-size: .85rem;
@@ -334,7 +334,7 @@ nav {
 .qch-icon {
   width: 34px;
   height: 34px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.45);
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -347,14 +347,14 @@ nav {
   font-family: var(--display);
   font-size: .72rem;
   font-weight: 400;
-  color: var(--white);
+  color: #3A4526;
   letter-spacing: .5px;
   text-transform: uppercase;
 }
 
 .qch-sub {
   font-size: .65rem;
-  color: rgba(255,255,255,0.65);
+  color: rgba(58,69,38,0.7);
   margin-top: 2px;
 }
 
@@ -392,7 +392,7 @@ input[type="tel"] {
 
 input:focus {
   border-color: var(--red);
-  box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+  box-shadow: 0 0 0 3px rgba(181,201,154,0.1);
   background: var(--white);
 }
 
@@ -469,7 +469,7 @@ input:disabled {
 }
 
 .option-btn:hover { border-color: var(--red); }
-.option-btn.selected { border-color: var(--red); background: var(--red); color: var(--white); }
+.option-btn.selected { border-color: var(--red); background: var(--red); color: #3A4526; }
 .option-btn .opt-icon { font-size: 1.4rem; display: block; margin-bottom: .3rem; }
 
 .detail-textarea {
@@ -494,7 +494,7 @@ input:disabled {
   width: 100%;
   padding: .85rem 1.5rem;
   background: var(--red);
-  color: var(--white);
+  color: #3A4526;
   border: none;
   border-radius: var(--radius);
   font-family: var(--display);
@@ -580,7 +580,7 @@ input:disabled {
 
 .banner-green {
   background: var(--green-tint);
-  border: 1px solid #A7F3D0;
+  border: 1px solid #D3E0BD;
   color: #1a5c1a;
 }
 
@@ -659,11 +659,11 @@ input:disabled {
 .freq-card-recommended {
   display: inline-block; font-family: var(--display); font-size: .72rem;
   font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  background: var(--red); color: var(--white); border-radius: 4px;
+  background: var(--red); color: #3A4526; border-radius: 4px;
   padding: .25rem .7rem; margin-bottom: .45rem;
 }
 .freq-card-price {
-  background: var(--red); color: var(--white);
+  background: var(--red); color: #3A4526;
   padding: .95rem 1.25rem; min-width: 100px; text-align: right;
   display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
   transition: background .15s;
@@ -778,7 +778,7 @@ input:disabled {
 .check-icon {
   width: 16px; height: 16px;
   background: var(--green);
-  color: white;
+  color: #3A4526;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -888,7 +888,7 @@ input:disabled {
   font-family: var(--display);
   font-size: 1.6rem;
   font-weight: 700;
-  color: var(--white);
+  color: #3A4526;
   line-height: 1;
 }
 
@@ -898,7 +898,7 @@ input:disabled {
   font-weight: 500;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.7);
+  color: rgba(58,69,38,0.7);
   margin-top: 3px;
 }
 
@@ -986,7 +986,7 @@ input:disabled {
 
 /* Zones */
 .zones-section {
-  background: linear-gradient(170deg, #065F46 0%, #054E3A 40%, #04412F 70%, #063828 100%);
+  background: linear-gradient(170deg, #5A6B42 0%, #4C5B38 40%, #404D2F 70%, #37422A 100%);
   padding: 3rem 1.5rem;
   text-align: center;
 }
@@ -1015,7 +1015,7 @@ input:disabled {
 
 .zone-pill.active {
   background: var(--red);
-  color: var(--white);
+  color: #3A4526;
 }
 
 .zone-pill.coming {
@@ -1060,7 +1060,7 @@ footer {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   background: var(--green);
-  color: var(--white);
+  color: #3A4526;
   border: none;
   border-radius: 0 0 8px 8px;
   padding: .85rem .45rem;
@@ -1129,7 +1129,7 @@ footer {
   width: 100%;
   padding: .75rem;
   background: var(--green);
-  color: var(--white);
+  color: #3A4526;
   border: none;
   border-radius: var(--radius);
   font-family: var(--display);
@@ -1353,7 +1353,7 @@ footer {
   </div>
   <div class="nav-right">
     <div class="nav-badge">Now Serving Houston Area</div>
-    <a href="client.html" class="nav-phone" style="background:var(--red);color:var(--white);padding:.35rem .85rem;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:var(--display);text-decoration:none;">My Account</a>
+    <a href="client.html" class="nav-phone" style="background:var(--red);color:#3A4526;padding:.35rem .85rem;border-radius:100px;font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:var(--display);text-decoration:none;">My Account</a>
   </div>
 </nav>
 
@@ -1369,9 +1369,9 @@ footer {
   <p class="hero-tagline">Lawn Mowing Service &nbsp;·&nbsp; Katy &nbsp;·&nbsp; Crosby &nbsp;·&nbsp; Houston TX</p>
   <!-- Promo announcement pill — shown only when ?promo=first-mow is verified -->
   <div id="promoTopBanner" style="display:none;text-align:center;margin-bottom:1.1rem;">
-    <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1.5px solid rgba(16,185,129,0.35);border-radius:100px;padding:7px 18px 7px 8px;box-shadow:0 4px 28px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.06);">
-      <span style="background:#10B981;color:#fff;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:100px;padding:4px 11px;white-space:nowrap;">&#x2728; Promo Applied</span>
-      <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap;">Your <span style="color:#059669;font-weight:800;">$19.99 first mow</span> is locked in &mdash; enter your address below</span>
+    <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1.5px solid rgba(181,201,154,0.35);border-radius:100px;padding:7px 18px 7px 8px;box-shadow:0 4px 28px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.06);">
+      <span style="background:#B5C99A;color:#3A4526;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:100px;padding:4px 11px;white-space:nowrap;">&#x2728; Promo Applied</span>
+      <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap;">Your <span style="color:#9DB380;font-weight:800;">$19.99 first mow</span> is locked in &mdash; enter your address below</span>
     </div>
   </div>
 
@@ -1445,12 +1445,12 @@ footer {
           </button>
 
           <!-- Returning customer banner -->
-          <div id="returningBanner" style="display:none;margin-top:1rem;background:#F0FBF5;border:1.5px solid #D1FAE5;border-radius:12px;padding:1rem 1.1rem;">
+          <div id="returningBanner" style="display:none;margin-top:1rem;background:#F0FBF5;border:1.5px solid #E5EDD6;border-radius:12px;padding:1rem 1.1rem;">
             <div style="font-family:var(--display);font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--green);margin-bottom:.35rem;">👋 Welcome Back!</div>
             <div style="font-size:.88rem;color:var(--dark);font-weight:600;margin-bottom:.2rem;" id="returningAddr"></div>
             <div style="font-size:.82rem;color:var(--text-mid);margin-bottom:.85rem;" id="returningQuoteInfo"></div>
             <div style="display:flex;gap:.6rem;">
-              <button onclick="bookAgain()" style="flex:2;padding:.65rem .75rem;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Book Again →</button>
+              <button onclick="bookAgain()" style="flex:2;padding:.65rem .75rem;background:var(--red);color:#3A4526;border:none;border-radius:8px;font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Book Again →</button>
               <button onclick="startFresh()" style="flex:1;padding:.65rem .75rem;background:none;color:var(--text-mid);border:1.5px solid var(--border);border-radius:8px;font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;">Start Fresh</button>
             </div>
           </div>
@@ -1566,8 +1566,8 @@ footer {
             <div class="price-amount"><sup>$</sup><span id="priceNum">--</span></div>
             <div class="price-sub" id="priceSub">Flat rate · No hidden fees · Pay after service</div>
             <!-- Shown only when $19.99 promo is active -->
-            <div id="promoInfoStrip" style="display:none;margin-top:.6rem;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:8px;padding:9px 14px;text-align:center;font-size:13px;color:#374151;">
-              🌿 Then <strong style="color:#10B981;">$<span id="promoRegularRate">--</span>/visit</strong> after that (your recurring rate)
+            <div id="promoInfoStrip" style="display:none;margin-top:.6rem;background:#F2F6EA;border:1px solid #D3E0BD;border-radius:8px;padding:9px 14px;text-align:center;font-size:13px;color:#374151;">
+              🌿 Then <strong style="color:#B5C99A;">$<span id="promoRegularRate">--</span>/visit</strong> after that (your recurring rate)
             </div>
             <div style="margin-top:.75rem;font-size:.85rem;color:#666;display:flex;flex-direction:column;gap:.25rem;text-align:left;padding:0 .5rem;">
               <div style="display:flex;justify-content:space-between;"><span>Tax (8.25%)</span><span>$<span id="taxAmount">--</span></span></div>
@@ -1650,7 +1650,7 @@ footer {
           <div id="cardSummary" style="background:var(--off-white);border:1px solid var(--border);border-left:3px solid var(--red);border-radius:var(--radius);padding:.75rem 1rem;font-size:.82rem;color:var(--text-mid);margin-bottom:1.25rem;"></div>
 
           <!-- Promise banner -->
-          <div style="background:#fff;border:1.5px solid #D1FAE5;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.25rem;">
+          <div style="background:#fff;border:1.5px solid #E5EDD6;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.25rem;">
             <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;">
               <span style="font-size:1.3rem;">💳</span>
               <span style="font-family:var(--display);font-size:.92rem;font-weight:700;color:var(--green);letter-spacing:.3px;">Inspect First, Pay Later Promise</span>
@@ -1692,7 +1692,7 @@ footer {
             <div style="font-family:var(--script);font-size:2.5rem;color:var(--red);margin-bottom:.75rem;">Done Right!</div>
             <div style="font-family:var(--display);font-size:.9rem;font-weight:700;color:var(--dark);margin-bottom:.5rem;letter-spacing:.5px;text-transform:uppercase;">You're on the schedule!</div>
             <div style="font-size:.85rem;color:var(--text-mid);line-height:1.6;margin-bottom:1.5rem;">We'll reach out within 24 hours to confirm your first visit.<br>Check your email for details.</div>
-            <a href="client.html" style="display:inline-block;font-family:var(--display);font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.65rem 1.4rem;background:var(--green);color:var(--white);border-radius:var(--radius);text-decoration:none;margin-bottom:.75rem;">View My Account →</a><br/>
+            <a href="client.html" style="display:inline-block;font-family:var(--display);font-size:.78rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:.65rem 1.4rem;background:var(--green);color:#3A4526;border-radius:var(--radius);text-decoration:none;margin-bottom:.75rem;">View My Account →</a><br/>
             <button class="btn-ghost" onclick="resetAll()" style="margin-top:.5rem;">Done</button>
           </div>
         </div>

@@ -9,7 +9,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#10B981;--green-dark:#059669;--green-tint:#D1FAE5;
+  --green:#B5C99A;--green-dark:#9DB380;--green-tint:#E5EDD6;
   --dark:#1F2937;--dark-mid:#4B5563;--text-mid:#6B7280;--text-lite:#9CA3AF;
   --white:#fff;--off-white:#F9FAFB;--border:#E5E7EB;
   --display:'Fraunces',serif;--body:'Archivo',sans-serif;--script:'Pacifico',cursive;--serif:'Source Serif 4',serif;--radius:10px;
@@ -24,17 +24,17 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 .btn-logout:hover{background:var(--border);color:var(--dark)}
 
 /* Login */
-#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#ECFDF5 0%,var(--off-white) 60%)}
+#loginScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#F2F6EA 0%,var(--off-white) 60%)}
 .login-card{background:var(--white);border-radius:16px;padding:2.5rem 2rem;width:100%;max-width:380px;box-shadow:0 12px 40px rgba(31,41,55,0.10);border:1px solid var(--border);text-align:center}
 .login-logo{font-family:var(--script);font-size:2rem;color:var(--green);margin-bottom:.2rem}
 .login-sub{font-family:var(--display);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text-lite);margin-bottom:2rem}
 .login-card label{display:block;font-family:var(--display);font-size:.68rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--dark-mid);margin-bottom:.4rem;text-align:left}
 .login-card input{width:100%;padding:.75rem 1rem;border:2px solid var(--border);border-radius:var(--radius);font-size:.95rem;font-family:var(--body);margin-bottom:1rem;outline:none}
 .login-card input:focus{border-color:var(--green)}
-.login-btn{width:100%;padding:.85rem;background:var(--green);color:var(--white);border:none;border-radius:var(--radius);font-family:var(--display);font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.login-btn{width:100%;padding:.85rem;background:var(--green);color:#3A4526;border:none;border-radius:var(--radius);font-family:var(--display);font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
 .login-btn:hover{background:var(--green-dark)}
 .login-btn:disabled{background:#aaa;cursor:not-allowed}
-.login-success{display:none;background:var(--green-tint);border:1px solid #D1FAE5;border-radius:var(--radius);padding:1rem;margin-top:1rem;font-size:.85rem;color:var(--green);line-height:1.5}
+.login-success{display:none;background:var(--green-tint);border:1px solid #E5EDD6;border-radius:var(--radius);padding:1rem;margin-top:1rem;font-size:.85rem;color:var(--green);line-height:1.5}
 .login-error{color:#c62828;font-size:.8rem;margin-top:.75rem;display:none}
 
 /* Dashboard */
@@ -53,7 +53,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 .paused-banner-btn:hover{opacity:.85}
 
 /* Plan summary */
-.plan-banner{background:var(--green);color:var(--white);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+.plan-banner{background:var(--green);color:#3A4526;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
 .plan-label{font-family:var(--display);font-size:.65rem;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:.75;margin-bottom:.2rem}
 .plan-val{font-family:var(--display);font-size:1.1rem;font-weight:700;letter-spacing:.3px}
 
@@ -88,8 +88,8 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 .rate-thanks{font-size:.78rem;color:var(--green);margin-top:.35rem;display:none}
 
 /* Membership */
-.membership-btn{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.15);border:none;border-radius:8px;padding:.45rem .9rem;color:var(--white);font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
-.membership-btn:hover{background:rgba(255,255,255,0.25)}
+.membership-btn{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.45);border:none;border-radius:8px;padding:.45rem .9rem;color:#3A4526;font-family:var(--display);font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background .15s}
+.membership-btn:hover{background:rgba(255,255,255,0.65)}
 .membership-panel{background:var(--white);border-bottom:2px solid var(--green);}
 .membership-panel-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;cursor:pointer;user-select:none;}
 .membership-panel-header:hover{background:#f9f9f9;}
@@ -108,7 +108,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 .action-row-btn:active{background:rgba(0,0,0,0.05);}
 .action-row-divider{height:1px;background:var(--border);margin:0;}
 .action-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
-.action-icon-green{background:#D1FAE5;}
+.action-icon-green{background:#E5EDD6;}
 .action-icon-orange{background:#fff3e0;}
 .action-icon-purple{background:#f3e5f5;}
 .action-icon-red{background:#fce4ec;}
@@ -159,27 +159,27 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 .modal-body strong{color:var(--dark)}
 .modal-actions{display:flex;gap:.75rem}
 .modal-btn{flex:1;padding:.8rem;border:none;border-radius:10px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s}
-.modal-btn-confirm{background:var(--green);color:var(--white)}
+.modal-btn-confirm{background:var(--green);color:#3A4526}
 .modal-btn-confirm:hover{opacity:.85}
 .modal-btn-cancel{background:#f0f0f0;color:var(--dark-mid)}
 .modal-btn-cancel:hover{background:#e0e0e0}
-.modal-success{display:none;background:var(--green-tint);border:1px solid #D1FAE5;border-radius:10px;padding:.85rem 1rem;font-size:.85rem;color:var(--green);margin-top:1rem;line-height:1.5}
+.modal-success{display:none;background:var(--green-tint);border:1px solid #E5EDD6;border-radius:10px;padding:.85rem 1rem;font-size:.85rem;color:var(--green);margin-top:1rem;line-height:1.5}
 
 /* Reschedule custom calendar */
-.resched-cal-wrap{background:#f9fdf9;border:1.5px solid #D1FAE5;border-radius:12px;padding:.85rem;}
+.resched-cal-wrap{background:#f9fdf9;border:1.5px solid #E5EDD6;border-radius:12px;padding:.85rem;}
 .resched-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;}
 .resched-cal-month{font-family:var(--display);font-size:.8rem;font-weight:700;letter-spacing:.5px;color:var(--dark);text-transform:uppercase;}
 .resched-cal-nav{background:none;border:none;font-size:1.3rem;color:var(--green);cursor:pointer;padding:.1rem .6rem;line-height:1;border-radius:8px;transition:background .12s;}
-.resched-cal-nav:hover{background:#D1FAE5;}
+.resched-cal-nav:hover{background:#E5EDD6;}
 .resched-cal-nav:disabled{color:#ddd;cursor:not-allowed;}
 .resched-cal-nav:disabled:hover{background:none;}
 .resched-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.2rem;text-align:center;width:100%;box-sizing:border-box;}
 .resched-cal-dow{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;color:#aaa;text-transform:uppercase;padding:.3rem 0;min-width:0;}
 .resched-cal-day{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:8px;font-size:.85rem;font-family:var(--body);color:var(--dark);cursor:pointer;border:none;outline:none;appearance:none;-webkit-appearance:none;background:none;font:inherit;width:100%;min-width:0;padding:0;margin:0;transition:background .12s,color .12s;}
-.resched-cal-day:hover:not(.disabled):not(.empty){background:#D1FAE5;}
+.resched-cal-day:hover:not(.disabled):not(.empty){background:#E5EDD6;}
 .resched-cal-day.disabled{color:#ddd;cursor:not-allowed;background:none;}
 .resched-cal-day.empty{cursor:default;visibility:hidden;}
-.resched-cal-day.selected{background:var(--green);color:#fff;font-weight:700;}
+.resched-cal-day.selected{background:var(--green);color:#3A4526;font-weight:700;}
 .resched-selected-label{margin-top:.65rem;font-size:.8rem;color:var(--text-mid);text-align:center;}
 .resched-selected-label strong{color:var(--green-dark);}
 
@@ -211,9 +211,9 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 .drawer-divider{height:1px;background:rgba(255,255,255,0.08);margin:.5rem 1.25rem}
 .drawer-item.signout{color:#ef5350}
 .drawer-item.signout:hover{background:rgba(239,83,80,0.1);color:#ef5350}
-#promoApplyBtn{position:relative;overflow:hidden;background:linear-gradient(135deg,#10B981,#059669);color:#fff;font-size:13.5px;font-weight:700;border:none;border-radius:10px;padding:13px 28px;cursor:pointer;letter-spacing:.4px;white-space:nowrap;box-shadow:0 4px 16px rgba(16,185,129,0.45);transition:box-shadow .2s,transform .15s}
-#promoApplyBtn:hover{box-shadow:0 6px 24px rgba(16,185,129,0.6);transform:translateY(-1px)}
-#promoApplyBtn:active{transform:scale(0.96);box-shadow:0 2px 8px rgba(16,185,129,0.3)}
+#promoApplyBtn{position:relative;overflow:hidden;background:linear-gradient(135deg,#B5C99A,#9DB380);color:#3A4526;font-size:13.5px;font-weight:700;border:none;border-radius:10px;padding:13px 28px;cursor:pointer;letter-spacing:.4px;white-space:nowrap;box-shadow:0 4px 16px rgba(181,201,154,0.45);transition:box-shadow .2s,transform .15s}
+#promoApplyBtn:hover{box-shadow:0 6px 24px rgba(181,201,154,0.6);transform:translateY(-1px)}
+#promoApplyBtn:active{transform:scale(0.96);box-shadow:0 2px 8px rgba(181,201,154,0.3)}
 #promoApplyBtn:disabled{opacity:.7;cursor:not-allowed;transform:none}
 .promo-ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,0.45);pointer-events:none;width:10px;height:10px;margin-top:-5px;margin-left:-5px;animation:promoRipple .65s ease-out forwards}
 @keyframes promoRipple{to{transform:scale(38);opacity:0}}
@@ -309,10 +309,10 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
   </div>
 
   <!-- First-mow promo banner — shown only when first_mow_promo=true on account -->
-  <div id="promoBanner" style="display:none;background:#ECFDF5;border-top:1px solid #A7F3D0;border-bottom:1px solid #A7F3D0;padding:16px 24px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
+  <div id="promoBanner" style="display:none;background:#F2F6EA;border-top:1px solid #D3E0BD;border-bottom:1px solid #D3E0BD;padding:16px 24px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-      <span style="display:inline-flex;align-items:center;gap:5px;background:#10B981;color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:5px 11px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
-      <span style="font-size:13.5px;color:#1a2e1a;font-weight:500;">Hey <strong id="promoClientName">there</strong> &mdash; your <strong style="color:#059669;">$19.99 first mow</strong> is waiting. <span style="color:#6b7280;font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
+      <span style="display:inline-flex;align-items:center;gap:5px;background:#B5C99A;color:#3A4526;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:5px 11px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
+      <span style="font-size:13.5px;color:#1a2e1a;font-weight:500;">Hey <strong id="promoClientName">there</strong> &mdash; your <strong style="color:#9DB380;">$19.99 first mow</strong> is waiting. <span style="color:#6b7280;font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
       <span id="promoRegPrice" style="display:none;"></span>
     </div>
     <div id="promoClaimBox" style="flex-shrink:0;margin-left:auto;">
@@ -378,7 +378,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
         </div>
 
         <!-- Success toasts -->
-        <div id="rescheduleSuccess" class="action-toast" style="background:#F0FBF5;color:#10B981;border:1px solid #D1FAE5;"></div>
+        <div id="rescheduleSuccess" class="action-toast" style="background:#F0FBF5;color:#B5C99A;border:1px solid #E5EDD6;"></div>
         <div id="skipSuccess"       class="action-toast" style="background:#fff8f0;color:#e65100;border:1px solid #ffe0b2;"></div>
         <div id="pauseSuccess"      class="action-toast" style="background:#f3f0ff;color:#6a1b9a;border:1px solid #ce93d8;"></div>
       </div>
@@ -424,7 +424,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
     <div style="font-family:var(--display);font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.4rem;color:var(--dark);">Account Disabled</div>
     <div style="font-size:.88rem;color:var(--text-mid);line-height:1.7;margin-bottom:1.5rem;">Your account has been cancelled. 😔<br>Would you like to re-enable it and get your lawn looking great again? 🌿</div>
     <div style="display:flex;flex-direction:column;gap:.65rem;">
-      <button onclick="reEnableAccount()" style="padding:.85rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes Please, Re-Enable! 🙌</button>
+      <button onclick="reEnableAccount()" style="padding:.85rem;background:var(--green);color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes Please, Re-Enable! 🙌</button>
       <button onclick="document.getElementById('disabledAccountModal').classList.remove('open')" style="padding:.85rem;background:#f0f0f0;color:var(--dark-mid);border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#e0e0e0'" onmouseout="this.style.background='#f0f0f0'">No Thanks</button>
     </div>
   </div>
@@ -441,7 +441,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
     <div style="padding:1.5rem 1.75rem 1.75rem;">
       <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">We'll hold your spot and pause all upcoming visits. Your account stays active — just come back whenever you're ready. 🌿</p>
       <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="confirmPause()" style="width:100%;padding:.9rem;background:#7b1fa2;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Yes, Pause My Service</button>
+        <button onclick="confirmPause()" style="width:100%;padding:.9rem;background:#7b1fa2;color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Yes, Pause My Service</button>
         <button onclick="document.getElementById('pauseModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Service Active</button>
       </div>
     </div>
@@ -451,7 +451,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 <!-- Resume service modal -->
 <div class="modal-overlay" id="resumeModal">
   <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <div style="background:linear-gradient(135deg,#059669,#10B981);padding:1.75rem 1.75rem 1.25rem;">
+    <div style="background:linear-gradient(135deg,#9DB380,#B5C99A);padding:1.75rem 1.75rem 1.25rem;">
       <div style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">🌿</div>
       <div style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Welcome Back!</div>
       <div style="font-size:.75rem;color:rgba(255,255,255,0.7);margin-top:.25rem;font-family:var(--body);">Ready to get your lawn looking great again?</div>
@@ -459,7 +459,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
     <div style="padding:1.5rem 1.75rem 1.75rem;">
       <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">We'll reactivate your service and get your lawn back on the schedule. Your contractor will be in touch soon. 🏡</p>
       <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="confirmResume()" style="width:100%;padding:.9rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">✅ Yes, Resume My Service</button>
+        <button onclick="confirmResume()" style="width:100%;padding:.9rem;background:var(--green);color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">✅ Yes, Resume My Service</button>
         <button onclick="document.getElementById('resumeModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Not Yet</button>
       </div>
     </div>
@@ -469,7 +469,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 <!-- Reschedule modal -->
 <div class="modal-overlay" id="rescheduleModal">
   <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
-    <div style="background:linear-gradient(135deg,#059669,#10B981);padding:1.75rem 1.75rem 1.25rem;">
+    <div style="background:linear-gradient(135deg,#9DB380,#B5C99A);padding:1.75rem 1.75rem 1.25rem;">
       <div style="font-size:2.8rem;line-height:1;margin-bottom:.5rem;">📅</div>
       <div style="font-family:var(--display);font-size:1.05rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#fff;">Reschedule Visit</div>
       <div style="font-size:.75rem;color:rgba(255,255,255,0.65);margin-top:.25rem;font-family:var(--body);">Pick a new date for your service</div>
@@ -485,7 +485,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
       </div>
       <div id="reschedSelectedLabel" class="resched-selected-label">Please select a weekday above</div>
       <div style="display:flex;flex-direction:column;gap:.6rem;margin-top:1rem;">
-        <button onclick="submitReschedule()" style="width:100%;padding:.9rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">✅ Confirm New Date</button>
+        <button onclick="submitReschedule()" style="width:100%;padding:.9rem;background:var(--green);color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">✅ Confirm New Date</button>
         <button onclick="document.getElementById('rescheduleModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Current Date</button>
       </div>
     </div>
@@ -505,14 +505,14 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
         <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 .5rem;">We'll skip your upcoming visit and schedule you for:</p>
         <div id="skipNextDateLabel" style="font-family:var(--display);font-size:1rem;font-weight:700;color:var(--dark);background:#fff8f0;border:1.5px solid #ffe0b2;border-radius:10px;padding:.65rem .75rem;margin-bottom:1.25rem;"></div>
         <div style="display:flex;flex-direction:column;gap:.6rem;">
-          <button onclick="confirmSkip()" style="width:100%;padding:.9rem;background:#f57c00;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Skip This Visit</button>
+          <button onclick="confirmSkip()" style="width:100%;padding:.9rem;background:#f57c00;color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Yes, Skip This Visit</button>
           <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Keep Current Date</button>
         </div>
       </div>
       <div id="skipLimitContent" style="display:none;">
         <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.25rem;">You've already skipped your last 2 visits in a row. If you need more time, pausing your service might be a better fit — your spot stays held and you can resume whenever you're ready.</p>
         <div style="display:flex;flex-direction:column;gap:.6rem;">
-          <button onclick="document.getElementById('skipModal').classList.remove('open');document.getElementById('pauseModal').classList.add('open')" style="width:100%;padding:.9rem;background:#7b1fa2;color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Pause My Service Instead</button>
+          <button onclick="document.getElementById('skipModal').classList.remove('open');document.getElementById('pauseModal').classList.add('open')" style="width:100%;padding:.9rem;background:#7b1fa2;color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">⏸️ Pause My Service Instead</button>
           <button onclick="document.getElementById('skipModal').classList.remove('open')" style="width:100%;padding:.75rem;background:none;color:#aaa;border:1.5px solid #e8e8e8;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='none'">Cancel</button>
         </div>
       </div>
@@ -532,7 +532,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
     <div style="padding:1.5rem 1.75rem 1.75rem;">
       <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin:0 0 1.5rem;">Your lawn will miss you. 😢<br>Are you <em>sure</em> you want to cancel your account? This will stop all future services.</p>
       <div style="display:flex;flex-direction:column;gap:.6rem;">
-        <button onclick="document.getElementById('cancelModal').classList.remove('open')" style="width:100%;padding:.9rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🌿 Keep My Lawn Looking Good</button>
+        <button onclick="document.getElementById('cancelModal').classList.remove('open')" style="width:100%;padding:.9rem;background:var(--green);color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">🌿 Keep My Lawn Looking Good</button>
         <button onclick="confirmCancelMembership()" style="width:100%;padding:.75rem;background:none;color:#e53935;border:1.5px solid #ffcdd2;border-radius:12px;font-family:var(--display);font-size:.75rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='none'">Yes, Cancel My Account</button>
       </div>
     </div>
@@ -543,7 +543,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
 <div class="modal-overlay" id="goodbyeModal">
   <div class="modal-card" style="max-width:360px;padding:0;overflow:hidden;text-align:center;">
     <!-- Dark green header -->
-    <div style="background:linear-gradient(135deg,#059669,#10B981);padding:2rem 1.75rem 1.5rem;">
+    <div style="background:linear-gradient(135deg,#9DB380,#B5C99A);padding:2rem 1.75rem 1.5rem;">
       <div style="font-size:2.8rem;line-height:1;margin-bottom:.6rem;">💔</div>
       <div style="font-family:var(--script);font-size:2rem;color:#fff;margin-bottom:.1rem;">Goodbye, Friend.</div>
       <div style="font-size:.78rem;color:rgba(255,255,255,0.65);letter-spacing:1.5px;text-transform:uppercase;font-family:var(--display);">Account Cancelled</div>
@@ -552,7 +552,7 @@ nav{background:var(--white);border-bottom:1px solid var(--border);padding:0 1.5r
     <div style="padding:1.5rem 1.75rem 1.75rem;">
       <p style="font-size:.9rem;color:var(--text-mid);line-height:1.8;margin:0 0 .75rem;">We're truly sorry to see you go.<br>Your lawn was looking <em>amazing</em>. 🌿</p>
       <p style="font-size:.85rem;color:#aaa;line-height:1.6;margin:0 0 1.5rem;">Whenever you're ready to come back,<br>we'll be right here.</p>
-      <button onclick="document.getElementById('goodbyeModal').classList.remove('open'); sb.auth.signOut().then(() => { window.location.href = 'index.html'; });" style="width:100%;padding:.9rem;background:var(--green);color:#fff;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Take Me Home 🏡</button>
+      <button onclick="document.getElementById('goodbyeModal').classList.remove('open'); sb.auth.signOut().then(() => { window.location.href = 'index.html'; });" style="width:100%;padding:.9rem;background:var(--green);color:#3A4526;border:none;border-radius:12px;font-family:var(--display);font-size:.82rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:opacity .15s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Take Me Home 🏡</button>
     </div>
   </div>
 </div>
@@ -736,7 +736,7 @@ async function loadClientDashboard(email) {
         if (hasFirstMowPromo) {
           const box = document.getElementById('promoClaimBox');
           if (box) box.innerHTML = `
-            <div style="display:inline-flex;align-items:center;gap:8px;background:#D1FAE5;border:1px solid #6EE7B7;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:700;color:#059669;">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:#E5EDD6;border:1px solid #C2D4A6;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:700;color:#9DB380;">
               &#x2705; Promo locked in &mdash; applied to your first invoice
             </div>
           `;
@@ -773,7 +773,7 @@ async function loadClientDashboard(email) {
           <div class="appt-meta">
             <div class="appt-meta-item"><div class="appt-meta-label">Address</div><div class="appt-meta-val">${next.address || '—'}</div></div>
             <div class="appt-meta-item"><div class="appt-meta-label">Frequency</div><div class="appt-meta-val">${freqLabel}</div></div>
-            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#10B981;font-weight:700;">$19.99 🎉 promo</span>' : (next.price ? '$' + next.price : '—')}</div></div>
+            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#B5C99A;font-weight:700;">$19.99 🎉 promo</span>' : (next.price ? '$' + next.price : '—')}</div></div>
           </div>
         </div>`;
     } else if (schedule && schedule.dates && schedule.dates.length) {
@@ -785,7 +785,7 @@ async function loadClientDashboard(email) {
           <div class="appt-meta">
             <div class="appt-meta-item"><div class="appt-meta-label">Address</div><div class="appt-meta-val">${planLead.address || '—'}</div></div>
             <div class="appt-meta-item"><div class="appt-meta-label">Frequency</div><div class="appt-meta-val">${freqLabel}</div></div>
-            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#10B981;font-weight:700;">$19.99 🎉 promo</span>' : (planLead.price ? '$' + planLead.price : '—')}</div></div>
+            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#B5C99A;font-weight:700;">$19.99 🎉 promo</span>' : (planLead.price ? '$' + planLead.price : '—')}</div></div>
           </div>
         </div>`;
     } else {
@@ -916,7 +916,7 @@ function openPlanModal(newFreq) {
   const priceNote = diff > 0
     ? `<span class="price-change-note">Price increases to $${newPrice}/visit (+$${diff})</span>`
     : diff < 0
-    ? `<span class="price-change-note" style="background:#D1FAE5;border-color:#D1FAE5;color:var(--green-dark);">Price drops to $${newPrice}/visit (save $${Math.abs(diff)})</span>`
+    ? `<span class="price-change-note" style="background:#E5EDD6;border-color:#E5EDD6;color:var(--green-dark);">Price drops to $${newPrice}/visit (save $${Math.abs(diff)})</span>`
     : '';
 
   document.getElementById('modalBody').innerHTML =
@@ -1097,7 +1097,7 @@ async function claimFirstMowPromo(e) {
   }
 
   box.innerHTML = `
-    <div style="display:inline-flex;align-items:center;gap:8px;background:#D1FAE5;border:1px solid #6EE7B7;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:700;color:#059669;animation:promoConfirmIn .4s ease-out both;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:#E5EDD6;border:1px solid #C2D4A6;border-radius:100px;padding:8px 18px;font-size:13px;font-weight:700;color:#9DB380;animation:promoConfirmIn .4s ease-out both;">
       &#x2705; Promo locked in &mdash; applied to your first invoice
     </div>
   `;
@@ -1406,7 +1406,7 @@ async function confirmResume() {
     renderPauseBtn();
     const el = document.getElementById('pauseSuccess');
     el.textContent = '✅ Service resumed! We\'ll be in touch to confirm your next visit.';
-    el.style.color = '#10B981';
+    el.style.color = '#B5C99A';
     el.style.background = '#F0FBF5';
     el.style.display = 'block';
     setTimeout(() => el.style.display = 'none', 5000);
