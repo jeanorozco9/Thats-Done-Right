@@ -52,7 +52,8 @@
   }
 </script>
 
-<link rel="preload" as="image" href="hero-bkg-2026-07-04-v2.jpg" fetchpriority="high" />
+<link rel="preload" as="image" href="hero-bkg-828.webp" media="(max-width: 768px)" fetchpriority="high" />
+<link rel="preload" as="image" href="hero-bkg-1440.webp" media="(min-width: 769px)" fetchpriority="high" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
@@ -183,11 +184,20 @@ nav {
   background:
     radial-gradient(circle at top right, rgba(232,212,170,0.28) 0%, rgba(232,212,170,0) 28%),
     linear-gradient(180deg, rgba(251,247,239,0.74) 0%, rgba(243,236,222,0.56) 58%, rgba(233,224,203,0.42) 100%),
-    url('hero-bkg-2026-07-04-v2.jpg') center bottom / cover no-repeat;
+    url('hero-bkg-828.webp') center bottom / cover no-repeat;
   padding: 6rem 1.5rem 8.5rem;
   text-align: center;
   position: relative;
   overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .hero {
+    background:
+      radial-gradient(circle at top right, rgba(232,212,170,0.28) 0%, rgba(232,212,170,0) 28%),
+      linear-gradient(180deg, rgba(251,247,239,0.74) 0%, rgba(243,236,222,0.56) 58%, rgba(233,224,203,0.42) 100%),
+      url('hero-bkg-1440.webp') center bottom / cover no-repeat;
+  }
 }
 
 .hero::before {
