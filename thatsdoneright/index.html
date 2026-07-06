@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#FBF7EF" />
 <title>Lawn Mowing Service in Katy TX &amp; Crosby TX | That's Done Right</title>
 <meta name="description" content="Get an instant lawn mowing quote for your Katy TX or Crosby TX home. Vetted local pros, flat-rate pricing, no contracts. Pay only after service is complete. Serving Katy, Crosby, Houston &amp; 15+ surrounding communities." />
 <meta name="keywords" content="lawn mowing Katy TX, lawn care Katy Texas, grass cutting Katy TX, lawn service Crosby TX, lawn mowing Crosby Texas, lawn care Houston, lawn mowing near me, lawn maintenance Katy, lawn company Crosby" />
@@ -57,7 +58,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
-<script src="https://js.stripe.com/v3/" defer></script>
+<link rel="dns-prefetch" href="https://js.stripe.com" />
+<link rel="dns-prefetch" href="https://places.googleapis.com" />
+<link rel="dns-prefetch" href="https://djigwfatupycyfozivuu.supabase.co" />
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
@@ -1316,6 +1319,11 @@ footer {
   section { padding-left: 1rem; padding-right: 1rem; }
 }
 
+/* Below-the-fold sections: skip rendering until scrolled near (speeds first paint) */
+.how-section, #faq, .zones-section, footer {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
 </style>
 
 <!-- ── STRUCTURED DATA (JSON-LD) ── -->
@@ -1543,7 +1551,7 @@ footer {
           <div class="ac-wrap">
             <input type="text" id="addressInput"
               placeholder="Verifying you're human..."
-              autocomplete="off" disabled />
+              autocomplete="off" enterkeyhint="search" disabled />
             <div class="ac-list" id="acList"></div>
           </div>
           <div class="field-hint" id="addrHint">e.g. 1234 Oak St, Houston TX 77084</div>
@@ -2839,7 +2847,26 @@ let cardExpiryElement  = null;
 let cardCvcElement     = null;
 let currentLeadId      = null;
 
-function initStripeCard() {
+// Stripe.js loads only when the card panel is first shown — keeps ~250KB
+// of third-party JS off the landing page for visitors who never book.
+let stripeJsPromise = null;
+function loadStripeJs() {
+  if (window.Stripe) return Promise.resolve();
+  if (!stripeJsPromise) {
+    stripeJsPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://js.stripe.com/v3/';
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  return stripeJsPromise;
+}
+
+async function initStripeCard() {
+  if (stripeInstance) return;
+  await loadStripeJs();
   if (stripeInstance) return;
   stripeInstance = Stripe(STRIPE_PK);
   const elements = stripeInstance.elements();
@@ -2865,6 +2892,8 @@ async function submitCard() {
   const btn = document.getElementById('cardSubmitBtn');
   btn.textContent = 'Saving card...';
   btn.disabled = true;
+  // Safety: if Stripe hasn't finished lazy-loading yet, wait for it
+  if (!stripeInstance) { try { await initStripeCard(); } catch(e) {} }
 
   try {
     const name  = document.getElementById('contactName').value.trim();

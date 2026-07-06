@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -642,8 +642,11 @@ const SUPABASE_URL = "https://djigwfatupycyfozivuu.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
 const NOTIFY_CLIENT_URL  = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-client";
 const SEND_INVOICE_URL   = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/send-invoice";
-const { createClient } = supabase;
-const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+// supabase-js is deferred (non-render-blocking); it's guaranteed loaded by DOMContentLoaded
+let sb;
+document.addEventListener('DOMContentLoaded', () => {
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+});
 
 const FREQ_LABELS       = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' };
 const FREQ_MULTIPLIERS  = { weekly: 1.0, twice: 1.10, once: 1.20 };
