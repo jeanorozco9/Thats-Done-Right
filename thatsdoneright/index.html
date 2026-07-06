@@ -55,7 +55,7 @@
 <link rel="preload" as="image" href="hero-bkg-2026-07-04-v2.jpg" fetchpriority="high" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
 <script src="https://js.stripe.com/v3/" defer></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
@@ -1444,7 +1444,6 @@ footer {
   ]
 }
 </script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
   .flatpickr-day.flatpickr-disabled,.flatpickr-day.flatpickr-disabled:hover{color:#ccc;background:transparent;cursor:not-allowed;text-decoration:line-through}
 </style>
@@ -2926,6 +2925,11 @@ function hide(id) { document.getElementById(id).classList.remove('show'); }
   const today  = new Date(); today.setHours(0,0,0,0);
   const minDay = new Date(today); minDay.setDate(today.getDate() + 2);
   const maxDay = new Date(today); maxDay.setDate(today.getDate() + 30);
+  // Load flatpickr CSS lazily alongside the JS (keeps it off the critical path)
+  const fpCss = document.createElement('link');
+  fpCss.rel = 'stylesheet';
+  fpCss.href = 'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css';
+  document.head.appendChild(fpCss);
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/flatpickr';
   script.onload = function() {
