@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
   <tr>
     <td style="padding:0;line-height:0;">
       <div style="height:130px;overflow:hidden;font-size:0;line-height:0;">
-        <img src="https://thatsdoneright.com/backgroundg.png" alt="Fresh mowed lawn" width="520" style="display:block;width:100%;max-width:520px;margin-top:-216px;"/>
+        <img src="https://thatsdoneright.com/hero-bkg-2026-07-04-v2.jpg" alt="Fresh mowed lawn" width="520" style="display:block;width:100%;max-width:520px;margin-top:-162px;"/>
       </div>
     </td>
   </tr>
