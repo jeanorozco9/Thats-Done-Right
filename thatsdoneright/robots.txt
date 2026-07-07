@@ -5,10 +5,10 @@ Allow: /
 Disallow: /admin.html
 Disallow: /contractor.html
 Disallow: /client.html
+Disallow: /*?
 
-# Allow all public pages
+# Allow primary public page
 Allow: /index.html
-Allow: /apply.html
 
 # Sitemap location
 Sitemap: https://thatsdoneright.com/sitemap.xml
