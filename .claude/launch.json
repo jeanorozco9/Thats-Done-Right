@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "thatsdoneright",
-      "runtimeExecutable": "/Library/Frameworks/Python.framework/Versions/3.12/bin/python3",
-      "runtimeArgs": ["-m", "http.server", "3000", "--directory", "thatsdoneright"],
-      "port": 3000
+      "runtimeExecutable": "/bin/sh",
+      "runtimeArgs": ["-c", "exec /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 -m http.server ${PORT:-3000} --directory thatsdoneright"],
+      "autoPort": true
     }
   ]
 }
