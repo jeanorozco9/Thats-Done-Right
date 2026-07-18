@@ -25,7 +25,7 @@
   --display:'Helvetica Neue',Helvetica,Arial,sans-serif;--body:'Helvetica Neue',Helvetica,Arial,sans-serif;--script:'Pacifico',cursive;--radius:18px;--radius-lg:26px;
 }
 body{font-family:var(--body);background:linear-gradient(180deg,#FCFAF5 0%,#F6F1E7 100%);color:var(--dark);min-height:100vh;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-nav{background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(228,216,197,0.75);padding:0 1.75rem;height:70px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(228,216,197,0.75);padding:0 1.75rem;height:70px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .nav-logo{font-family:var(--script);font-size:1.6rem;font-weight:400;color:var(--dark);letter-spacing:0}
 .nav-right{display:flex;align-items:center;gap:1rem}
 .nav-label{font-family:var(--display);font-size:.74rem;font-weight:600;letter-spacing:.6px;color:var(--text-mid)}
