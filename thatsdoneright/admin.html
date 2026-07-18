@@ -526,6 +526,7 @@ tr.clickable-row { cursor: pointer; }
         </div>
         <button class="filter-btn" id="invoicesTab" onclick="showInvoices(this)" style="margin-left:.25rem;border-color:#1565c0;color:#1565c0;font-weight:700;">🧾 Invoices</button>
         <button class="filter-btn" id="payContractorsTab" onclick="showPayContractors(this)" style="margin-left:.25rem;border-color:#6a1b9a;color:#6a1b9a;font-weight:700;">💸 Pay Contractors</button>
+        <button class="filter-btn" id="scheduleViewTab" onclick="showContractorSchedule(this)" style="margin-left:.25rem;border-color:#00695c;color:#00695c;font-weight:700;">👷 Schedule View</button>
       </div>
     </div>
 
@@ -1254,6 +1255,169 @@ async function markContractorPaid(leadId, btn) {
     btn.disabled = false;
     alert('Failed to mark as paid. Please try again.');
   }
+}
+
+// ── Contractor Schedule View ──────────────────────────────────────────────
+let cvContractorId = null;
+let cvAllJobs      = [];
+
+async function showContractorSchedule(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'Schedule View';
+  document.getElementById('refreshBtn').onclick = () => showContractorSchedule(btn);
+
+  // Fetch contractors for the picker
+  let contractors = [];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/contractors?status=eq.approved&select=id,name&order=name.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } });
+    contractors = await res.json();
+  } catch(e) {}
+
+  if (!contractors.length) {
+    document.getElementById('tableContainer').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">👷</div><div class="empty-state-msg">No approved contractors yet</div></div>';
+    return;
+  }
+
+  const options = contractors.map(c =>
+    `<option value="${c.id}" ${cvContractorId == c.id ? 'selected' : ''}>${c.name}</option>`
+  ).join('');
+
+  document.getElementById('tableContainer').innerHTML = `
+    <div style="padding:1rem 0;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+        <label style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Viewing jobs for</label>
+        <select id="cvPicker" onchange="cvLoadContractor(this.value)"
+          style="font-family:var(--body);font-size:.9rem;padding:.5rem .75rem;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--text);cursor:pointer;outline:none;">
+          <option value="">— Select a contractor —</option>
+          ${options}
+        </select>
+      </div>
+      <div id="cvJobsWrap"></div>
+    </div>`;
+
+  // Auto-load if we had one selected
+  if (cvContractorId) cvLoadContractor(cvContractorId);
+}
+
+async function cvLoadContractor(cid) {
+  cvContractorId = cid;
+  const wrap = document.getElementById('cvJobsWrap');
+  if (!cid) { wrap.innerHTML = ''; return; }
+
+  wrap.innerHTML = '<div class="loading-state"><span class="spinner"></span> Loading schedule...</div>';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${cid}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url,lot_size,home_size,price,vendor_pay,contractor_paid&order=scheduled_date.asc.nullslast`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    let jobs = await res.json();
+    if (!Array.isArray(jobs)) jobs = [];
+
+    // Same filter contractor sees: hide cancelled & payment_failed
+    jobs = jobs.filter(j => j.status !== 'cancelled' && j.status !== 'payment_failed');
+
+    cvAllJobs = jobs;
+
+    if (!jobs.length) {
+      wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-msg">No active jobs for this contractor</div></div>';
+      return;
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const DONE = ['completed', 'paid', 'invoiced'];
+    const todayJobs    = jobs.filter(j => j.scheduled_date === todayStr && !DONE.includes(j.status));
+    const upcoming     = jobs.filter(j => j.scheduled_date > todayStr && !DONE.includes(j.status));
+    const unscheduled  = jobs.filter(j => !j.scheduled_date && !DONE.includes(j.status));
+    const doneJobs     = jobs.filter(j => DONE.includes(j.status));
+
+    // Stats bar
+    const statsHtml = `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem;">
+        ${[
+          ['Today',     todayJobs.length,   '#e8f5e9','#1b5e20'],
+          ['Upcoming',  upcoming.length,    '#fff8e1','#f57f17'],
+          ['Total',     jobs.length,        '#f3f4f6','#374151'],
+          ['Completed', doneJobs.length,    '#e8f5e9','#166534'],
+        ].map(([label, val, bg, color]) => `
+          <div style="background:${bg};border-radius:12px;padding:.75rem;text-align:center;">
+            <div style="font-size:1.6rem;font-weight:800;color:${color};">${val}</div>
+            <div style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};opacity:.75;margin-top:.2rem;">${label}</div>
+          </div>`).join('')}
+      </div>`;
+
+    // Render jobs grouped: Today → Upcoming → Unscheduled → Completed
+    const sections = [
+      { label: 'Today',       jobs: todayJobs,   color: '#16a34a' },
+      { label: 'Upcoming',    jobs: upcoming,     color: '#d97706' },
+      { label: 'Unscheduled', jobs: unscheduled,  color: '#9ca3af' },
+      { label: 'Completed',   jobs: doneJobs,     color: '#6b7280' },
+    ];
+
+    let jobsHtml = '';
+    sections.forEach(({ label, jobs: grp, color }) => {
+      if (!grp.length) return;
+      jobsHtml += `<div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${color};margin:1.25rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid var(--border);">${label} · ${grp.length} job${grp.length !== 1 ? 's' : ''}</div>`;
+      grp.forEach(job => { jobsHtml += cvRenderJobCard(job, label.toLowerCase()); });
+    });
+
+    wrap.innerHTML = statsHtml + jobsHtml;
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load jobs</div></div>';
+  }
+}
+
+function cvRenderJobCard(job, section) {
+  const DONE = ['completed', 'paid', 'invoiced'];
+  const isDone = DONE.includes(job.status);
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const dateStr = job.scheduled_date
+    ? new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })
+    : 'Not scheduled yet';
+  const timeStr = job.scheduled_time || '—';
+  const freqLabel = job.frequency === 'weekly' ? 'Weekly' : job.frequency === 'twice' ? 'Twice a Month' : 'One Time';
+
+  let badgeColor = '#6b7280'; let badgeLabel = '• Upcoming';
+  if (isDone)                                         { badgeColor = '#16a34a'; badgeLabel = '✓ Done'; }
+  else if (job.scheduled_date === todayStr)           { badgeColor = '#16a34a'; badgeLabel = '🟢 Today'; }
+  else if (!job.scheduled_date)                       { badgeColor = '#9ca3af'; badgeLabel = '⏳ Unscheduled'; }
+  else if (job.scheduled_date > todayStr)             { badgeColor = '#d97706'; badgeLabel = '🟡 Upcoming'; }
+
+  // Notes chips (same logic as contractor view)
+  let notesHtml = '';
+  if (job.job_notes) {
+    const parts = job.job_notes.split(' | ').map(s => s.trim()).filter(Boolean);
+    const hideRe = /week ago|weeks ago|\bnone\b/i;
+    const chips = parts.filter(p => !hideRe.test(p))
+      .map(p => `<span style="display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:.2rem .55rem;font-size:.72rem;color:#374151;margin:.15rem .2rem 0 0;">${p}</span>`);
+    if (chips.length) notesHtml = `<div style="margin-bottom:.6rem;">${chips.join('')}</div>`;
+  }
+
+  const statusRowColor = job.status === 'rescheduled' ? '#16a34a' : isDone ? '#16a34a' : '#6b7280';
+  const statusLabel = { rescheduled:'Rescheduled', completed:'Completed', paid:'Paid', invoiced:'Invoiced', booked:'Booked', started:'Started' }[job.status] || job.status;
+
+  return `<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.75rem;${isDone ? 'opacity:.65;' : ''}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem;gap:.5rem;flex-wrap:wrap;">
+      <div style="font-weight:700;font-size:.95rem;color:var(--text);">${job.address || '—'}</div>
+      <span style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:.5px;background:${badgeColor}20;color:${badgeColor};border:1px solid ${badgeColor}40;border-radius:100px;padding:.25rem .75rem;white-space:nowrap;">${badgeLabel}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.4rem .75rem;margin-bottom:.6rem;">
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Customer</div><div style="font-size:.82rem;color:var(--text);">${job.name ? job.name.split(' ')[0] : '—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Date</div><div style="font-size:.82rem;color:var(--text);">${dateStr}</div></div>
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Time</div><div style="font-size:.82rem;color:var(--text);">${timeStr}</div></div>
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Frequency</div><div style="font-size:.82rem;color:var(--text);">${freqLabel}</div></div>
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Lot Size</div><div style="font-size:.82rem;color:var(--text);">${job.lot_size ? job.lot_size.toLocaleString() + ' sqft' : '—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Vendor Pay</div><div style="font-size:.82rem;font-weight:700;color:var(--green);">${job.vendor_pay ? '$' + job.vendor_pay : '—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Status</div><div style="font-size:.82rem;font-weight:600;color:${statusRowColor};">${statusLabel}</div></div>
+      ${job.photo_url ? `<div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Photo</div><a href="${job.photo_url}" target="_blank" style="font-size:.82rem;color:#1565c0;text-decoration:none;">View ↗</a></div>` : ''}
+    </div>
+    ${notesHtml}
+    ${job.contractor_paid ? '<div style="font-size:.78rem;color:var(--green);font-weight:600;">✓ Contractor paid</div>' : ''}
+  </div>`;
 }
 
 async function updateDisputeStatus(disputeId, newStatus) {
