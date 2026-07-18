@@ -2869,6 +2869,13 @@ async function submitLead() {
   };
 
   try {
+    // If returningLeadId not already set (e.g. different device/session), do a
+    // last-chance email lookup so we patch instead of creating a duplicate.
+    if (!window.returningLeadId && email) {
+      const existing = await checkExistingLead(email);
+      if (existing) window.returningLeadId = existing.id;
+    }
+
     if (window.returningLeadId) {
       // Returning customer — patch their existing lead, no new row
       await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${window.returningLeadId}`, {
