@@ -1258,8 +1258,12 @@ async function markContractorPaid(leadId, btn) {
 }
 
 // ── Contractor Schedule View ──────────────────────────────────────────────
-let cvContractorId = null;
-let cvAllJobs      = [];
+let cvContractorId  = null;
+let cvAllJobs       = [];
+let cvCurrentView   = 'week';
+let cvViewDate      = (() => { const d = new Date(); d.setHours(0,0,0,0); return d; })();
+
+function cvToISO(d) { return d.toISOString().split('T')[0]; }
 
 async function showContractorSchedule(btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1267,7 +1271,6 @@ async function showContractorSchedule(btn) {
   document.getElementById('tableTitle').textContent = 'Schedule View';
   document.getElementById('refreshBtn').onclick = () => showContractorSchedule(btn);
 
-  // Fetch contractors for the picker
   let contractors = [];
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/contractors?status=eq.approved&select=id,name&order=name.asc`,
@@ -1286,137 +1289,269 @@ async function showContractorSchedule(btn) {
   ).join('');
 
   document.getElementById('tableContainer').innerHTML = `
-    <div style="padding:1rem 0;">
-      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap;">
-        <label style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Viewing jobs for</label>
+    <div style="padding:.75rem 0 2rem;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+        <label style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-mid);">Contractor</label>
         <select id="cvPicker" onchange="cvLoadContractor(this.value)"
-          style="font-family:var(--body);font-size:.9rem;padding:.5rem .75rem;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--text);cursor:pointer;outline:none;">
-          <option value="">— Select a contractor —</option>
+          style="font-family:var(--body);font-size:.88rem;padding:.45rem .7rem;border:2px solid var(--border);border-radius:8px;background:#fff;color:var(--text);cursor:pointer;outline:none;">
+          <option value="">— Select —</option>
           ${options}
         </select>
       </div>
-      <div id="cvJobsWrap"></div>
+
+      <!-- Schedule shell (hidden until contractor selected) -->
+      <div id="cvShell" style="${cvContractorId ? '' : 'display:none;'}">
+        <!-- Stats -->
+        <div id="cvStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:1rem;"></div>
+
+        <!-- View tabs + date nav -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;margin-bottom:.75rem;padding:.5rem .6rem;background:#f9fafb;border:1px solid var(--border);border-radius:12px;">
+          <div style="display:flex;gap:.25rem;">
+            ${['Day','Week','Month'].map(v => `
+              <button id="cvTab${v}" onclick="cvSwitchView('${v.toLowerCase()}')"
+                style="font-family:var(--display);font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.35rem .75rem;border-radius:8px;border:none;cursor:pointer;transition:background .15s;background:${cvCurrentView===v.toLowerCase()?'var(--green)':'transparent'};color:${cvCurrentView===v.toLowerCase()?'#fff':'var(--text-mid)'};">
+                ${v}
+              </button>`).join('')}
+          </div>
+          <div style="display:flex;align-items:center;gap:.4rem;">
+            <button onclick="cvNavigate(-1)" style="font-size:1.1rem;padding:.2rem .55rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;color:var(--text);">‹</button>
+            <div style="text-align:center;min-width:140px;">
+              <div id="cvNavLabel" style="font-family:var(--display);font-size:.75rem;font-weight:700;color:var(--text);letter-spacing:.3px;">—</div>
+              <div id="cvNavSub" style="font-family:var(--display);font-size:.55rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);">—</div>
+            </div>
+            <button onclick="cvNavigate(0)" style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;padding:.3rem .65rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;color:var(--text);">Today</button>
+            <button onclick="cvNavigate(1)" style="font-size:1.1rem;padding:.2rem .55rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;color:var(--text);">›</button>
+          </div>
+        </div>
+
+        <div id="cvScheduleWrap"></div>
+      </div>
     </div>`;
 
-  // Auto-load if we had one selected
   if (cvContractorId) cvLoadContractor(cvContractorId);
 }
 
 async function cvLoadContractor(cid) {
   cvContractorId = cid;
-  const wrap = document.getElementById('cvJobsWrap');
-  if (!cid) { wrap.innerHTML = ''; return; }
+  const shell = document.getElementById('cvShell');
+  if (!shell) return;
+  if (!cid) { shell.style.display = 'none'; return; }
+  shell.style.display = '';
 
-  wrap.innerHTML = '<div class="loading-state"><span class="spinner"></span> Loading schedule...</div>';
+  document.getElementById('cvScheduleWrap').innerHTML =
+    '<div class="loading-state"><span class="spinner"></span> Loading...</div>';
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${cid}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,contractor_status,name,photo_url,lot_size,home_size,price,vendor_pay,contractor_paid&order=scheduled_date.asc.nullslast`,
+      `${SUPABASE_URL}/rest/v1/leads?contractor_id=eq.${cid}&select=id,address,scheduled_date,scheduled_time,frequency,job_notes,status,name,photo_url,lot_size,vendor_pay,contractor_paid&order=scheduled_date.asc.nullslast`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     let jobs = await res.json();
     if (!Array.isArray(jobs)) jobs = [];
-
-    // Same filter contractor sees: hide cancelled & payment_failed
     jobs = jobs.filter(j => j.status !== 'cancelled' && j.status !== 'payment_failed');
-
     cvAllJobs = jobs;
 
-    if (!jobs.length) {
-      wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-msg">No active jobs for this contractor</div></div>';
-      return;
-    }
-
-    const todayStr = new Date().toISOString().split('T')[0];
-    const DONE = ['completed', 'paid', 'invoiced'];
-    const todayJobs    = jobs.filter(j => j.scheduled_date === todayStr && !DONE.includes(j.status));
-    const upcoming     = jobs.filter(j => j.scheduled_date > todayStr && !DONE.includes(j.status));
-    const unscheduled  = jobs.filter(j => !j.scheduled_date && !DONE.includes(j.status));
-    const doneJobs     = jobs.filter(j => DONE.includes(j.status));
-
-    // Stats bar
-    const statsHtml = `
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem;">
-        ${[
-          ['Today',     todayJobs.length,   '#e8f5e9','#1b5e20'],
-          ['Upcoming',  upcoming.length,    '#fff8e1','#f57f17'],
-          ['Total',     jobs.length,        '#f3f4f6','#374151'],
-          ['Completed', doneJobs.length,    '#e8f5e9','#166534'],
-        ].map(([label, val, bg, color]) => `
-          <div style="background:${bg};border-radius:12px;padding:.75rem;text-align:center;">
-            <div style="font-size:1.6rem;font-weight:800;color:${color};">${val}</div>
-            <div style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};opacity:.75;margin-top:.2rem;">${label}</div>
-          </div>`).join('')}
-      </div>`;
-
-    // Render jobs grouped: Today → Upcoming → Unscheduled → Completed
-    const sections = [
-      { label: 'Today',       jobs: todayJobs,   color: '#16a34a' },
-      { label: 'Upcoming',    jobs: upcoming,     color: '#d97706' },
-      { label: 'Unscheduled', jobs: unscheduled,  color: '#9ca3af' },
-      { label: 'Completed',   jobs: doneJobs,     color: '#6b7280' },
+    // Stats
+    const todayStr = cvToISO(new Date());
+    const DONE = ['completed','paid','invoiced'];
+    const counts = [
+      ['Today',     jobs.filter(j => j.scheduled_date === todayStr && !DONE.includes(j.status)).length, '#e8f5e9','#1b5e20'],
+      ['Upcoming',  jobs.filter(j => j.scheduled_date > todayStr  && !DONE.includes(j.status)).length, '#fff8e1','#f57f17'],
+      ['Total',     jobs.length, '#f3f4f6','#374151'],
+      ['Completed', jobs.filter(j => DONE.includes(j.status)).length, '#f0fdf4','#166534'],
     ];
+    document.getElementById('cvStats').innerHTML = counts.map(([label, val, bg, color]) =>
+      `<div style="background:${bg};border-radius:10px;padding:.6rem;text-align:center;">
+        <div style="font-size:1.4rem;font-weight:800;color:${color};">${val}</div>
+        <div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${color};opacity:.8;margin-top:.1rem;">${label}</div>
+      </div>`
+    ).join('');
 
-    let jobsHtml = '';
-    sections.forEach(({ label, jobs: grp, color }) => {
-      if (!grp.length) return;
-      jobsHtml += `<div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:${color};margin:1.25rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid var(--border);">${label} · ${grp.length} job${grp.length !== 1 ? 's' : ''}</div>`;
-      grp.forEach(job => { jobsHtml += cvRenderJobCard(job, label.toLowerCase()); });
-    });
-
-    wrap.innerHTML = statsHtml + jobsHtml;
+    cvRenderSchedule();
   } catch(e) {
-    wrap.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load jobs</div></div>';
+    document.getElementById('cvScheduleWrap').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load schedule</div></div>';
   }
 }
 
-function cvRenderJobCard(job, section) {
-  const DONE = ['completed', 'paid', 'invoiced'];
-  const isDone = DONE.includes(job.status);
-  const todayStr = new Date().toISOString().split('T')[0];
+function cvSwitchView(v) {
+  cvCurrentView = v;
+  ['day','week','month'].forEach(t => {
+    const tab = document.getElementById('cvTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (tab) {
+      tab.style.background = t === v ? 'var(--green)' : 'transparent';
+      tab.style.color      = t === v ? '#fff' : 'var(--text-mid)';
+    }
+  });
+  cvRenderSchedule();
+}
 
-  const dateStr = job.scheduled_date
-    ? new Date(job.scheduled_date + 'T12:00:00').toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })
-    : 'Not scheduled yet';
-  const timeStr = job.scheduled_time || '—';
-  const freqLabel = job.frequency === 'weekly' ? 'Weekly' : job.frequency === 'twice' ? 'Twice a Month' : 'One Time';
+function cvNavigate(dir) {
+  if (dir === 0) { cvViewDate = new Date(); cvViewDate.setHours(0,0,0,0); }
+  else if (cvCurrentView === 'day')   { cvViewDate.setDate(cvViewDate.getDate() + dir); }
+  else if (cvCurrentView === 'week')  { cvViewDate.setDate(cvViewDate.getDate() + dir * 7); }
+  else if (cvCurrentView === 'month') { cvViewDate.setMonth(cvViewDate.getMonth() + dir); }
+  cvRenderSchedule();
+}
 
-  let badgeColor = '#6b7280'; let badgeLabel = '• Upcoming';
-  if (isDone)                                         { badgeColor = '#16a34a'; badgeLabel = '✓ Done'; }
-  else if (job.scheduled_date === todayStr)           { badgeColor = '#16a34a'; badgeLabel = '🟢 Today'; }
-  else if (!job.scheduled_date)                       { badgeColor = '#9ca3af'; badgeLabel = '⏳ Unscheduled'; }
-  else if (job.scheduled_date > todayStr)             { badgeColor = '#d97706'; badgeLabel = '🟡 Upcoming'; }
+function cvRenderSchedule() {
+  if (cvCurrentView === 'day')        cvRenderDayView();
+  else if (cvCurrentView === 'week')  cvRenderWeekView();
+  else                                cvRenderMonthView();
+}
 
-  // Notes chips (same logic as contractor view)
-  let notesHtml = '';
-  if (job.job_notes) {
-    const parts = job.job_notes.split(' | ').map(s => s.trim()).filter(Boolean);
-    const hideRe = /week ago|weeks ago|\bnone\b/i;
-    const chips = parts.filter(p => !hideRe.test(p))
-      .map(p => `<span style="display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:.2rem .55rem;font-size:.72rem;color:#374151;margin:.15rem .2rem 0 0;">${p}</span>`);
-    if (chips.length) notesHtml = `<div style="margin-bottom:.6rem;">${chips.join('')}</div>`;
+function cvRenderWeekView() {
+  const d = new Date(cvViewDate);
+  const dow = d.getDay();
+  d.setDate(d.getDate() - ((dow + 6) % 7));
+  const monday = new Date(d);
+
+  const days = Array.from({length:8}, (_,i) => {
+    const day = new Date(monday); day.setDate(monday.getDate()+i); return day;
+  });
+  const weekLabel = days[0].toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' – ' +
+    days[7].toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+  document.getElementById('cvNavLabel').textContent = weekLabel;
+  document.getElementById('cvNavSub').textContent   = 'WEEK VIEW';
+
+  const todayStr  = cvToISO(new Date());
+  const dayNames  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon →'];
+  const DONE      = ['completed','paid','invoiced'];
+
+  let html = '<div style="overflow-x:auto;"><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:.35rem;min-width:560px;padding:.25rem 0 1.5rem;">';
+  days.forEach((day, i) => {
+    const ds       = cvToISO(day);
+    const dayJobs  = cvAllJobs.filter(j => j.scheduled_date === ds);
+    const isToday  = ds === todayStr;
+    const isNext   = i === 7;
+    html += `<div style="${isNext ? 'border-left:2px dashed var(--border);padding-left:.35rem;' : ''}">
+      <div style="text-align:center;margin-bottom:.35rem;">
+        <div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:${isNext?'var(--text-lite)':'var(--text-mid)'};">${dayNames[i]}</div>
+        <div style="font-family:var(--display);font-size:.88rem;font-weight:700;color:var(--dark);width:24px;height:24px;line-height:24px;border-radius:50%;margin:.2rem auto 0;text-align:center;${isToday?'background:var(--green);color:#fff;':''}">${day.getDate()}</div>
+      </div>
+      <div style="min-height:70px;">`;
+    if (dayJobs.length) {
+      dayJobs.forEach(j => {
+        const done = DONE.includes(j.status);
+        const addr = (j.address||'').split(',')[0];
+        html += `<span onclick="cvViewDate=new Date('${ds}T12:00:00');cvSwitchView('day')" title="${j.address||''}"
+          style="display:block;background:${done?'#f5f5f5':'#FBF8F1'};border:1px solid ${done?'#e0e0e0':'rgba(228,216,197,.9)'};border-radius:8px;padding:.22rem .4rem;font-size:.63rem;font-family:var(--display);font-weight:600;color:${done?'#999':'var(--dark)'};margin-bottom:.2rem;cursor:pointer;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">
+          ${j.scheduled_time ? j.scheduled_time.substring(0,5)+' ' : ''}${addr}
+        </span>`;
+      });
+    } else {
+      html += `<div style="font-size:.62rem;color:var(--text-lite);text-align:center;padding:.5rem 0;">—</div>`;
+    }
+    html += `</div></div>`;
+  });
+  html += '</div></div>';
+  document.getElementById('cvScheduleWrap').innerHTML = html;
+}
+
+function cvRenderDayView() {
+  const dateStr  = cvToISO(cvViewDate);
+  const dayName  = cvViewDate.toLocaleDateString('en-US',{weekday:'long'});
+  const dateLong = cvViewDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const isToday  = dateStr === cvToISO(new Date());
+  const DONE     = ['completed','paid','invoiced'];
+
+  document.getElementById('cvNavLabel').textContent = dateLong;
+  document.getElementById('cvNavSub').textContent   = (isToday ? 'TODAY · ' : '') + dayName.toUpperCase();
+
+  const dayJobs = cvAllJobs.filter(j => j.scheduled_date === dateStr);
+  const unscheduled = isToday ? cvAllJobs.filter(j => !j.scheduled_date && !DONE.includes(j.status)) : [];
+
+  if (!dayJobs.length && !unscheduled.length) {
+    document.getElementById('cvScheduleWrap').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">📅</div><div class="empty-state-msg">No jobs on this day</div></div>';
+    return;
   }
 
-  const statusRowColor = job.status === 'rescheduled' ? '#16a34a' : isDone ? '#16a34a' : '#6b7280';
-  const statusLabel = { rescheduled:'Rescheduled', completed:'Completed', paid:'Paid', invoiced:'Invoiced', booked:'Booked', started:'Started' }[job.status] || job.status;
+  const rows = [...dayJobs, ...unscheduled];
+  let html = '';
+  rows.forEach(job => { html += cvRenderJobCard(job); });
+  document.getElementById('cvScheduleWrap').innerHTML = html;
+}
 
-  return `<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:1rem 1.1rem;margin-bottom:.75rem;${isDone ? 'opacity:.65;' : ''}">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem;gap:.5rem;flex-wrap:wrap;">
-      <div style="font-weight:700;font-size:.95rem;color:var(--text);">${job.address || '—'}</div>
-      <span style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:.5px;background:${badgeColor}20;color:${badgeColor};border:1px solid ${badgeColor}40;border-radius:100px;padding:.25rem .75rem;white-space:nowrap;">${badgeLabel}</span>
+function cvRenderMonthView() {
+  const year  = cvViewDate.getFullYear();
+  const month = cvViewDate.getMonth();
+  const label = cvViewDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+  document.getElementById('cvNavLabel').textContent = label;
+  document.getElementById('cvNavSub').textContent   = 'MONTH VIEW';
+
+  const todayStr   = cvToISO(new Date());
+  const firstDay   = new Date(year, month, 1);
+  const lastDay    = new Date(year, month+1, 0);
+  const startOff   = (firstDay.getDay() + 6) % 7;
+  const totalCells = Math.ceil((startOff + lastDay.getDate()) / 7) * 7;
+  const dayNames   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+  let html = '<div style="overflow-x:auto;"><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;min-width:420px;padding-bottom:1.5rem;">';
+  dayNames.forEach(n => {
+    html += `<div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);text-align:center;padding:.3rem 0;">${n}</div>`;
+  });
+  for (let i = 0; i < totalCells; i++) {
+    const cellDate = new Date(year, month, 1 - startOff + i);
+    const ds       = cvToISO(cellDate);
+    const inMonth  = cellDate.getMonth() === month;
+    const isToday  = ds === todayStr;
+    const dayJobs  = cvAllJobs.filter(j => j.scheduled_date === ds);
+    const dots     = Math.min(dayJobs.length, 3);
+    html += `<div onclick="cvViewDate=new Date('${ds}T12:00:00');cvSwitchView('day')" style="min-height:52px;border:1px solid var(--border);border-radius:8px;padding:.3rem .4rem;cursor:pointer;background:${isToday?'#f0fdf4':inMonth?'#fff':'#fafafa'};opacity:${inMonth?1:.45};">
+      <div style="font-family:var(--display);font-size:.7rem;font-weight:700;color:${isToday?'var(--green)':'var(--text)'};${isToday?'':''}margin-bottom:.2rem;">${cellDate.getDate()}</div>
+      ${dayJobs.length ? `<div style="display:flex;gap:2px;flex-wrap:wrap;">${Array.from({length:dots}).map(()=>`<div style="width:6px;height:6px;border-radius:50%;background:var(--green);"></div>`).join('')}${dayJobs.length>3?`<span style="font-size:.55rem;color:var(--green);font-weight:700;">+${dayJobs.length-3}</span>`:''}</div>` : ''}
+    </div>`;
+  }
+  html += '</div></div>';
+  document.getElementById('cvScheduleWrap').innerHTML = html;
+}
+
+function cvRenderJobCard(job) {
+  const DONE     = ['completed','paid','invoiced'];
+  const isDone   = DONE.includes(job.status);
+  const todayStr = cvToISO(new Date());
+
+  const dateStr  = job.scheduled_date
+    ? new Date(job.scheduled_date+'T12:00:00').toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})
+    : 'Not scheduled yet';
+  const freqLabel = job.frequency==='weekly'?'Weekly':job.frequency==='twice'?'Twice a Month':'One Time';
+
+  let badgeColor='#d97706', badgeLabel='🟡 Upcoming';
+  if (isDone)                              { badgeColor='#16a34a'; badgeLabel='✓ Done'; }
+  else if (job.scheduled_date===todayStr)  { badgeColor='#16a34a'; badgeLabel='🟢 Today'; }
+  else if (!job.scheduled_date)            { badgeColor='#9ca3af'; badgeLabel='⏳ Unscheduled'; }
+
+  let notesHtml = '';
+  if (job.job_notes) {
+    const hideRe = /week ago|weeks ago|\bnone\b/i;
+    const chips  = job.job_notes.split(' | ').map(s=>s.trim()).filter(p=>p&&!hideRe.test(p))
+      .map(p=>`<span style="display:inline-block;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:6px;padding:.18rem .5rem;font-size:.7rem;color:#374151;margin:.12rem .18rem 0 0;">${p}</span>`);
+    if (chips.length) notesHtml = `<div style="margin-bottom:.5rem;">${chips.join('')}</div>`;
+  }
+
+  const statusLabel = {rescheduled:'Rescheduled',completed:'Completed',paid:'Paid',invoiced:'Invoiced',booked:'Booked',started:'Started'}[job.status]||job.status;
+  const statusColor = (isDone||job.status==='rescheduled') ? '#16a34a' : '#6b7280';
+
+  return `<div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:.9rem 1rem;margin-bottom:.65rem;${isDone?'opacity:.65;':''}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem;gap:.5rem;flex-wrap:wrap;">
+      <div style="font-weight:700;font-size:.92rem;color:var(--text);">${job.address||'—'}</div>
+      <span style="font-family:var(--display);font-size:.6rem;font-weight:700;background:${badgeColor}18;color:${badgeColor};border:1px solid ${badgeColor}40;border-radius:100px;padding:.2rem .65rem;white-space:nowrap;">${badgeLabel}</span>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.4rem .75rem;margin-bottom:.6rem;">
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Customer</div><div style="font-size:.82rem;color:var(--text);">${job.name ? job.name.split(' ')[0] : '—'}</div></div>
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Date</div><div style="font-size:.82rem;color:var(--text);">${dateStr}</div></div>
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Time</div><div style="font-size:.82rem;color:var(--text);">${timeStr}</div></div>
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Frequency</div><div style="font-size:.82rem;color:var(--text);">${freqLabel}</div></div>
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Lot Size</div><div style="font-size:.82rem;color:var(--text);">${job.lot_size ? job.lot_size.toLocaleString() + ' sqft' : '—'}</div></div>
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Vendor Pay</div><div style="font-size:.82rem;font-weight:700;color:var(--green);">${job.vendor_pay ? '$' + job.vendor_pay : '—'}</div></div>
-      <div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Status</div><div style="font-size:.82rem;font-weight:600;color:${statusRowColor};">${statusLabel}</div></div>
-      ${job.photo_url ? `<div><div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.15rem;">Photo</div><a href="${job.photo_url}" target="_blank" style="font-size:.82rem;color:#1565c0;text-decoration:none;">View ↗</a></div>` : ''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.35rem .65rem;margin-bottom:.5rem;">
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Customer</div><div style="font-size:.8rem;">${job.name?job.name.split(' ')[0]:'—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Date</div><div style="font-size:.8rem;">${dateStr}</div></div>
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Time</div><div style="font-size:.8rem;">${job.scheduled_time||'—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Frequency</div><div style="font-size:.8rem;">${freqLabel}</div></div>
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Lot Size</div><div style="font-size:.8rem;">${job.lot_size?job.lot_size.toLocaleString()+' sqft':'—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Vendor Pay</div><div style="font-size:.8rem;font-weight:700;color:var(--green);">${job.vendor_pay?'$'+job.vendor_pay:'—'}</div></div>
+      <div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Status</div><div style="font-size:.8rem;font-weight:600;color:${statusColor};">${statusLabel}</div></div>
+      ${job.photo_url?`<div><div style="font-family:var(--display);font-size:.52rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-bottom:.1rem;">Photo</div><a href="${job.photo_url}" target="_blank" style="font-size:.8rem;color:#1565c0;text-decoration:none;">View ↗</a></div>`:''}
     </div>
     ${notesHtml}
-    ${job.contractor_paid ? '<div style="font-size:.78rem;color:var(--green);font-weight:600;">✓ Contractor paid</div>' : ''}
+    ${job.contractor_paid?'<div style="font-size:.75rem;color:var(--green);font-weight:600;">✓ Contractor paid</div>':''}
   </div>`;
 }
 
