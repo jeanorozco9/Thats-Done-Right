@@ -679,10 +679,16 @@ function renderTable() {
       ? `<button onclick="sendInvoice(${l.id})" style="margin-top:4px;font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.3rem .7rem;background:${l.status === 'payment_failed' ? '#880e4f' : 'var(--green)'};color:#fff;border:none;border-radius:6px;cursor:pointer;">${l.status === 'payment_failed' ? 'Retry Invoice' : 'Send Invoice'}</button>`
       : '';
 
+    const photoDate = l.photo_url && l.updated_at
+      ? new Date(l.updated_at).toLocaleDateString('en-US', { month:'short', day:'numeric' })
+      : null;
     const photoCell = l.photo_url
-      ? `<a href="${l.photo_url}" target="_blank">
-           <img src="${l.photo_url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" title="View photo"/>
-         </a>`
+      ? `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+           <a href="${l.photo_url}" target="_blank">
+             <img src="${l.photo_url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" title="View photo"/>
+           </a>
+           ${photoDate ? `<span style="font-size:.6rem;color:var(--text-lite);">${photoDate}</span>` : ''}
+         </div>`
       : '<span style="font-size:.75rem;color:var(--text-lite);">—</span>';
 
     return `<tr class="clickable-row" style="${l.status === 'payment_failed' ? 'background:#fce4ec;' : l.first_mow_promo ? 'background:#fefce8;' : ''}" onclick="openLeadDrawer(${l.id})">
