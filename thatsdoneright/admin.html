@@ -683,7 +683,7 @@ function renderTable() {
       ? new Date(l.updated_at).toLocaleDateString('en-US', { month:'short', day:'numeric' })
       : null;
     const photoCell = l.photo_url
-      ? `<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+      ? `<div style="display:flex;align-items:center;gap:6px;">
            <a href="${l.photo_url}" target="_blank">
              <img src="${l.photo_url}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:pointer;" title="View photo"/>
            </a>
