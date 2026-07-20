@@ -1338,8 +1338,8 @@ async function submitPhoto(jobId) {
     // 4. Refresh UI — show job as completed before rescheduling
     await loadJobs();
 
-    // 5. Quietly update lead with next visit date in the background
-    scheduleNextVisit(jobId);
+    // 5. Update lead with next visit date for recurring clients
+    await scheduleNextVisit(jobId);
 
   } catch(e) {
     console.error('Submit photo error:', e);
