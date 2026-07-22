@@ -2947,8 +2947,9 @@ async function submitLead() {
     address: document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0],
     zip: currentZip,
     frequency: window.currentFreq || 'weekly',
-    // Promo bookings store the advertised ongoing rate ($49.99 + 8.25% tax ~= $54) so recurring invoices match the deal
-    price: window.firstMowPromo ? 54 : (window.basePrice || 0),
+    // Promo bookings store the advertised pre-tax rate — send-invoice adds 8.25% tax on top,
+    // so 49.99 bills as $54.11 exactly as promoted. (If the price column is still int, PG rounds to 50.)
+    price: window.firstMowPromo ? 49.99 : (window.basePrice || 0),
     discount_pct: window.discountPct || 0,
     status: 'started',
     manual_size_entry: !window.sizeAutoFilled,
