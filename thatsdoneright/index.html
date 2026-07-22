@@ -53,8 +53,16 @@
   // ── Read discount from URL (e.g. ?discount=15 set by follow-up emails) ──
   window.discountPct = parseInt(new URLSearchParams(window.location.search).get('discount') || '0', 10) || 0;
 
-  // ── $39.99 first-mow promo — automatic for brand-new customers; confirmed after address check ──
+  // ── $39.99 first-mow promo — flier-only: banner appears only for ?promo=first-mow visitors;
+  //    the discount is confirmed after the address check (new customers, lawns under 6,000 sqft)
+  window.promoLinkVisitor = new URLSearchParams(window.location.search).get('promo') === 'first-mow';
   window.firstMowPromo = false;
+  if (window.promoLinkVisitor) {
+    document.addEventListener('DOMContentLoaded', function() {
+      const banner = document.getElementById('promoTopBanner');
+      if (banner) banner.style.display = 'block';
+    });
+  }
 </script>
 
 <link rel="preload" as="image" href="hero-bkg-828.webp" media="(max-width: 768px)" fetchpriority="high" />
@@ -1634,7 +1642,7 @@ footer {
   <p class="hero-tagline">Lawn Mowing Service &nbsp;·&nbsp; No Contracts &nbsp;·&nbsp; Instant Quote</p>
   <p class="hero-subline">Katy &nbsp;·&nbsp; Crosby &nbsp;·&nbsp; Houston TX</p>
   <!-- Promo announcement pill — shown only when ?promo=first-mow is verified -->
-  <div id="promoTopBanner" style="margin-bottom:1.2rem;">
+  <div id="promoTopBanner" style="display:none;margin-bottom:1.2rem;">
     <div class="promo-cta" id="promoCtaCard">
       <span class="promo-cta-badge" id="promoCtaBadge">&#x2728; Exclusive Offer</span>
       <span class="promo-cta-text" id="promoCtaText">
@@ -2568,7 +2576,7 @@ async function confirmAddress() {
   const promoYard = (propInfo && propInfo.lot_sqft > 0) ? (propInfo.lot_sqft - (propInfo.bld_sqft || 0)) : null;
   const sizeEligible = promoYard !== null && promoYard > 0 && promoYard < 6000;
   let existingCustomer = false;
-  if (sizeEligible) {
+  if (window.promoLinkVisitor && sizeEligible) {
     try {
       const existingRes = await fetch(
         `${SUPABASE_URL}/rest/v1/leads?address=ilike.*${encodeURIComponent(streetPart)}*&or=(status.eq.booked,stripe_customer_id.not.is.null)&select=id&limit=1`,
@@ -2578,7 +2586,11 @@ async function confirmAddress() {
       existingCustomer = Array.isArray(existing) && existing.length > 0;
     } catch (e) { /* if the check fails, err on the side of honoring the promo */ }
   }
-  if (sizeEligible && !existingCustomer) {
+  if (!window.promoLinkVisitor) {
+    // Not a flier visitor — no promo, no banner
+    window.firstMowPromo = false;
+    if (banner) banner.style.display = 'none';
+  } else if (sizeEligible && !existingCustomer) {
     window.firstMowPromo = true;
     if (card) {
       card.classList.remove('promo-cta--no'); card.classList.add('promo-cta--yes');
