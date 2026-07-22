@@ -1812,7 +1812,7 @@ footer {
         <div class="result-panel" id="resultPanel">
 
           <!-- Frequency selector -->
-          <div style="margin-bottom:1.25rem;">
+          <div id="freqSection" style="margin-bottom:1.25rem;">
             <div style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);margin-bottom:.75rem;text-align:center;">How often would you like service?</div>
             <div class="freq-cards">
               <button class="freq-card active" id="freq-weekly" onclick="selectFreq('weekly')">
@@ -2769,6 +2769,10 @@ function updatePrice() {
 
   // $39.99 first-mow promo — override the displayed price for visit 1 only
   if (window.firstMowPromo) {
+    // Flier promo is a single fixed offer — hide the weekly/bi-weekly picker
+    const freqSection = document.getElementById('freqSection');
+    if (freqSection) freqSection.style.display = 'none';
+    window.currentFreq = 'weekly';
     const promoPrice = 39.99;
     const TAX_RATE   = 0.0825;
     const tax   = parseFloat((promoPrice * TAX_RATE).toFixed(2));
@@ -2791,6 +2795,10 @@ function updatePrice() {
     if (discBanner) discBanner.style.display = 'none';
     return;
   }
+
+  // Regular quote — frequency picker applies
+  const freqSectionEl = document.getElementById('freqSection');
+  if (freqSectionEl) freqSectionEl.style.display = '';
 
   // Apply percentage discount if customer came from a follow-up email
   const discount = window.discountPct || 0;
