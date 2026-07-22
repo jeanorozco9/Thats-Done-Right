@@ -1329,6 +1329,57 @@ footer {
   section { padding-left: 1rem; padding-right: 1rem; }
 }
 
+/* Promo hero banner */
+.promo-cta {
+  max-width: 660px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #FFFDF7 0%, #F3EDDC 100%);
+  border: 2px solid #AEA781;
+  border-radius: 18px;
+  padding: .95rem 1.5rem;
+  box-shadow: 0 12px 44px rgba(69,72,58,0.20), 0 2px 8px rgba(69,72,58,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .95rem;
+  flex-wrap: wrap;
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+.promo-cta::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -70%;
+  width: 45%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.6), transparent);
+  animation: promoShine 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes promoShine { 0% { left: -70%; } 55% { left: 130%; } 100% { left: 130%; } }
+.promo-cta-badge {
+  background: #AEA781;
+  color: #3F4130;
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-radius: 100px;
+  padding: .4rem .85rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.promo-cta-text { font-size: .98rem; font-weight: 600; color: #45483A; line-height: 1.5; }
+.promo-cta-text strong { color: #81634A; font-weight: 800; }
+.promo-cta-sub { display: block; font-size: .8rem; font-weight: 500; color: #7A7666; margin-top: 2px; }
+.promo-cta--yes { border-color: #94906C; background: linear-gradient(135deg, #FCFBF3 0%, #EDEBD8 100%); }
+.promo-cta--no  { border-color: #E3DAC6; box-shadow: 0 6px 24px rgba(69,72,58,0.10); }
+.promo-cta--no::after { animation: none; }
+@media (max-width: 480px) {
+  .promo-cta { padding: .8rem 1rem; text-align: center; }
+  .promo-cta-text { font-size: .88rem; }
+}
+
 /* Below-the-fold sections: skip rendering until scrolled near (speeds first paint) */
 .how-section, #faq, .zones-section, footer {
   content-visibility: auto;
@@ -1589,10 +1640,12 @@ footer {
   <p class="hero-tagline">Lawn Mowing Service &nbsp;·&nbsp; No Contracts &nbsp;·&nbsp; Instant Quote</p>
   <p class="hero-subline">Katy &nbsp;·&nbsp; Crosby &nbsp;·&nbsp; Houston TX</p>
   <!-- Promo announcement pill — shown only when ?promo=first-mow is verified -->
-  <div id="promoTopBanner" style="display:none;text-align:center;margin-bottom:1.1rem;">
-    <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1.5px solid rgba(174,167,129,0.35);border-radius:100px;padding:7px 18px 7px 8px;box-shadow:0 4px 28px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.06);">
-      <span style="background:#AEA781;color:#3F4130;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:100px;padding:4px 11px;white-space:nowrap;">&#x2728; Promo Applied</span>
-      <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap;">Your <span style="color:#94906C;font-weight:800;">$39.99 first mow</span> is locked in &mdash; enter your address below</span>
+  <div id="promoTopBanner" style="display:none;margin-bottom:1.2rem;">
+    <div class="promo-cta" id="promoCtaCard">
+      <span class="promo-cta-badge" id="promoCtaBadge">&#x2728; Exclusive Offer</span>
+      <span class="promo-cta-text" id="promoCtaText">
+        <strong>$39.99 first mow</strong> for qualifying lawns &mdash; enter your address below to see if your lawn qualifies <span class="promo-cta-sub">(lawns under 6,000 sqft &middot; then $49.99 + tax/visit)</span>
+      </span>
     </div>
   </div>
 
@@ -2523,12 +2576,29 @@ async function confirmAddress() {
   const promoMatch  = Array.isArray(promoMatches) && promoMatches.length > 0 ? promoMatches[0] : null;
   const yardSize    = (promoMatch && promoMatch.lot_size && promoMatch.home_size) ? (promoMatch.lot_size - promoMatch.home_size) : null;
   const sizeEligible = yardSize !== null && yardSize > 0 && yardSize < 6000;
+  const cameWithPromo = new URLSearchParams(window.location.search).get('promo') === 'first-mow';
+  const card  = document.getElementById('promoCtaCard');
+  const badge = document.getElementById('promoCtaBadge');
+  const text  = document.getElementById('promoCtaText');
   if (promoMatch && sizeEligible) {
     window.firstMowPromo = true;
+    if (card) {
+      card.classList.remove('promo-cta--no'); card.classList.add('promo-cta--yes');
+      badge.innerHTML = '&#x1F389; You Qualify';
+      text.innerHTML  = 'Your lawn qualifies &mdash; <strong>$39.99 first mow</strong> locked in <span class="promo-cta-sub">Then $49.99 + tax/visit &middot; no contracts &middot; pay after service</span>';
+    }
     if (banner) banner.style.display = 'block';
   } else {
     window.firstMowPromo = false;
-    if (banner) banner.style.display = 'none';
+    if ((cameWithPromo || promoMatch) && card) {
+      // They expected the promo — explain instead of silently hiding
+      card.classList.remove('promo-cta--yes'); card.classList.add('promo-cta--no');
+      badge.innerHTML = 'First-Mow Special';
+      text.innerHTML  = 'This address doesn\'t qualify for the $39.99 first-mow special <span class="promo-cta-sub">Offer is limited to lawns under 6,000 sqft &mdash; your instant quote below is still flat-rate with no contracts</span>';
+      if (banner) banner.style.display = 'block';
+    } else if (banner) {
+      banner.style.display = 'none';
+    }
   }
 
   const prop = window.cachedProp;
