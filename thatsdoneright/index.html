@@ -2206,8 +2206,8 @@ function calcPrice(lawn, isKaty = false) {
     const large = Math.max(0, effective - 8000) * 0.00213;
     return Math.round(base + mid + large);
   }
-  const base = Math.min(effective, 4000) * 0.009;
-  const over = Math.max(0, effective - 4000) * 0.008;
+  const base = Math.min(effective, 4000) * 0.012;
+  const over = Math.max(0, effective - 4000) * 0.010;
   return Math.round(base + over);
 }
 
