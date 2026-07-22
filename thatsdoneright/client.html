@@ -805,7 +805,7 @@ async function loadClientDashboard(email) {
           <div class="appt-meta">
             <div class="appt-meta-item"><div class="appt-meta-label">Address</div><div class="appt-meta-val">${next.address || '—'}</div></div>
             <div class="appt-meta-item"><div class="appt-meta-label">Frequency</div><div class="appt-meta-val">${freqLabel}</div></div>
-            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#AEA781;font-weight:700;">$19.99 🎉 promo</span>' : (next.price ? '$' + next.price : '—')}</div></div>
+            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#AEA781;font-weight:700;">$39.99 🎉 promo</span>' : (next.price ? '$' + next.price : '—')}</div></div>
           </div>
         </div>`;
     } else if (schedule && schedule.dates && schedule.dates.length) {
@@ -817,7 +817,7 @@ async function loadClientDashboard(email) {
           <div class="appt-meta">
             <div class="appt-meta-item"><div class="appt-meta-label">Address</div><div class="appt-meta-val">${planLead.address || '—'}</div></div>
             <div class="appt-meta-item"><div class="appt-meta-label">Frequency</div><div class="appt-meta-val">${freqLabel}</div></div>
-            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#AEA781;font-weight:700;">$19.99 🎉 promo</span>' : (planLead.price ? '$' + planLead.price : '—')}</div></div>
+            <div class="appt-meta-item"><div class="appt-meta-label">Price</div><div class="appt-meta-val">${hasFirstMowPromo ? '<span style="color:#AEA781;font-weight:700;">$39.99 🎉 promo</span>' : (planLead.price ? '$' + planLead.price : '—')}</div></div>
           </div>
         </div>`;
     } else {
