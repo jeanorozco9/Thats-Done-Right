@@ -347,11 +347,11 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
   <div id="promoBanner" style="display:none;background:linear-gradient(180deg,#FBF5E9 0%,#F3E8D6 100%);border-top:1px solid rgba(184,154,100,0.35);border-bottom:1px solid rgba(184,154,100,0.35);padding:16px 24px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;">
     <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
       <span style="display:inline-flex;align-items:center;gap:5px;background:#AEA781;color:#3F4130;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:6px;padding:5px 11px;white-space:nowrap;">&#x2737; Exclusive Offer</span>
-      <span style="font-size:13.5px;color:#1a2e1a;font-weight:500;">Hey <strong id="promoClientName">there</strong> &mdash; your <strong style="color:#94906C;">$19.99 first mow</strong> is waiting. <span style="color:#6b7280;font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
+      <span style="font-size:13.5px;color:#1a2e1a;font-weight:500;">Hey <strong id="promoClientName">there</strong> &mdash; your <strong style="color:#94906C;">$39.99 first mow</strong> is waiting. <span style="color:#6b7280;font-size:12px;">One-time deal &middot; not offered publicly.</span></span>
       <span id="promoRegPrice" style="display:none;"></span>
     </div>
     <div id="promoClaimBox" style="flex-shrink:0;margin-left:auto;">
-      <button id="promoApplyBtn" onclick="claimFirstMowPromo(event)">Apply $19.99 Promo &rarr;</button>
+      <button id="promoApplyBtn" onclick="claimFirstMowPromo(event)">Apply $39.99 Promo &rarr;</button>
     </div>
   </div>
 
@@ -751,12 +751,12 @@ async function loadClientDashboard(email) {
     // Promo is active if first_mow_promo=true OR followup_special=true (email was sent, promo available)
     // New offers are also gated to yards between 4,000-7,000 sqft (lot_size minus home_size)
     const yardSize     = (planLead.lot_size && planLead.home_size) ? (planLead.lot_size - planLead.home_size) : null;
-    const sizeEligible  = yardSize !== null && yardSize >= 4000 && yardSize <= 7000;
+    const sizeEligible  = yardSize !== null && yardSize > 0 && yardSize < 6000;
     const hasFirstMowPromo = !!planLead.first_mow_promo;
     const promoAvailable   = hasFirstMowPromo || (!!planLead.followup_special && sizeEligible);
     document.getElementById('planFreq').textContent  = freqLabel;
     document.getElementById('planPrice').textContent = hasFirstMowPromo
-      ? `$19.99 first mow · then $${planLead.price}/visit`
+      ? `$39.99 first mow · then $49.99 + tax`
       : (planLead.price ? `$${planLead.price}/visit` : '—');
     document.getElementById('planAddr').textContent  = planLead.address || '—';
     document.getElementById('planBanner').style.display = 'flex';

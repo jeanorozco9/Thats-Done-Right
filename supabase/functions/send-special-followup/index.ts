@@ -39,15 +39,15 @@ Deno.serve(async (req) => {
       });
     }
 
-    // $19.99 first-mow offer is only honored for yards 4,000-7,000 sqft (lot_size minus home_size)
+    // $39.99 first-mow offer is only honored for lawns under 6,000 sqft (lot_size minus home_size)
     const leads = allLeads.filter((lead: any) => {
       if (!lead.lot_size || !lead.home_size) return false;
       const yardSize = lead.lot_size - lead.home_size;
-      return yardSize >= 4000 && yardSize <= 7000;
+      return yardSize > 0 && yardSize < 6000;
     });
 
     if (leads.length === 0) {
-      return new Response(JSON.stringify({ sent: 0, total: allLeads.length, message: "No leads in the 4,000-7,000 sqft yard size range." }), {
+      return new Response(JSON.stringify({ sent: 0, total: allLeads.length, message: "No leads with lawns under 6,000 sqft." }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -102,8 +102,8 @@ Deno.serve(async (req) => {
     <td bgcolor="#EAF3DE" style="padding:28px 40px 24px;text-align:center;border-bottom:1px solid #d8eed8;">
       <div style="display:inline-block;background:#c8e6c9;color:#1a6b1a;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;border-radius:100px;padding:5px 16px;margin-bottom:14px;">Special offer &mdash; just for you</div>
       <div style="font-size:15px;color:#374151;margin-bottom:10px;">Hey ${firstName}, we have something we think you&#39;ll love.</div>
-      <div style="font-size:68px;font-weight:800;color:#111827;letter-spacing:-3px;line-height:1;">$19.99</div>
-      <div style="font-size:14px;color:#6b7280;margin-top:8px;">Your first mow &mdash; then ${quotedPrice}/visit after that</div>
+      <div style="font-size:68px;font-weight:800;color:#111827;letter-spacing:-3px;line-height:1;">$39.99</div>
+      <div style="font-size:14px;color:#6b7280;margin-top:8px;">Your first mow &mdash; then just $49.99 + tax per visit</div>
     </td>
   </tr>
 
@@ -118,13 +118,13 @@ Deno.serve(async (req) => {
           </td>
           <td style="text-align:center;font-size:20px;color:#d1d5db;">&rarr;</td>
           <td style="text-align:center;">
-            <div style="font-size:20px;font-weight:700;color:#16a34a;">$19.99</div>
+            <div style="font-size:20px;font-weight:700;color:#16a34a;">$39.99</div>
             <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:3px;">Your first mow</div>
           </td>
           <td style="text-align:center;font-size:20px;color:#d1d5db;">&rarr;</td>
           <td style="text-align:center;">
-            <div style="font-size:20px;font-weight:700;color:#111827;">${quotedPrice}</div>
-            <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:3px;">Your quoted rate</div>
+            <div style="font-size:20px;font-weight:700;color:#111827;">$49.99</div>
+            <div style="font-size:10px;color:#9ca3af;font-weight:700;letter-spacing:.5px;text-transform:uppercase;margin-top:3px;">+ tax after promo</div>
           </td>
         </tr>
       </table>
@@ -166,7 +166,7 @@ Deno.serve(async (req) => {
   <!-- CTA -->
   <tr>
     <td style="padding:20px 40px 24px;">
-      <a href="https://thatsdoneright.com?promo=first-mow" style="display:block;background:#16a34a;color:#ffffff;text-decoration:none;text-align:center;font-size:16px;font-weight:700;padding:17px;border-radius:12px;">Get my $19.99 first mow &nbsp;&rarr;</a>
+      <a href="https://thatsdoneright.com?promo=first-mow" style="display:block;background:#16a34a;color:#ffffff;text-decoration:none;text-align:center;font-size:16px;font-weight:700;padding:17px;border-radius:12px;">Get my $39.99 first mow &nbsp;&rarr;</a>
     </td>
   </tr>
 
@@ -175,7 +175,8 @@ Deno.serve(async (req) => {
     <td style="padding:0 40px 28px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;">Offer terms</div>
       <div style="font-size:12px;color:#9ca3af;line-height:1.7;">
-        &middot; Requires a 3-cut minimum commitment. Standard rate applies after visit 1.<br/>
+        &middot; Requires a 3-cut minimum commitment. $49.99 + tax per visit after visit 1.<br/>
+        &middot; Valid for lawns under 6,000 sqft.<br/>
         &middot; If grass exceeds 9 inches, a one-time long-grass fee (up to 100% of visit price) may apply.<br/>
         &middot; Valid for new customers only. One per household.
       </div>

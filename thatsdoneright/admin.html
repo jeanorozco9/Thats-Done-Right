@@ -478,7 +478,7 @@ tr.clickable-row { cursor: pointer; }
     <div class="nav-actions">
       <button class="btn-sm btn-export" onclick="exportCSV()">⬇ Export CSV</button>
       <button class="btn-sm" id="specialTestBtn" onclick="sendSpecialTest()" style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:600;cursor:pointer;">🧪 Test Promo (me only)</button>
-      <button class="btn-sm" id="specialCampaignBtn" onclick="sendSpecialCampaign()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:600;cursor:pointer;">🌿 Send $19.99 Promo</button>
+      <button class="btn-sm" id="specialCampaignBtn" onclick="sendSpecialCampaign()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-size:.78rem;font-weight:600;cursor:pointer;">🌿 Send $39.99 Promo</button>
       <button class="btn-sm btn-logout" onclick="logout()">Log Out</button>
     </div>
   </nav>
@@ -712,7 +712,7 @@ function renderTable() {
       <td>${l.zip || '—'}</td>
       <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
       <td class="price-cell">${l.first_mow_promo
-        ? `<span style="color:#d97706;font-weight:700;">$19.99</span><div style="font-size:.65rem;color:#9ca3af;text-decoration:line-through;">${l.price ? '$' + l.price : ''}</div>`
+        ? `<span style="color:#d97706;font-weight:700;">$39.99</span><div style="font-size:.65rem;color:#9ca3af;text-decoration:line-through;">${l.price ? '$' + l.price : ''}</div>`
         : (l.price ? '$' + l.price : '—')}</td>
       <td onclick="event.stopPropagation()" style="text-align:center;vertical-align:middle;">
         <label style="display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;">
@@ -819,10 +819,10 @@ async function sendInvoice(leadId) {
 
   const hasPromo  = !!freshLead.first_mow_promo;
   const origPrice = freshLead.price || 0;
-  const PROMO_AMT = 20; // $19.99 advertised, billed as $20 (int column)
+  const PROMO_AMT = 39.99; // $39.99 first-mow promo
 
   const msg = hasPromo
-    ? `This customer has the $19.99 first mow promo.\n\nThey will be invoiced for $${PROMO_AMT} (promo rate).\nAfter this invoice their account reverts to $${origPrice}/visit.\n\nSend invoice?`
+    ? `This customer has the $39.99 first mow promo.\n\nThey will be invoiced for $${PROMO_AMT} (promo rate).\nAfter this invoice their account bills $${origPrice}/visit — promo terms are $49.99 + tax, so update the lead price if it doesn't match.\n\nSend invoice?`
     : 'Send invoice to this customer?';
 
   if (!confirm(msg)) return;
@@ -1725,7 +1725,7 @@ async function sendSpecialTest() {
 
 async function sendSpecialCampaign() {
   const btn = document.getElementById('specialCampaignBtn');
-  const confirmed = confirm('Send the $19.99 promo email to all leads who received all 3 followups but never booked?\n\nThis cannot be undone.');
+  const confirmed = confirm('Send the $39.99 promo email to all leads who received all 3 followups but never booked?\n\nThis cannot be undone.');
   if (!confirmed) return;
   btn.disabled = true;
   btn.textContent = '⏳ Sending...';
@@ -1742,7 +1742,7 @@ async function sendSpecialCampaign() {
     alert('❌ Error: ' + e.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = '🌿 Send $19.99 Promo';
+    btn.textContent = '🌿 Send $39.99 Promo';
   }
 }
 
@@ -1812,7 +1812,7 @@ function openLeadDrawer(id) {
       <div style="margin-top:.75rem;">
         ${l.first_mow_promo ? `
           <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-            <span style="background:#dcfce7;color:#16a34a;font-size:.75rem;font-weight:700;padding:.3rem .75rem;border-radius:100px;border:1px solid #bbf7d0;">🎉 $19.99 First Mow Promo Active</span>
+            <span style="background:#dcfce7;color:#16a34a;font-size:.75rem;font-weight:700;padding:.3rem .75rem;border-radius:100px;border:1px solid #bbf7d0;">🎉 $39.99 First Mow Promo Active</span>
             <button id="firstMowDoneBtn" onclick="markFirstMowDone(${l.id})"
               style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.4rem .9rem;background:#16a34a;color:#fff;border:none;border-radius:8px;cursor:pointer;">
               ✅ Mark First Mow Done
@@ -1820,7 +1820,7 @@ function openLeadDrawer(id) {
           </div>` : `
           <button id="applyPromoBtn" onclick="applyFirstMowPromo(${l.id})"
             style="font-family:var(--display);font-size:.65rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.4rem .9rem;background:#f59e0b;color:#fff;border:none;border-radius:8px;cursor:pointer;">
-            🎉 Apply $19.99 First Mow Promo
+            🎉 Apply $39.99 First Mow Promo
           </button>`}
       </div>
     </div>

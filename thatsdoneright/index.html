@@ -53,7 +53,7 @@
   // ── Read discount from URL (e.g. ?discount=15 set by follow-up emails) ──
   window.discountPct = parseInt(new URLSearchParams(window.location.search).get('discount') || '0', 10) || 0;
 
-  // ── $19.99 first-mow promo (set by promotional email CTA link) ──
+  // ── $39.99 first-mow promo (set by promotional email CTA link) ──
   window.firstMowPromo = new URLSearchParams(window.location.search).get('promo') === 'first-mow';
   if (window.firstMowPromo) {
     document.addEventListener('DOMContentLoaded', function() {
@@ -1592,7 +1592,7 @@ footer {
   <div id="promoTopBanner" style="display:none;text-align:center;margin-bottom:1.1rem;">
     <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:rgba(255,255,255,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1.5px solid rgba(174,167,129,0.35);border-radius:100px;padding:7px 18px 7px 8px;box-shadow:0 4px 28px rgba(0,0,0,0.13),0 1px 4px rgba(0,0,0,0.06);">
       <span style="background:#AEA781;color:#3F4130;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;border-radius:100px;padding:4px 11px;white-space:nowrap;">&#x2728; Promo Applied</span>
-      <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap;">Your <span style="color:#94906C;font-weight:800;">$19.99 first mow</span> is locked in &mdash; enter your address below</span>
+      <span style="font-size:14px;font-weight:600;color:#111827;white-space:nowrap;">Your <span style="color:#94906C;font-weight:800;">$39.99 first mow</span> is locked in &mdash; enter your address below</span>
     </div>
   </div>
 
@@ -1786,9 +1786,9 @@ footer {
             <div class="price-label" id="priceLabel">Your Price Per Visit</div>
             <div class="price-amount"><sup>$</sup><span id="priceNum">--</span></div>
             <div class="price-sub" id="priceSub">Flat rate · No hidden fees · Pay after service</div>
-            <!-- Shown only when $19.99 promo is active -->
+            <!-- Shown only when $39.99 promo is active -->
             <div id="promoInfoStrip" style="display:none;margin-top:.6rem;background:#F7F2E6;border:1px solid #DCC9B0;border-radius:8px;padding:9px 14px;text-align:center;font-size:13px;color:#374151;">
-              🌿 Then <strong style="color:#AEA781;">$<span id="promoRegularRate">--</span>/visit</strong> after that (your recurring rate)
+              🌿 Then <strong style="color:#AEA781;">$<span id="promoRegularRate">49.99</span> + tax/visit</strong> after that (your recurring rate)
             </div>
             <div style="margin-top:.75rem;font-size:.85rem;color:#666;display:flex;flex-direction:column;gap:.25rem;text-align:left;padding:0 .5rem;">
               <div style="display:flex;justify-content:space-between;"><span>Tax (8.25%)</span><span>$<span id="taxAmount">--</span></span></div>
@@ -2509,7 +2509,7 @@ function editAddress() {
 async function confirmAddress() {
   document.getElementById('mapConfirmSection').classList.remove('show');
 
-  // Always check if this address was sent the $19.99 promo (followup_special=true).
+  // Always check if this address was sent the $39.99 promo (followup_special=true).
   // Applies whether they came via ?promo=first-mow URL or typed their address directly.
   const addr = document.getElementById('confirmedAddrText').textContent.trim();
   const streetPart = addr.split(',')[0].trim();
@@ -2519,10 +2519,10 @@ async function confirmAddress() {
   );
   const promoMatches = await promoCheckRes.json();
   const banner = document.getElementById('promoTopBanner');
-  // $19.99 first-mow offer is only honored for yards 4,000-7,000 sqft (lot_size minus home_size)
+  // $39.99 first-mow offer is only honored for lawns under 6,000 sqft (lot_size minus home_size)
   const promoMatch  = Array.isArray(promoMatches) && promoMatches.length > 0 ? promoMatches[0] : null;
   const yardSize    = (promoMatch && promoMatch.lot_size && promoMatch.home_size) ? (promoMatch.lot_size - promoMatch.home_size) : null;
-  const sizeEligible = yardSize !== null && yardSize >= 4000 && yardSize <= 7000;
+  const sizeEligible = yardSize !== null && yardSize > 0 && yardSize < 6000;
   if (promoMatch && sizeEligible) {
     window.firstMowPromo = true;
     if (banner) banner.style.display = 'block';
@@ -2686,15 +2686,15 @@ function updatePrice() {
 
   const rawPrice = window.currentFreq === 'twice' ? twice : base;
 
-  // $19.99 first-mow promo — override the displayed price for visit 1 only
+  // $39.99 first-mow promo — override the displayed price for visit 1 only
   if (window.firstMowPromo) {
-    const promoPrice = 19.99;
+    const promoPrice = 39.99;
     const TAX_RATE   = 0.0825;
     const tax   = parseFloat((promoPrice * TAX_RATE).toFixed(2));
     const total = parseFloat((promoPrice + tax).toFixed(2));
     window.totalPrice = Math.round(total);
 
-    document.getElementById('priceNum').textContent    = '19.99';
+    document.getElementById('priceNum').textContent    = '39.99';
     document.getElementById('taxAmount').textContent   = tax.toFixed(2);
     document.getElementById('totalAmount').textContent = total.toFixed(2);
     document.getElementById('priceLabel').textContent  = 'Your First Mow';
@@ -2703,7 +2703,7 @@ function updatePrice() {
 
     const strip = document.getElementById('promoInfoStrip');
     if (strip) {
-      document.getElementById('promoRegularRate').textContent = rawPrice;
+      document.getElementById('promoRegularRate').textContent = '49.99';
       strip.style.display = 'block';
     }
     const discBanner = document.getElementById('discountBanner');
@@ -2816,7 +2816,7 @@ function handleBook() {
   const addr  = document.getElementById('confirmedAddrText').textContent || document.getElementById('addressInput').value.split(',')[0];
   if (window.firstMowPromo) {
     document.getElementById('contactSummary').innerHTML =
-      `<strong>${addr}</strong><br>${freq} · First mow $19.99 → then $${window.basePrice}/visit`;
+      `<strong>${addr}</strong><br>${freq} · First mow $39.99 → then $49.99 + tax/visit`;
   } else {
     document.getElementById('contactSummary').innerHTML = `<strong>${addr}</strong><br>${freq} · $${price}/visit`;
   }
