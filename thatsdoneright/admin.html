@@ -525,6 +525,7 @@ tr.clickable-row { cursor: pointer; }
         <button class="filter-btn" id="invoicesTab" onclick="showInvoices(this)" style="margin-left:.25rem;border-color:#1565c0;color:#1565c0;font-weight:700;">🧾 Invoices</button>
         <button class="filter-btn" id="payContractorsTab" onclick="showPayContractors(this)" style="margin-left:.25rem;border-color:#6a1b9a;color:#6a1b9a;font-weight:700;">💸 Pay Contractors</button>
         <button class="filter-btn" id="scheduleViewTab" onclick="showContractorSchedule(this)" style="margin-left:.25rem;border-color:#00695c;color:#00695c;font-weight:700;">👷 Schedule View</button>
+        <button class="filter-btn" id="reportsTab" onclick="showReports(this)" style="margin-left:.25rem;border-color:#b45309;color:#b45309;font-weight:700;">📊 Reports</button>
       </div>
     </div>
 
@@ -1151,6 +1152,150 @@ async function showInvoices(btn) {
     document.getElementById('tableContainer').innerHTML =
       '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load invoices</div></div>';
   }
+}
+
+// ── Monthly Reports ────────────────────────────────────────────────────────
+
+let reportData = [];
+
+async function showReports(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'Monthly Report';
+  document.getElementById('refreshBtn').onclick = () => showReports(btn);
+
+  const now = new Date();
+  const defaultMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  document.getElementById('tableContainer').innerHTML = `
+    <div style="padding:.75rem 0;">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+        <input type="month" id="reportMonth" value="${defaultMonth}"
+          style="padding:.45rem .75rem;border:1px solid var(--border);border-radius:8px;font-size:.875rem;font-family:var(--body);"
+          onchange="loadMonthlyReport()"/>
+        <button onclick="downloadReportCSV()"
+          style="font-family:var(--display);font-size:.62rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.45rem 1rem;background:#b45309;color:#fff;border:none;border-radius:8px;cursor:pointer;">
+          ⬇ Download CSV
+        </button>
+      </div>
+      <div id="reportContent"><div class="loading-state"><span class="spinner"></span> Loading...</div></div>
+    </div>`;
+
+  loadMonthlyReport();
+}
+
+async function loadMonthlyReport() {
+  const monthVal = document.getElementById('reportMonth')?.value;
+  if (!monthVal) return;
+  const [year, month] = monthVal.split('-').map(Number);
+  const from = `${year}-${String(month).padStart(2,'0')}-01`;
+  const toDate = new Date(year, month, 1);
+  const to = `${toDate.getFullYear()}-${String(toDate.getMonth()+1).padStart(2,'0')}-01`;
+
+  document.getElementById('reportContent').innerHTML =
+    '<div class="loading-state"><span class="spinner"></span> Loading...</div>';
+
+  try {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/invoices?select=id,invoice_number,amount_cents,status,paid_at,created_at,leads(name,address,price,contractor_id,contractors(name))&paid_at=gte.${from}&paid_at=lt.${to}&order=paid_at.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    let invoices = await res.json();
+    if (!Array.isArray(invoices)) invoices = [];
+
+    reportData = invoices.map(inv => {
+      const lead        = inv.leads || {};
+      const contractor  = lead.contractors?.name || '—';
+      const total       = (inv.amount_cents || 0) / 100;
+      const preTax      = Math.round((total / 1.0825) * 100) / 100;
+      const tax         = Math.round((total - preTax) * 100) / 100;
+      const dateStr     = inv.paid_at
+        ? new Date(inv.paid_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+        : '—';
+      return { date: dateStr, contractor, customer: lead.name || '—', address: lead.address || '—', preTax, tax, total };
+    });
+
+    if (!reportData.length) {
+      document.getElementById('reportContent').innerHTML =
+        '<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-msg">No completed jobs this month</div></div>';
+      return;
+    }
+
+    const totalRev = reportData.reduce((s, r) => s + r.total, 0);
+    const totalTax = reportData.reduce((s, r) => s + r.tax, 0);
+
+    const monthLabel = new Date(year, month-1, 1).toLocaleDateString('en-US', { month:'long', year:'numeric' });
+
+    let html = `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.25rem;">
+        <div style="background:#fef3c7;border-radius:10px;padding:.75rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:800;color:#b45309;">${reportData.length}</div>
+          <div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#b45309;opacity:.8;margin-top:.1rem;">Jobs Done</div>
+        </div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:.75rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:800;color:#16a34a;">$${totalRev.toFixed(2)}</div>
+          <div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#16a34a;opacity:.8;margin-top:.1rem;">Total Revenue</div>
+        </div>
+        <div style="background:#eff6ff;border-radius:10px;padding:.75rem;text-align:center;">
+          <div style="font-size:1.4rem;font-weight:800;color:#1d4ed8;">$${totalTax.toFixed(2)}</div>
+          <div style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#1d4ed8;opacity:.8;margin-top:.1rem;">Tax Collected</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+        <thead>
+          <tr style="background:#f9fafb;">
+            <th style="text-align:left;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Date</th>
+            <th style="text-align:left;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Contractor</th>
+            <th style="text-align:left;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Customer</th>
+            <th style="text-align:left;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Address</th>
+            <th style="text-align:right;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Charge</th>
+            <th style="text-align:right;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Tax</th>
+            <th style="text-align:right;padding:.5rem .75rem;font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);border-bottom:1px solid var(--border);">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${reportData.map(r => `
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:.5rem .75rem;color:var(--text-mid);">${r.date}</td>
+            <td style="padding:.5rem .75rem;font-weight:600;">${r.contractor}</td>
+            <td style="padding:.5rem .75rem;">${r.customer}</td>
+            <td style="padding:.5rem .75rem;color:var(--text-mid);">${r.address}</td>
+            <td style="padding:.5rem .75rem;text-align:right;">$${r.preTax.toFixed(2)}</td>
+            <td style="padding:.5rem .75rem;text-align:right;color:#1d4ed8;">$${r.tax.toFixed(2)}</td>
+            <td style="padding:.5rem .75rem;text-align:right;font-weight:700;">$${r.total.toFixed(2)}</td>
+          </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:#f9fafb;font-weight:700;">
+            <td colspan="4" style="padding:.6rem .75rem;font-family:var(--display);font-size:.62rem;letter-spacing:.5px;text-transform:uppercase;">Totals — ${monthLabel}</td>
+            <td style="padding:.6rem .75rem;text-align:right;">$${reportData.reduce((s,r)=>s+r.preTax,0).toFixed(2)}</td>
+            <td style="padding:.6rem .75rem;text-align:right;color:#1d4ed8;">$${totalTax.toFixed(2)}</td>
+            <td style="padding:.6rem .75rem;text-align:right;">$${totalRev.toFixed(2)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      </div>`;
+
+    document.getElementById('reportContent').innerHTML = html;
+  } catch(e) {
+    document.getElementById('reportContent').innerHTML =
+      '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-msg">Failed to load report</div></div>';
+  }
+}
+
+function downloadReportCSV() {
+  if (!reportData.length) { alert('No data to export.'); return; }
+  const monthVal = document.getElementById('reportMonth')?.value || 'report';
+  const headers  = ['Date','Contractor','Customer','Address','Charge','Tax Collected','Total'];
+  const rows     = reportData.map(r => [r.date, r.contractor, r.customer, r.address,
+    r.preTax.toFixed(2), r.tax.toFixed(2), r.total.toFixed(2)]);
+  const csv      = [headers, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob     = new Blob([csv], { type: 'text/csv' });
+  const a        = document.createElement('a');
+  a.href         = URL.createObjectURL(blob);
+  a.download     = `jobs-${monthVal}.csv`;
+  a.click();
 }
 
 async function showPayContractors(btn) {
