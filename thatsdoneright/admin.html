@@ -1197,7 +1197,7 @@ async function loadMonthlyReport() {
 
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/invoices?select=id,invoice_number,amount_cents,status,paid_at,created_at,leads(name,address,price,contractor_id,contractors(name))&paid_at=gte.${from}&paid_at=lt.${to}&order=paid_at.asc`,
+      `${SUPABASE_URL}/rest/v1/invoices?select=id,invoice_number,amount_cents,status,paid_at,created_at,leads(name,address,price,contractor_id,contractors(name))&created_at=gte.${from}&created_at=lt.${to}&order=created_at.asc`,
       { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     );
     let invoices = await res.json();
@@ -1209,8 +1209,9 @@ async function loadMonthlyReport() {
       const total       = (inv.amount_cents || 0) / 100;
       const preTax      = Math.round((total / 1.0825) * 100) / 100;
       const tax         = Math.round((total - preTax) * 100) / 100;
-      const dateStr     = inv.paid_at
-        ? new Date(inv.paid_at).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
+      const stamp       = inv.paid_at || inv.created_at;
+      const dateStr     = stamp
+        ? new Date(stamp).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' })
         : '—';
       return { date: dateStr, contractor, customer: lead.name || '—', address: lead.address || '—', preTax, tax, total };
     });
