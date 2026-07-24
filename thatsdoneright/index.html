@@ -2202,7 +2202,7 @@ function calcPrice(lawn, isKaty = false) {
   const effective = Math.max(lawn, 4000);
   if (isKaty) {
     const base  = Math.min(effective, 4000) * 0.01125;
-    const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.005;
+    const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.010125;
     const large = Math.max(0, effective - 8000) * 0.00213;
     return Math.round(base + mid + large);
   }
