@@ -527,6 +527,7 @@ tr.clickable-row { cursor: pointer; }
         <button class="filter-btn" id="scheduleViewTab" onclick="showContractorSchedule(this)" style="margin-left:.25rem;border-color:#00695c;color:#00695c;font-weight:700;">👷 Schedule View</button>
         <button class="filter-btn" id="reportsTab" onclick="showReports(this)" style="margin-left:.25rem;border-color:#b45309;color:#b45309;font-weight:700;">📊 Reports</button>
       </div>
+      <div id="cityFilterRow" style="display:none;padding:.35rem .75rem .5rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.35rem;align-items:center;"></div>
     </div>
 
     <div id="tableContainer">
@@ -548,6 +549,7 @@ let CONTRACTORS = [{ id: 0, name: "Unassigned" }];
 
 let allLeads = [];
 let currentFilter = 'all';
+let currentCity   = 'all';
 
 async function login() {
   const pass = document.getElementById('passInput').value;
@@ -628,15 +630,21 @@ function setFilter(filter, btn) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('cityFilterRow').style.display = 'flex';
+  updateCityFilter();
   renderTable();
 }
 
 function renderTable() {
-  const leads = currentFilter === 'all'
+  let leads = currentFilter === 'all'
     ? allLeads
     : currentFilter === 'clients'
       ? allLeads.filter(l => l.status === 'booked' || l.status === 'rescheduled' || l.status === 'completed' || l.status === 'invoiced')
       : allLeads.filter(l => l.status === currentFilter || (currentFilter === 'booked' && (l.status === 'invoiced' || l.status === 'rescheduled')));
+
+  if (currentCity !== 'all') {
+    leads = leads.filter(l => extractCity(l.address) === currentCity);
+  }
 
   const filterLabel = currentFilter === 'all' ? 'All' : currentFilter === 'clients' ? 'Clients' : currentFilter === 'started' ? 'Leads' : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
   document.getElementById('tableTitle').textContent = filterLabel;
@@ -897,10 +905,39 @@ function showLeads(btn) {
   document.getElementById('tableTitle').textContent = 'All Leads';
   document.getElementById('refreshBtn').onclick = loadLeads;
   currentFilter = 'all';
+  currentCity   = 'all';
+  document.getElementById('cityFilterRow').style.display = 'flex';
+  updateCityFilter();
+  renderTable();
+}
+
+function updateCityFilter() {
+  const cities = [...new Set(allLeads.map(l => extractCity(l.address)).filter(Boolean))].sort();
+  const row = document.getElementById('cityFilterRow');
+  if (!cities.length) { row.style.display = 'none'; return; }
+  row.style.display = 'flex';
+  row.innerHTML = `<span style="font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-lite);margin-right:.15rem;">City:</span>` +
+    ['all', ...cities].map(c => `
+      <button onclick="setCityFilter('${c}')" id="cityBtn-${c}"
+        style="font-family:var(--display);font-size:.6rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase;padding:.2rem .6rem;border-radius:100px;border:1px solid ${c===currentCity?'var(--green)':'var(--border)'};background:${c===currentCity?'var(--green)':'transparent'};color:${c===currentCity?'#fff':'var(--text-mid)'};cursor:pointer;white-space:nowrap;">
+        ${c === 'all' ? 'All Cities' : c}
+      </button>`).join('');
+}
+
+function extractCity(address) {
+  if (!address) return null;
+  const m = address.match(/,\s*([A-Za-z\s]+?)\s+TX\b/i);
+  return m ? m[1].trim() : null;
+}
+
+function setCityFilter(city) {
+  currentCity = city;
+  updateCityFilter();
   renderTable();
 }
 
 async function showContractors(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tableTitle').textContent = 'Contractors';
@@ -1003,6 +1040,7 @@ async function updateContractor(id, status) {
 }
 
 async function showDisputes(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tableTitle').textContent = 'Disputes';
@@ -1090,6 +1128,7 @@ async function showDisputes(btn) {
 }
 
 async function showInvoices(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tableTitle').textContent = 'Invoices';
@@ -1159,6 +1198,7 @@ async function showInvoices(btn) {
 let reportData = [];
 
 async function showReports(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tableTitle').textContent = 'Monthly Report';
@@ -1301,6 +1341,7 @@ function downloadReportCSV() {
 }
 
 async function showPayContractors(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tableTitle').textContent = 'Pay Contractors';
@@ -1417,6 +1458,7 @@ let cvViewDate      = (() => { const d = new Date(); d.setHours(0,0,0,0); return
 function cvToISO(d) { return d.toISOString().split('T')[0]; }
 
 async function showContractorSchedule(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tableTitle').textContent = 'Schedule View';
