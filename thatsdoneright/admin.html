@@ -1404,15 +1404,37 @@ function showPriceCheck(btn) {
   document.getElementById('refreshBtn').onclick = () => showPriceCheck(btn);
 
   document.getElementById('tableContainer').innerHTML = `
-    <div style="max-width:480px;margin:2rem auto;padding:1.5rem;background:var(--white);border:1px solid var(--border);border-radius:14px;">
-      <p style="font-size:.8rem;color:var(--text-lite);margin-bottom:1rem;">Type an address to look up lot size and instant price.</p>
-      <div style="position:relative;">
-        <input id="pcInput" type="text" placeholder="Start typing an address..." autocomplete="off"
-          style="width:100%;padding:.6rem .9rem;border:1px solid var(--border);border-radius:9px;font-size:.9rem;font-family:var(--body);outline:none;"
-          oninput="pcOnInput()" />
-        <div id="pcDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:99;margin-top:4px;overflow:hidden;"></div>
+    <div style="max-width:480px;margin:2rem auto;display:flex;flex-direction:column;gap:1.25rem;">
+
+      <!-- Lookup -->
+      <div style="padding:1.5rem;background:var(--white);border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-lite);margin-bottom:.75rem;">Price Lookup</div>
+        <div style="position:relative;">
+          <input id="pcInput" type="text" placeholder="Start typing an address..." autocomplete="off"
+            style="width:100%;padding:.6rem .9rem;border:1px solid var(--border);border-radius:9px;font-size:.9rem;font-family:var(--body);outline:none;"
+            oninput="pcOnInput()" />
+          <div id="pcDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:99;margin-top:4px;overflow:hidden;"></div>
+        </div>
+        <div id="pcResult" style="margin-top:1.25rem;display:none;"></div>
       </div>
-      <div id="pcResult" style="margin-top:1.25rem;display:none;"></div>
+
+      <!-- Add Property -->
+      <div style="padding:1.5rem;background:var(--white);border:1px solid var(--border);border-radius:14px;">
+        <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-lite);margin-bottom:.75rem;">Add Property to Database</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem;">
+          <input id="apAddress" type="text" placeholder="Full address (e.g. 424 Soaring Sparrow Trl, Katy, TX 77493)"
+            style="width:100%;padding:.6rem .9rem;border:1px solid var(--border);border-radius:9px;font-size:.85rem;font-family:var(--body);outline:none;" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+            <input id="apHome" type="number" placeholder="Home sqft (e.g. 3399)"
+              style="padding:.6rem .9rem;border:1px solid var(--border);border-radius:9px;font-size:.85rem;font-family:var(--body);outline:none;" />
+            <input id="apLot" type="number" placeholder="Lot sqft (e.g. 7887)"
+              style="padding:.6rem .9rem;border:1px solid var(--border);border-radius:9px;font-size:.85rem;font-family:var(--body);outline:none;" />
+          </div>
+          <button onclick="apInsert()" style="padding:.6rem;background:var(--green);color:#fff;border:none;border-radius:9px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:var(--body);">Add to Database</button>
+          <div id="apStatus" style="display:none;font-size:.8rem;text-align:center;padding:.4rem;border-radius:7px;"></div>
+        </div>
+      </div>
+
     </div>
   `;
 }
@@ -1501,6 +1523,64 @@ async function pcSelect(i) {
         <div style="font-size:1.2rem;font-weight:800;color:#2e7d32;">$${biweekly}</div>
       </div>
     </div>`;
+}
+
+async function apInsert() {
+  const rawAddr = document.getElementById('apAddress').value.trim();
+  const home    = parseInt(document.getElementById('apHome').value, 10);
+  const lot     = parseInt(document.getElementById('apLot').value, 10);
+  const status  = document.getElementById('apStatus');
+
+  if (!rawAddr || isNaN(home) || isNaN(lot)) {
+    status.style.display = 'block';
+    status.style.background = '#ffeaea';
+    status.style.color = '#c62828';
+    status.textContent = 'Please fill in address, home sqft, and lot sqft.';
+    return;
+  }
+
+  // Normalize to street-only uppercase (matches lookupProperty format)
+  const suffixes = {
+    ' Street': ' St', ' Avenue': ' Ave', ' Boulevard': ' Blvd',
+    ' Drive': ' Dr', ' Road': ' Rd', ' Lane': ' Ln',
+    ' Court': ' Ct', ' Circle': ' Cir', ' Place': ' Pl',
+    ' Trail': ' Trl', ' Way': ' Way', ' Parkway': ' Pkwy',
+  };
+  let streetAddr = rawAddr.split(',')[0].trim().toUpperCase();
+  for (const [full, abbr] of Object.entries(suffixes)) {
+    const u = full.toUpperCase();
+    if (streetAddr.endsWith(u)) { streetAddr = streetAddr.slice(0, -u.length) + abbr.toUpperCase(); break; }
+  }
+
+  status.style.display = 'block';
+  status.style.background = '#fff8e1';
+  status.style.color = '#b45309';
+  status.textContent = 'Saving…';
+
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/properties`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify({ address: streetAddr, bld_sqft: home, lot_sqft: lot })
+  });
+
+  if (res.ok || res.status === 201) {
+    status.style.background = '#e8f5e9';
+    status.style.color = '#2e7d32';
+    status.textContent = `Saved: ${streetAddr} — lot ${lot.toLocaleString()}, home ${home.toLocaleString()} sqft`;
+    document.getElementById('apAddress').value = '';
+    document.getElementById('apHome').value = '';
+    document.getElementById('apLot').value = '';
+  } else {
+    const err = await res.text();
+    status.style.background = '#ffeaea';
+    status.style.color = '#c62828';
+    status.textContent = `Error ${res.status}: ${err}`;
+  }
 }
 
 async function showPayContractors(btn) {
