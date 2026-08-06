@@ -526,6 +526,7 @@ tr.clickable-row { cursor: pointer; }
         <button class="filter-btn" id="payContractorsTab" onclick="showPayContractors(this)" style="margin-left:.25rem;border-color:#6a1b9a;color:#6a1b9a;font-weight:700;">💸 Pay Contractors</button>
         <button class="filter-btn" id="scheduleViewTab" onclick="showContractorSchedule(this)" style="margin-left:.25rem;border-color:#00695c;color:#00695c;font-weight:700;">👷 Schedule View</button>
         <button class="filter-btn" id="reportsTab" onclick="showReports(this)" style="margin-left:.25rem;border-color:#b45309;color:#b45309;font-weight:700;">📊 Reports</button>
+        <button class="filter-btn" id="priceCheckTab" onclick="showPriceCheck(this)" style="margin-left:.25rem;border-color:#0277bd;color:#0277bd;font-weight:700;">🔍 Price Check</button>
       </div>
       <div id="cityFilterRow" style="display:none;padding:.35rem .75rem .5rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:.35rem;align-items:center;"></div>
     </div>
@@ -543,6 +544,8 @@ const NOTIFY_CONTRACTOR_URL     = "https://djigwfatupycyfozivuu.supabase.co/func
 const NOTIFY_PAYMENT_FAILED_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/notify-payment-failed";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
 const ADMIN_PASS = "kike";
+const GOOGLE_API_KEY = "AIzaSyDL_EhUV8nG2f1fDr2i0mKSzNVEkx_osKI";
+const KATY_ZIPS = ["77449","77450","77494","77493"];
 
 // Loaded dynamically from Supabase contractors table
 let CONTRACTORS = [{ id: 0, name: "Unassigned" }];
@@ -1338,6 +1341,166 @@ function downloadReportCSV() {
   a.href         = URL.createObjectURL(blob);
   a.download     = `jobs-${monthVal}.csv`;
   a.click();
+}
+
+// ── Price Check ────────────────────────────────────────────────────────────
+
+function calcAdminPrice(lawn, isKaty = false) {
+  const effective = Math.max(lawn, 4000);
+  if (isKaty) {
+    const base  = Math.min(effective, 4000) * 0.01125;
+    const mid   = Math.max(0, Math.min(effective, 8000) - 4000) * 0.010125;
+    const large = Math.max(0, effective - 8000) * 0.0091125;
+    return Math.round(base + mid + large);
+  }
+  const base = Math.min(effective, 4000) * 0.012;
+  const over = Math.max(0, effective - 4000) * 0.010;
+  return Math.round(base + over);
+}
+
+async function adminLookupProperty(address) {
+  let streetAddr = address.split(',')[0].trim().toUpperCase();
+  const suffixes = {
+    ' STREET': ' ST', ' AVENUE': ' AVE', ' BOULEVARD': ' BLVD',
+    ' DRIVE': ' DR', ' ROAD': ' RD', ' LANE': ' LN',
+    ' COURT': ' CT', ' CIRCLE': ' CIR', ' PLACE': ' PL',
+    ' TRAIL': ' TRL', ' WAY': ' WAY', ' PARKWAY': ' PKWY',
+  };
+  for (const [full, abbr] of Object.entries(suffixes)) {
+    if (streetAddr.endsWith(full)) { streetAddr = streetAddr.slice(0, -full.length) + abbr; break; }
+  }
+  const exactUrl = SUPABASE_URL + "/rest/v1/properties?address=eq." + encodeURIComponent(streetAddr) + "&select=lot_sqft,bld_sqft&limit=1";
+  const parts = streetAddr.split(' ');
+  const fuzzyUrl = SUPABASE_URL + "/rest/v1/properties?address=like." + encodeURIComponent(parts[0] + ' ' + (parts[1] || '') + '%') + "&select=lot_sqft,bld_sqft&limit=1";
+  try {
+    let resp = await fetch(exactUrl, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+    let data = await resp.json();
+    if (data && data.length > 0) return data[0];
+    resp = await fetch(fuzzyUrl, { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY } });
+    data = await resp.json();
+    if (data && data.length > 0) return data[0];
+  } catch(e) {}
+  return null;
+}
+
+async function adminGetZip(placeId) {
+  const cleanId = placeId.replace(/^places\//, '');
+  const res = await fetch(`https://places.googleapis.com/v1/places/${cleanId}`, {
+    headers: { 'X-Goog-Api-Key': GOOGLE_API_KEY, 'X-Goog-FieldMask': 'addressComponents' }
+  });
+  const data = await res.json();
+  if (!data.addressComponents) return null;
+  const z = data.addressComponents.find(c => c.types && (c.types.includes('postal_code') || c.types.includes('postal_code_prefix')));
+  return z ? (z.shortText || z.longText) : null;
+}
+
+let pcDebounce, pcSuggestions = [], pcZip = null;
+
+function showPriceCheck(btn) {
+  document.getElementById('cityFilterRow').style.display = 'none';
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tableTitle').textContent = 'Price Check';
+  document.getElementById('refreshBtn').onclick = () => showPriceCheck(btn);
+
+  document.getElementById('tableContainer').innerHTML = `
+    <div style="max-width:480px;margin:2rem auto;padding:1.5rem;background:var(--white);border:1px solid var(--border);border-radius:14px;">
+      <p style="font-size:.8rem;color:var(--text-lite);margin-bottom:1rem;">Type an address to look up lot size and instant price.</p>
+      <div style="position:relative;">
+        <input id="pcInput" type="text" placeholder="Start typing an address..." autocomplete="off"
+          style="width:100%;padding:.6rem .9rem;border:1px solid var(--border);border-radius:9px;font-size:.9rem;font-family:var(--body);outline:none;"
+          oninput="pcOnInput()" />
+        <div id="pcDropdown" style="display:none;position:absolute;top:100%;left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.1);z-index:99;margin-top:4px;overflow:hidden;"></div>
+      </div>
+      <div id="pcResult" style="margin-top:1.25rem;display:none;"></div>
+    </div>
+  `;
+}
+
+async function pcOnInput() {
+  const val = document.getElementById('pcInput').value.trim();
+  const dd = document.getElementById('pcDropdown');
+  clearTimeout(pcDebounce);
+  if (val.length < 3) { dd.style.display = 'none'; return; }
+  pcDebounce = setTimeout(async () => {
+    const res = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Goog-Api-Key': GOOGLE_API_KEY },
+      body: JSON.stringify({
+        input: val,
+        includedRegionCodes: ['us'],
+        locationRestriction: { rectangle: { low: { latitude: 29.4, longitude: -96.0 }, high: { latitude: 30.2, longitude: -94.8 } } }
+      })
+    });
+    const data = await res.json();
+    pcSuggestions = data.suggestions || [];
+    if (!pcSuggestions.length) { dd.style.display = 'none'; return; }
+    dd.innerHTML = pcSuggestions.map((s, i) => {
+      const text = s.placePrediction?.text?.text || '';
+      return `<div onclick="pcSelect(${i})" style="padding:.55rem .9rem;font-size:.85rem;cursor:pointer;border-bottom:1px solid var(--border);color:var(--dark);" onmouseover="this.style.background='var(--off-white)'" onmouseout="this.style.background=''">${text}</div>`;
+    }).join('');
+    dd.style.display = 'block';
+  }, 280);
+}
+
+async function pcSelect(i) {
+  const s = pcSuggestions[i];
+  const text = s.placePrediction?.text?.text || '';
+  const placeId = s.placePrediction?.placeId || '';
+  document.getElementById('pcInput').value = text;
+  document.getElementById('pcDropdown').style.display = 'none';
+  const result = document.getElementById('pcResult');
+  result.style.display = 'block';
+  result.innerHTML = `<div style="color:var(--text-lite);font-size:.8rem;">Looking up...</div>`;
+
+  const [zip, prop] = await Promise.all([adminGetZip(placeId), adminLookupProperty(text)]);
+  pcZip = zip;
+
+  if (!prop || !prop.lot_sqft) {
+    result.innerHTML = `
+      <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;">
+        <div style="font-size:.8rem;font-weight:700;color:var(--text-lite);margin-bottom:.25rem;">${text}</div>
+        <div style="font-size:.85rem;color:var(--text-mid);">Not found in database — lot/home size unknown.</div>
+        ${zip ? `<div style="font-size:.75rem;color:var(--text-lite);margin-top:.4rem;">ZIP: ${zip}${KATY_ZIPS.includes(zip) ? ' · <strong>Katy rates</strong>' : ''}</div>` : ''}
+      </div>`;
+    return;
+  }
+
+  const lot  = prop.lot_sqft;
+  const home = prop.bld_sqft || 0;
+  const lawn = Math.max(0, lot - home);
+  const isKaty = KATY_ZIPS.includes(zip);
+  const weekly = calcAdminPrice(lawn, isKaty);
+  const biweekly = Math.round(weekly * 1.10);
+
+  result.innerHTML = `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;display:grid;grid-template-columns:1fr 1fr;gap:.6rem;">
+      <div style="grid-column:1/-1;font-size:.8rem;font-weight:700;color:var(--text-lite);margin-bottom:.15rem;">${text}</div>
+      <div style="background:var(--off-white);border-radius:8px;padding:.6rem .75rem;">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-lite);">Lot</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--dark);">${lot.toLocaleString()} sqft</div>
+      </div>
+      <div style="background:var(--off-white);border-radius:8px;padding:.6rem .75rem;">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-lite);">Home</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--dark);">${home.toLocaleString()} sqft</div>
+      </div>
+      <div style="background:var(--off-white);border-radius:8px;padding:.6rem .75rem;">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-lite);">Lawn</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--dark);">${lawn.toLocaleString()} sqft</div>
+      </div>
+      <div style="background:var(--off-white);border-radius:8px;padding:.6rem .75rem;">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-lite);">ZIP${isKaty ? ' · Katy' : ''}</div>
+        <div style="font-size:1rem;font-weight:700;color:var(--dark);">${zip || '—'}</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:8px;padding:.6rem .75rem;">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:#388e3c;">Weekly</div>
+        <div style="font-size:1.2rem;font-weight:800;color:#2e7d32;">$${weekly}</div>
+      </div>
+      <div style="background:#e8f5e9;border-radius:8px;padding:.6rem .75rem;">
+        <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;color:#388e3c;">Biweekly</div>
+        <div style="font-size:1.2rem;font-weight:800;color:#2e7d32;">$${biweekly}</div>
+      </div>
+    </div>`;
 }
 
 async function showPayContractors(btn) {
