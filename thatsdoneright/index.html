@@ -2377,17 +2377,22 @@ async function lookupProperty(address) {
       { headers: { Accept: 'application/json' } }
     );
     const taData = await taRes.json();
+    console.log('[Regrid] typeahead raw:', JSON.stringify(taData).slice(0, 500));
     const feature = taData?.features?.[0];
     const uuid = feature?.properties?.ll_uuid || feature?.properties?.fields?.ll_uuid;
+    console.log('[Regrid] uuid:', uuid);
     if (!uuid) return null;
     const pRes = await fetch(
       `https://app.regrid.com/api/v2/parcels/${uuid}?token=${REGRID_TOKEN}`,
       { headers: { Accept: 'application/json' } }
     );
     const pData = await pRes.json();
-    const fields = pData?.features?.[0]?.properties?.fields || pData?.features?.[0]?.properties || {};
+    console.log('[Regrid] parcel raw:', JSON.stringify(pData).slice(0, 800));
+    const fields = pData?.features?.[0]?.properties?.fields || pData?.features?.[0]?.properties || pData?.properties?.fields || pData?.properties || {};
+    console.log('[Regrid] fields:', JSON.stringify(fields).slice(0, 400));
     const lot  = fields.ll_gissqft || fields.sqft || null;
     const home = fields.ll_bldg_footprint_sqft || fields.area_building || fields.recrdareano || null;
+    console.log('[Regrid] lot:', lot, 'home:', home);
     if (!lot) return null;
     return { lot_sqft: Math.round(lot), bld_sqft: home ? Math.round(home) : 0 };
   } catch(e) { console.error("Regrid lookup error:", e); }
