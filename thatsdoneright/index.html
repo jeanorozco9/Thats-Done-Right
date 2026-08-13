@@ -2343,6 +2343,8 @@ async function selectItem(i) {
   }
 }
 
+const REGRID_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJyZWdyaWQuY29tIiwiaWF0IjoxNzg2NjM1MTMyLCJleHAiOjE3ODkyMjcxMzIsInUiOjg2MzE3MCwiZyI6MjMxNTMsImNhcCI6InBhOnRzOnBzOmJmOm1hOnR5OmVvOnpvOnNiIn0.w5cO0QAplAyOZGvedIna6_d8qL_lWIc92xlG1qJ2B3k";
+
 async function lookupProperty(address) {
   let streetAddr = address.split(',')[0].trim().toUpperCase();
   const suffixes = {
@@ -2367,6 +2369,28 @@ async function lookupProperty(address) {
     data = await resp.json();
     if (data && data.length > 0) return data[0];
   } catch(e) { console.error("Supabase lookup error:", e); }
+
+  // Fallback: Regrid API
+  try {
+    const taRes = await fetch(
+      `https://app.regrid.com/api/v2/parcels/typeahead?token=${REGRID_TOKEN}&query=${encodeURIComponent(address)}`,
+      { headers: { Accept: 'application/json' } }
+    );
+    const taData = await taRes.json();
+    const feature = taData?.features?.[0];
+    const uuid = feature?.properties?.ll_uuid || feature?.properties?.fields?.ll_uuid;
+    if (!uuid) return null;
+    const pRes = await fetch(
+      `https://app.regrid.com/api/v2/parcels/${uuid}?token=${REGRID_TOKEN}`,
+      { headers: { Accept: 'application/json' } }
+    );
+    const pData = await pRes.json();
+    const fields = pData?.features?.[0]?.properties?.fields || pData?.features?.[0]?.properties || {};
+    const lot  = fields.ll_gissqft || fields.sqft || null;
+    const home = fields.ll_bldg_footprint_sqft || fields.area_building || fields.recrdareano || null;
+    if (!lot) return null;
+    return { lot_sqft: Math.round(lot), bld_sqft: home ? Math.round(home) : 0 };
+  } catch(e) { console.error("Regrid lookup error:", e); }
   return null;
 }
 
