@@ -62,7 +62,16 @@
       "Bash(node --check /private/tmp/claude-501/-Users-alfredalbizures-Documents-GitHub-Thats-Done-Right/fad4f615-43eb-43b7-ba0c-90b615b25321/scratchpad/map.js)",
       "Bash(osascript -l JavaScript -e ' *)",
       "Bash(curl -s https://alfredalbizures.com/)",
-      "WebFetch(domain:thatsdoneright.com)"
+      "WebFetch(domain:thatsdoneright.com)",
+      "Bash(ls -la favicon.svg)",
+      "Bash(which qlmanage *)",
+      "Bash(git -C .. log --oneline -4)",
+      "Bash(cp __TRACKED_VAR__/icon-180.png apple-touch-icon.png)",
+      "Bash(cp __TRACKED_VAR__/icon-192.png favicon-192.png)",
+      "Bash(cp __TRACKED_VAR__/icon-512.png favicon-512.png)",
+      "Bash(cp __TRACKED_VAR__/icon-32.png favicon-32.png)",
+      "Bash(cp __TRACKED_VAR__/icon-32.png favicon.ico)",
+      "Bash(grep -n 'quoted rate\\\\|$XX\\\\|personalized rate' thatsdoneright/promo-email.html)"
     ]
   }
 }
