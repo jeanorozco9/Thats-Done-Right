@@ -2292,8 +2292,12 @@ async function getAutocompleteSuggestions(input) {
       includedRegionCodes: ["us"],
       locationRestriction: {
         rectangle: {
-          low:  { latitude: 29.4, longitude: -96.0 },
-          high: { latitude: 30.2, longitude: -94.8 }
+          // Covers Houston metro + Chambers County (Winnie -94.38) + Liberty
+          // County (Cleveland 30.34N, Liberty city -94.79E). The old box
+          // (29.4..30.2, -96.0..-94.8) silently hid autocomplete for Liberty,
+          // Cleveland, Anahuac, Winnie, Stowell, and Hankamer addresses.
+          low:  { latitude: 29.2, longitude: -96.2 },
+          high: { latitude: 30.6, longitude: -94.2 }
         }
       }
     })
