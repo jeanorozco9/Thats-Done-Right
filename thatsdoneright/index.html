@@ -2411,15 +2411,37 @@ async function lookupProperty(address) {
   for (const [full, abbr] of Object.entries(suffixes)) {
     if (streetAddr.endsWith(full)) { streetAddr = streetAddr.slice(0, -full.length) + abbr; break; }
   }
-  const exactUrl = SUPABASE_URL + "/rest/v1/properties?address=eq." + encodeURIComponent(streetAddr) + "&select=lot_sqft,bld_sqft&limit=1";
-  const parts = streetAddr.split(' ');
-  const fuzzyUrl = SUPABASE_URL + "/rest/v1/properties?address=like." + encodeURIComponent(parts[0] + ' ' + (parts[1] || '') + '%') + "&select=lot_sqft,bld_sqft&limit=1";
+  // County rolls store addresses inconsistently: "9706 EL CHACO DR" (abbreviated),
+  // "9926 CEDAR LANDING DRIVE" (spelled out), "605 MINGLEWOOD" (no suffix at all).
+  // Try exact-match variants covering all three before ever falling back to a
+  // prefix search -- an unscoped prefix search with limit 1 returns an arbitrary
+  // neighbor ("9926 CEDAR BRANCH...") and silently prices the wrong house.
+  const sfxSet = ['ST','AVE','BLVD','DR','RD','LN','CT','CIR','PL','TRL','WAY','PKWY','HWY','FWY','EXPY','TER','PASS','BND','LOOP'];
+  const unabbr = { ST:'STREET', AVE:'AVENUE', BLVD:'BOULEVARD', DR:'DRIVE', RD:'ROAD', LN:'LANE',
+                   CT:'COURT', CIR:'CIRCLE', PL:'PLACE', TRL:'TRAIL', PKWY:'PARKWAY', HWY:'HIGHWAY',
+                   TER:'TERRACE', BND:'BEND' };
+  const toks = streetAddr.split(' ');
+  const last = toks[toks.length - 1];
+  const variants = [streetAddr];
+  if (unabbr[last]) variants.push(toks.slice(0, -1).concat(unabbr[last]).join(' '));
+  if (sfxSet.includes(last)) variants.push(toks.slice(0, -1).join(' '));
+  const sbHeaders = { headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY } };
   try {
-    let resp = await fetch(exactUrl, { headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY } });
-    let data = await resp.json();
-    if (data && data.length > 0) return data[0];
-    resp = await fetch(fuzzyUrl, { headers: { "apikey": SUPABASE_KEY, "Authorization": "Bearer " + SUPABASE_KEY } });
-    data = await resp.json();
+    for (const v of variants) {
+      const resp = await fetch(SUPABASE_URL + "/rest/v1/properties?address=eq." + encodeURIComponent(v) + "&select=lot_sqft,bld_sqft&limit=1", sbHeaders);
+      const data = await resp.json();
+      if (data && data.length > 0) return data[0];
+    }
+    // Fuzzy last resort: full street name (minus suffix) as prefix, zip-scoped first.
+    const stem = sfxSet.includes(last) ? toks.slice(0, -1).join(' ') : streetAddr;
+    const fuzzyBase = SUPABASE_URL + "/rest/v1/properties?address=like." + encodeURIComponent(stem + '%') + "&select=lot_sqft,bld_sqft&limit=1";
+    if (typeof currentZip === 'string' && currentZip) {
+      const resp = await fetch(fuzzyBase + "&zip=eq." + encodeURIComponent(currentZip), sbHeaders);
+      const data = await resp.json();
+      if (data && data.length > 0) return data[0];
+    }
+    const resp = await fetch(fuzzyBase, sbHeaders);
+    const data = await resp.json();
     if (data && data.length > 0) return data[0];
   } catch(e) { console.error("Supabase lookup error:", e); }
 
