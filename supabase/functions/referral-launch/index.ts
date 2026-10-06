@@ -21,7 +21,7 @@ const SITE_URL       = Deno.env.get("SITE_URL") ?? "https://thatsdoneright.com";
 const ADMIN_EMAIL    = Deno.env.get("ADMIN_EMAIL") ?? "team@thatsdoneright.com";
 const UNSUB_SECRET   = Deno.env.get('UNSUBSCRIBE_SECRET')!; // signs unsubscribe links so nobody can unsubscribe someone else
 // CAN-SPAM requires a physical postal address in promotional email (street, P.O. box, or private mailbox)
-const BUSINESS_ADDRESS = Deno.env.get("BUSINESS_ADDRESS") ?? "";
+const BUSINESS_ADDRESS = Deno.env.get("BUSINESS_ADDRESS") ?? "2529 Kennings Rd, Crosby, TX 77532";
 const ACTIVE_STATUSES = ["booked", "rescheduled", "completed", "paid", "invoiced"];
 
 const json = (body: unknown, status = 200) =>
