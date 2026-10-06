@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Unsubscribe — That's Done Right</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="/favicon.ico" sizes="32x32"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#B89A64;--gold-dark:#987947;--dark:#263127;--text-mid:#6E7568;--border:#E4D8C5;--display:'Helvetica Neue',Helvetica,Arial,sans-serif;--script:'Pacifico',cursive}
+body{font-family:var(--display);background:linear-gradient(180deg,#FCFAF5 0%,#F6F1E7 100%);color:var(--dark);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px 16px;-webkit-font-smoothing:antialiased}
+.card{background:rgba(255,255,255,0.92);border:1px solid var(--border);border-radius:24px;padding:2.2rem 1.75rem;max-width:420px;width:100%;text-align:center;box-shadow:0 16px 40px rgba(38,49,39,0.08)}
+.logo{font-family:var(--script);font-size:1.6rem;margin-bottom:1.25rem}
+h1{font-size:1.15rem;margin-bottom:.6rem}
+p{font-size:.9rem;color:var(--text-mid);line-height:1.6;margin-bottom:1.4rem;overflow-wrap:anywhere}
+button{font-family:var(--display);font-size:.78rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.9rem 1.6rem;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;cursor:pointer}
+button:disabled{opacity:.6;cursor:default}
+a{color:var(--gold-dark);font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">That's Done Right</div>
+  <div id="ask">
+    <h1>Unsubscribe from promotional emails?</h1>
+    <p>We'll stop sending offers to <strong id="who"></strong>. You'll still get receipts and updates about your lawn service.</p>
+    <button id="btn" onclick="unsubscribe()">Unsubscribe</button>
+  </div>
+  <div id="done" style="display:none;">
+    <h1>You're unsubscribed</h1>
+    <p>You won't get promotional emails from us anymore. Thanks for being a customer!</p>
+    <a href="/">Back to thatsdoneright.com</a>
+  </div>
+  <div id="bad" style="display:none;">
+    <h1>This link isn't valid</h1>
+    <p>Reply to any of our emails or write to team@thatsdoneright.com and we'll unsubscribe you.</p>
+  </div>
+</div>
+<script>
+const FN_URL = "https://djigwfatupycyfozivuu.supabase.co/functions/v1/referral-launch";
+const ANON   = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
+const params = new URLSearchParams(location.search);
+const email = params.get('e') || '';
+const sig   = params.get('s') || '';
+const show = id => ['ask', 'done', 'bad'].forEach(x => document.getElementById(x).style.display = x === id ? 'block' : 'none');
+if (!email || !sig) show('bad'); else document.getElementById('who').textContent = email;
+
+// Requires a click (not automatic on page load) so email link scanners can't unsubscribe people
+async function unsubscribe() {
+  const btn = document.getElementById('btn');
+  btn.disabled = true; btn.textContent = 'Unsubscribing...';
+  try {
+    const res = await fetch(FN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + ANON, apikey: ANON },
+      body: JSON.stringify({ mode: 'unsubscribe', email, sig })
+    });
+    show(res.ok ? 'done' : 'bad');
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Try again';
+  }
+}
+</script>
+</body>
+</html>

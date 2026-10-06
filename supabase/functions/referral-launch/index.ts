@@ -2,7 +2,9 @@
 //   { token, mode: "preview" }                 → who would get it (sends nothing)
 //   { token, mode: "test" }                    → one sample email to ADMIN_EMAIL
 //   { token, mode: "send", confirm: "SEND" }   → emails every current customer once
+//   { mode: "unsubscribe", email, sig }        → opt out of promotional email (from unsubscribe.html)
 // Customers already emailed (leads.referral_launch_sent_at) are skipped, so a re-run never double-sends.
+// Customers who unsubscribed (leads.marketing_unsubscribed_at) are never emailed.
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 
 const corsHeaders = {
@@ -17,6 +19,9 @@ const SUPABASE_URL   = "https://djigwfatupycyfozivuu.supabase.co";
 const SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SITE_URL       = Deno.env.get("SITE_URL") ?? "https://thatsdoneright.com";
 const ADMIN_EMAIL    = Deno.env.get("ADMIN_EMAIL") ?? "team@thatsdoneright.com";
+const UNSUB_SECRET   = Deno.env.get('UNSUBSCRIBE_SECRET')!; // signs unsubscribe links so nobody can unsubscribe someone else
+// CAN-SPAM requires a physical postal address in promotional email (street, P.O. box, or private mailbox)
+const BUSINESS_ADDRESS = Deno.env.get("BUSINESS_ADDRESS") ?? "";
 const ACTIVE_STATUSES = ["booked", "rescheduled", "completed", "paid", "invoiced"];
 
 const json = (body: unknown, status = 200) =>
@@ -38,11 +43,25 @@ async function db(path: string, init: RequestInit = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-async function sendEmail(to: string, subject: string, html: string) {
+async function unsubSig(email: string) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(UNSUB_SECRET), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(email.trim().toLowerCase()));
+  return [...new Uint8Array(mac)].slice(0, 16).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function unsubscribeUrl(email: string) {
+  return `${SITE_URL}/unsubscribe.html?e=${encodeURIComponent(email)}&s=${await unsubSig(email)}`;
+}
+
+async function sendEmail(to: string, subject: string, html: string, unsubUrl: string) {
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { "Authorization": `Bearer ${RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM_EMAIL, to, subject, html }),
+    body: JSON.stringify({
+      from: FROM_EMAIL, to, subject, html,
+      // Lets Gmail/Apple Mail show their built-in "Unsubscribe" button
+      headers: { "List-Unsubscribe": `<${unsubUrl}>, <mailto:${FROM_EMAIL}?subject=unsubscribe>` },
+    }),
   });
   const data = await res.json();
   if (!res.ok || !data.id) throw new Error(`Resend: ${JSON.stringify(data)}`);
@@ -75,7 +94,7 @@ async function ensureReferralCode(leadIds: number[], name: string): Promise<stri
 
 const SUBJECT = "Get $5 off your next mow — refer a neighbor 🎁";
 
-function launchEmail(firstName: string, code: string) {
+function launchEmail(firstName: string, code: string, unsubUrl: string) {
   const link = `${SITE_URL}/?ref=${code}`;
   return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c;">
     <div style="background:#2e7d32;padding:24px 32px;border-radius:12px 12px 0 0;text-align:center;">
@@ -99,6 +118,11 @@ function launchEmail(firstName: string, code: string) {
       <a href="${SITE_URL}/client.html" style="display:inline-block;background:#2e7d32;color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:15px;">See my referral credits →</a>
       <p style="color:#999;font-size:12px;margin:24px 0 0;">That's Done Right · Houston, TX<br/>Questions? Reply to this email anytime.</p>
     </div>
+    <p style="color:#aaa;font-size:11px;line-height:1.6;text-align:center;margin:16px 0 0;">
+      You're receiving this because you're a That's Done Right customer.<br/>
+      ${BUSINESS_ADDRESS ? `That's Done Right · ${BUSINESS_ADDRESS}<br/>` : ""}
+      <a href="${unsubUrl}" style="color:#aaa;">Unsubscribe from promotional emails</a> &mdash; you'll still get your service receipts.
+    </p>
   </div>`;
 }
 
@@ -106,11 +130,24 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { token, mode, confirm } = await req.json();
+    const { token, mode, confirm, email, sig } = await req.json();
+
+    // Public: called from unsubscribe.html. The signature proves the link came from our email.
+    if (mode === "unsubscribe") {
+      if (!email || !sig || sig !== await unsubSig(String(email))) return json({ error: "invalid link" }, 400);
+      const e = String(email).trim().toLowerCase().replace(/[\\%_]/g, (c) => "\\" + c);
+      await db(`leads?email=ilike.${encodeURIComponent(e)}`, {
+        method: "PATCH",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({ marketing_unsubscribed_at: new Date().toISOString() }),
+      });
+      return json({ ok: true });
+    }
+
     if (!LAUNCH_TOKEN || token !== LAUNCH_TOKEN) return json({ error: "forbidden" }, 403);
 
     // Current customers, grouped by email (one customer can have several leads)
-    const leads = await db(`leads?select=id,name,email,status,referral_code,referral_launch_sent_at&email=not.is.null&order=id.asc`);
+    const leads = await db(`leads?select=id,name,email,status,referral_code,referral_launch_sent_at,marketing_unsubscribed_at&email=not.is.null&order=id.asc`);
     const byEmail = new Map<string, any[]>();
     for (const l of leads) {
       const key = String(l.email).trim().toLowerCase();
@@ -120,6 +157,7 @@ serve(async (req) => {
     }
     const recipients = [...byEmail.entries()]
       .filter(([, ls]) => ls.some((l) => ACTIVE_STATUSES.includes(l.status)))
+      .filter(([, ls]) => !ls.some((l) => l.marketing_unsubscribed_at))
       .map(([email, ls]) => ({
         email,
         name: (ls.find((l) => ACTIVE_STATUSES.includes(l.status)) ?? ls[0]).name ?? "",
@@ -137,18 +175,21 @@ serve(async (req) => {
     }
 
     if (mode === "test") {
-      const id = await sendEmail(ADMIN_EMAIL, `[TEST] ${SUBJECT}`, launchEmail("Maria", "MARIA4F2K"));
+      const unsub = await unsubscribeUrl("test@example.com");
+      const id = await sendEmail(ADMIN_EMAIL, `[TEST] ${SUBJECT}`, launchEmail("Maria", "MARIA4F2K", unsub), unsub);
       return json({ ok: true, sent_test_to: ADMIN_EMAIL, resend_id: id });
     }
 
     if (mode === "send" && confirm === "SEND") {
+      if (!BUSINESS_ADDRESS) return json({ error: "Set BUSINESS_ADDRESS first — promotional email needs a postal address" }, 400);
       const sent: string[] = [];
       const failed: { email: string; error: string }[] = [];
       for (const r of toSend) {
         try {
           const code = await ensureReferralCode(r.leadIds, r.name);
           if (!code) throw new Error("no referral code");
-          await sendEmail(r.email, SUBJECT, launchEmail(String(r.name).split(" ")[0] || "there", code));
+          const unsub = await unsubscribeUrl(r.email);
+          await sendEmail(r.email, SUBJECT, launchEmail(String(r.name).split(" ")[0] || "there", code, unsub), unsub);
           await db(`leads?id=in.(${r.leadIds.join(",")})`, {
             method: "PATCH",
             body: JSON.stringify({ referral_launch_sent_at: new Date().toISOString() }),
