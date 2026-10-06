@@ -130,6 +130,13 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
 .price-change-note{display:inline-block;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:.3rem .7rem;font-size:.78rem;color:#f57f17;margin-top:.5rem}
 
 /* Refer a friend */
+.drawer-new{margin-left:auto;font-size:.55rem;font-weight:700;letter-spacing:1px;background:var(--gold);color:#fff;padding:.15rem .45rem;border-radius:100px}
+.ref-banner{display:none;align-items:center;gap:.9rem;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;border-radius:18px;padding:.85rem 1rem .85rem 1.2rem;margin-bottom:1rem;box-shadow:var(--shadow)}
+.ref-banner-text{flex:1;font-size:.86rem;line-height:1.45}
+.ref-banner-text strong{font-weight:700}
+.ref-banner-cta{font-family:var(--display);font-size:.7rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:#fff;color:var(--gold-dark);border:none;border-radius:10px;padding:.6rem .9rem;cursor:pointer;white-space:nowrap}
+.ref-banner-x{background:none;border:none;color:rgba(255,255,255,0.8);font-size:1rem;cursor:pointer;padding:.2rem .3rem}
+.ref-print{display:inline-block;margin-top:.6rem;font-size:.78rem;color:var(--gold-dark);font-weight:600}
 .ref-card{background:linear-gradient(180deg,#FBF5E9 0%,#F6EEDF 100%);border:1px solid rgba(184,154,100,0.45);border-radius:22px;padding:1.4rem 1.5rem;box-shadow:var(--shadow)}
 .ref-head{font-family:var(--display);font-size:1.05rem;font-weight:700;color:var(--dark);margin-bottom:.35rem}
 .ref-sub{font-size:.85rem;color:var(--text-mid);line-height:1.55;margin-bottom:1rem}
@@ -315,6 +322,9 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
       <button class="drawer-item" onclick="drawerGo('payment')">
         <span class="drawer-icon">💳</span> Payment Method
       </button>
+      <button class="drawer-item" onclick="drawerGo('refer')">
+        <span class="drawer-icon">🎁</span> Refer &amp; Earn $5 <span class="drawer-new">New</span>
+      </button>
       <a class="drawer-item" href="index.html#faq" target="_blank">
         <span class="drawer-icon">❓</span> Questions
       </a>
@@ -433,6 +443,11 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
   </div>
 
   <div class="content">
+    <div class="ref-banner" id="refBanner">
+      <div class="ref-banner-text"><strong>New: Refer a friend, get $5 off.</strong> Every friend whose first mow is paid takes $5 off your next bill.</div>
+      <button class="ref-banner-cta" onclick="drawerGo('refer')">Get my link</button>
+      <button class="ref-banner-x" onclick="dismissReferralBanner()" aria-label="Dismiss">✕</button>
+    </div>
     <div class="section-title" id="scheduleSection">Next Appointment</div>
     <div id="nextAppt"><div class="empty"><span class="spinner"></span> Loading...</div></div>
 
@@ -453,7 +468,7 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
         <div class="ref-sub">Share your link. When a friend books and pays for their first mow, you get <strong>$5 off your next bill</strong>. No limit &mdash; every friend counts.</div>
         <div class="ref-link-row">
           <div class="ref-link" id="refLink"></div>
-          <button class="ref-btn" id="refCopyBtn" onclick="copyReferralLink()">Copy</button>
+          <button class="ref-btn" id="refCopyBtn" onclick="copyReferralLink(this)">Copy</button>
           <button class="ref-btn primary" onclick="shareReferralLink()">Share</button>
         </div>
         <div class="ref-stats">
@@ -462,11 +477,26 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
           <div class="ref-stat"><div class="ref-stat-val" id="refTotal">$0</div><div class="ref-stat-label">Total earned</div></div>
         </div>
         <div class="ref-note" id="refNote">Credit comes off your next bill automatically, after tax.</div>
+        <a class="ref-print" id="refPrintLink" href="#" target="_blank">🖨️ Print cards to hand to neighbors</a>
       </div>
     </div>
 
     <div class="section-title">Service History</div>
     <div id="historyList"><div class="empty"><span class="spinner"></span> Loading...</div></div>
+  </div>
+</div>
+
+<!-- Post-review share prompt -->
+<div class="modal-overlay" id="refShareModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-card">
+    <div class="modal-icon">🌿</div>
+    <div class="modal-title">Glad you loved it!</div>
+    <div class="modal-body">Know a neighbor who'd like a lawn this good? Share your link &mdash; you get <strong>$5 off your next bill</strong> for every friend whose first mow is paid.</div>
+    <div style="display:flex;gap:.5rem;justify-content:center;">
+      <button class="ref-btn" onclick="copyReferralLink(this)">Copy link</button>
+      <button class="ref-btn primary" onclick="shareReferralLink()">Share</button>
+    </div>
+    <button onclick="document.getElementById('refShareModal').classList.remove('open')" style="margin-top:1rem;background:none;border:none;color:var(--text-lite);font-size:.8rem;cursor:pointer;">Maybe later</button>
   </div>
 </div>
 
@@ -1151,6 +1181,9 @@ async function submitRating(leadId, rating, contractorId) {
     if (s) { s.onclick = null; s.onmouseover = null; s.onmouseout = null; s.classList.toggle('lit', i <= rating); }
   }
   document.getElementById(`rateThanks-${leadId}`).style.display = 'block';
+  if (rating >= 4 && referralUrl) {
+    setTimeout(() => document.getElementById('refShareModal').classList.add('open'), 700);
+  }
 
   const payload = { lead_id: leadId, rating };
   if (contractorId) payload.contractor_id = contractorId;
@@ -1182,6 +1215,10 @@ function drawerGo(section) {
     document.getElementById('planBanner').scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else if (section === 'payment') {
     openPaymentModal();
+  } else if (section === 'refer') {
+    const el = document.getElementById('referSection');
+    if (el.style.display === 'none') el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 }
 
@@ -1627,15 +1664,27 @@ async function loadReferralCard() {
       document.getElementById('refNote').textContent =
         `${data.pending} friend${data.pending === 1 ? ' is' : 's are'} waiting on a first mow — your $5 unlocks once it's paid. Credit comes off your next bill automatically, after tax.`;
     }
+    document.getElementById('refPrintLink').href = `referral-cards.html?code=${encodeURIComponent(data.code)}`;
     document.getElementById('referSection').style.display = 'block';
+    let hideBanner = data.signed_up > 0;
+    try { hideBanner = hideBanner || !!localStorage.getItem('tdr_ref_banner_off'); } catch (e) {}
+    if (!hideBanner) document.getElementById('refBanner').style.display = 'flex';
   } catch (e) {
     console.error('Referral info error:', e);
   }
 }
 
-async function copyReferralLink() {
+// Banner goes away once they've shared or closed it
+function dismissReferralBanner() {
+  document.getElementById('refBanner').style.display = 'none';
+  try { localStorage.setItem('tdr_ref_banner_off', '1'); } catch (e) {}
+}
+
+async function copyReferralLink(btn) {
   if (!referralUrl) return;
-  const btn = document.getElementById('refCopyBtn');
+  btn = btn || document.getElementById('refCopyBtn');
+  const label = btn.textContent;
+  dismissReferralBanner();
   try {
     await navigator.clipboard.writeText(referralUrl);
   } catch (e) {
@@ -1645,11 +1694,12 @@ async function copyReferralLink() {
     t.remove();
   }
   btn.textContent = 'Copied!';
-  setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+  setTimeout(() => { btn.textContent = label; }, 1800);
 }
 
 async function shareReferralLink() {
   if (!referralUrl) return;
+  dismissReferralBanner();
   const text = "I use That's Done Right for my lawn — get an instant price here:";
   if (navigator.share) {
     try { await navigator.share({ title: "That's Done Right", text, url: referralUrl }); } catch (e) {}

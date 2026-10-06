@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Referral Cards — That's Done Right</title>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="/favicon.ico" sizes="32x32"/>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#7A8B67;--gold:#B89A64;--gold-dark:#987947;--dark:#263127;--text-mid:#6E7568;--border:#E4D8C5;
+  --display:'Helvetica Neue',Helvetica,Arial,sans-serif;--script:'Pacifico',cursive;
+}
+body{font-family:var(--display);background:#F6F1E7;color:var(--dark);-webkit-font-smoothing:antialiased}
+.toolbar{max-width:8.5in;margin:0 auto;padding:24px 16px 8px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.toolbar h1{font-size:1.1rem}
+.toolbar p{font-size:.85rem;color:var(--text-mid);margin-top:4px}
+.print-btn{font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.8rem 1.4rem;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:#fff;cursor:pointer}
+.error{max-width:8.5in;margin:40px auto;padding:0 16px;color:var(--text-mid)}
+
+/* Letter sheet: 2 × 5 standard 3.5" × 2" business cards */
+.sheet{width:8.5in;margin:16px auto 40px;background:#fff;padding:.5in .75in;display:grid;grid-template-columns:repeat(2,3.5in);grid-auto-rows:2in;box-shadow:0 16px 40px rgba(38,49,39,0.08)}
+.card{border:1px dashed #d9cdb8;padding:.16in .18in;display:flex;gap:.14in;align-items:center;overflow:hidden}
+.card-text{flex:1;min-width:0}
+.card-logo{font-family:var(--script);font-size:15px;color:var(--dark);line-height:1.2}
+.card-tag{font-size:7.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold-dark);margin:2px 0 8px}
+.card-head{font-size:12.5px;font-weight:700;line-height:1.25;margin-bottom:4px}
+.card-sub{font-size:9px;color:var(--text-mid);line-height:1.4}
+.card-url{font-size:8px;font-weight:700;color:var(--dark);margin-top:7px;word-break:break-all}
+.card-qr{width:1.1in;height:1.1in;flex-shrink:0}
+.card-qr img,.card-qr canvas{width:100%!important;height:100%!important}
+
+@media screen and (max-width:8.6in){
+  .sheet{width:auto;margin:16px;padding:12px;grid-template-columns:minmax(0,3.5in);justify-content:center;grid-auto-rows:auto}
+  .card{min-height:2in}
+}
+@media screen and (max-width:380px){
+  .card{gap:.1in;padding:.14in}
+  .card-qr{width:.85in;height:.85in}
+}
+@media print{
+  @page{size:letter;margin:0}
+  body{background:#fff}
+  .toolbar{display:none}
+  .sheet{margin:0;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <div>
+    <h1>Your neighbor cards</h1>
+    <p>Print on card stock and cut along the dashed lines. Every friend who scans your code and gets their first mow earns you $5 off.</p>
+  </div>
+  <button class="print-btn" onclick="window.print()">Print</button>
+</div>
+<div id="sheet" class="sheet"></div>
+
+<script>
+(function () {
+  const code = (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 16);
+  const sheet = document.getElementById('sheet');
+  if (!code) {
+    sheet.outerHTML = '<p class="error">This link is missing a referral code. Open it from the Refer a Friend card in your account.</p>';
+    return;
+  }
+  const url = 'https://thatsdoneright.com/?ref=' + code;
+  for (let i = 0; i < 10; i++) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="card-text">' +
+        '<div class="card-logo">That\'s Done Right</div>' +
+        '<div class="card-tag">Lawn Service · Houston</div>' +
+        '<div class="card-head">Your neighbor recommends us</div>' +
+        '<div class="card-sub">Scan for an instant price. No contracts, pay after the mow.</div>' +
+        '<div class="card-url">thatsdoneright.com/?ref=' + code + '</div>' +
+      '</div>' +
+      '<div class="card-qr"></div>';
+    sheet.appendChild(card);
+    new QRCode(card.querySelector('.card-qr'), { text: url, width: 220, height: 220, colorDark: '#263127', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+  }
+})();
+</script>
+</body>
+</html>

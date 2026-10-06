@@ -928,6 +928,32 @@ input:disabled {
 }
 
 /* How it works */
+.refer-strip {
+  max-width: 960px;
+  margin: 0 auto 1rem;
+  padding: 0 1.5rem;
+}
+.refer-strip-inner {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  background: linear-gradient(180deg, #FBF5E9 0%, #F3E8D6 100%);
+  border: 1px solid rgba(184,154,100,0.35);
+  border-radius: var(--radius-lg);
+  padding: 1.4rem 1.6rem;
+  box-shadow: var(--shadow);
+}
+.refer-strip-icon { font-size: 2rem; }
+.refer-strip-text { flex: 1 1 280px; text-align: left; }
+.refer-strip-title { font-family: var(--display); font-size: 1.05rem; font-weight: 700; color: var(--dark); margin-bottom: .25rem; }
+.refer-strip-sub { font-size: .9rem; color: var(--text-mid); line-height: 1.55; }
+.refer-strip-cta {
+  font-family: var(--display); font-size: .75rem; font-weight: 700; letter-spacing: .5px; text-transform: uppercase;
+  padding: .85rem 1.4rem; border-radius: 12px; text-decoration: none; white-space: nowrap; color: var(--white);
+  background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+}
+
 .how-section {
   padding: 3.25rem 1.5rem 2.5rem;
   max-width: 960px;
@@ -2066,6 +2092,18 @@ footer {
         <h3 class="step-title">Pay After Service</h3>
         <p class="step-desc">You'll receive an email with a secure link to pay by credit card — only after the job is done.</p>
       </div>
+    </div>
+  </section>
+
+  <!-- Refer a friend -->
+  <section class="refer-strip" aria-label="Refer a friend">
+    <div class="refer-strip-inner">
+      <div class="refer-strip-icon" aria-hidden="true">🎁</div>
+      <div class="refer-strip-text">
+        <div class="refer-strip-title">Already a customer? Refer a neighbor, get $5 off.</div>
+        <div class="refer-strip-sub">Share your personal link from your account. Every friend whose first mow is paid takes $5 off your next bill &mdash; no limit.</div>
+      </div>
+      <a class="refer-strip-cta" href="/client.html">Get my link →</a>
     </div>
   </section>
 

@@ -152,6 +152,39 @@ async function settlePendingReferrals(myLeadIds: number[]) {
   }
 }
 
+// The customer's share code, creating one if they don't have it yet (same format as the portal:
+// first name + 4 characters, stored on their oldest lead). Lets every receipt carry their link.
+async function ensureReferralCode(myLeadIds: number[], name: string): Promise<string | null> {
+  const ids = myLeadIds.join(",");
+  const [existing] = await db(`leads?id=in.(${ids})&referral_code=not.is.null&select=referral_code&order=id.asc&limit=1`);
+  if (existing) return existing.referral_code;
+  const ownerId = Math.min(...myLeadIds);
+  const first = String(name ?? "").split(" ")[0].replace(/[^A-Za-z]/g, "").toUpperCase().slice(0, 8) || "TDR";
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const candidate = first + crypto.randomUUID().replace(/-/g, "").slice(0, 4).toUpperCase();
+    try {
+      const rows = await db(`leads?id=eq.${ownerId}&referral_code=is.null&select=referral_code`, {
+        method: "PATCH",
+        body: JSON.stringify({ referral_code: candidate }),
+      });
+      if (rows.length) return candidate;
+      const [fresh] = await db(`leads?id=eq.${ownerId}&select=referral_code`);
+      return fresh?.referral_code ?? null;
+    } catch (_) {
+      // code taken by another customer (unique index) — try another
+    }
+  }
+  return null;
+}
+
+const referralPromo = (code: string | null) => code
+  ? `<div style="background:#FBF5E9;border:1px solid #e8dcc4;border-radius:8px;padding:16px 20px;margin-bottom:24px;text-align:center;">
+       <p style="margin:0 0 6px;font-size:15px;font-weight:bold;color:#1c1c1c;">🎁 Give a neighbor a great lawn — get $5 off</p>
+       <p style="margin:0 0 12px;font-size:13px;color:#666;line-height:1.5;">Share your link. Every friend whose first mow is paid takes $5 off your next bill — no limit.</p>
+       <a href="${SITE_URL}/?ref=${code}" style="font-size:14px;font-weight:bold;color:#2e7d32;">thatsdoneright.com/?ref=${code}</a>
+     </div>`
+  : "";
+
 // Take earned $5 credits off this bill (after tax) by crediting the Stripe customer balance,
 // which Stripe applies to the invoice total when it's finalized. Must run before finalize.
 // Credits that don't fit this bill stay earned for the next one.
@@ -403,6 +436,13 @@ serve(async (req) => {
       }
     }
 
+    let myReferralCode: string | null = null;
+    try {
+      myReferralCode = await ensureReferralCode(myLeadIds, lead.name);
+    } catch (e) {
+      console.error("Referral code failed:", e);
+    }
+
     // ── EMAILS ──
     if (autoCharged) {
       await sendEmail(
@@ -426,6 +466,7 @@ serve(async (req) => {
               ${creditRow("margin:0 0 4px;")}
               <p style="margin:0;font-weight:bold;"><strong>Total charged:</strong> $${totalWithTax}</p>
             </div>
+            ${referralPromo(myReferralCode)}
             <p style="color:#999;font-size:12px;margin:0;">That's Done Right · Houston, TX<br/>Questions? Reply to this email anytime.</p>
           </div>
         </div>`
@@ -477,6 +518,7 @@ serve(async (req) => {
             <div style="margin-bottom:24px;">
               <a href="${paymentLink}" style="display:inline-block;background:#2e7d32;color:#fff;text-decoration:none;padding:14px 36px;border-radius:8px;font-weight:bold;font-size:16px;">Pay $${totalWithTax} Now →</a>
             </div>
+            ${referralPromo(myReferralCode)}
             <p style="color:#999;font-size:12px;margin:0;">Payment due within 3 days.<br/>Questions? Reply to this email anytime.<br/>That's Done Right · Houston, TX</p>
           </div>
         </div>`
