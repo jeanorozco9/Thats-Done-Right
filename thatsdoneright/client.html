@@ -129,6 +129,20 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
 .action-toast{display:none;margin-top:.65rem;padding:.65rem .9rem;border-radius:12px;font-size:.82rem;text-align:center;font-weight:600;line-height:1.4;}
 .price-change-note{display:inline-block;background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:.3rem .7rem;font-size:.78rem;color:#f57f17;margin-top:.5rem}
 
+/* Refer a friend */
+.ref-card{background:linear-gradient(180deg,#FBF5E9 0%,#F6EEDF 100%);border:1px solid rgba(184,154,100,0.45);border-radius:22px;padding:1.4rem 1.5rem;box-shadow:var(--shadow)}
+.ref-head{font-family:var(--display);font-size:1.05rem;font-weight:700;color:var(--dark);margin-bottom:.35rem}
+.ref-sub{font-size:.85rem;color:var(--text-mid);line-height:1.55;margin-bottom:1rem}
+.ref-link-row{display:flex;gap:.5rem;flex-wrap:wrap}
+.ref-link{flex:1 1 220px;min-width:0;font-family:var(--display);font-size:.85rem;color:var(--dark);background:var(--white);border:1px solid var(--border);border-radius:12px;padding:.7rem .9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ref-btn{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:.7rem 1.1rem;border-radius:12px;border:1px solid var(--gold-dark);background:var(--white);color:var(--gold-dark);cursor:pointer;white-space:nowrap}
+.ref-btn.primary{background:linear-gradient(135deg,var(--gold) 0%,var(--gold-dark) 100%);color:var(--white);border-color:transparent}
+.ref-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-top:1rem}
+.ref-stat{background:rgba(255,255,255,0.75);border:1px solid rgba(228,216,197,0.9);border-radius:14px;padding:.7rem .8rem;text-align:center}
+.ref-stat-val{font-family:var(--display);font-size:1.15rem;font-weight:700;color:var(--gold-dark)}
+.ref-stat-label{font-family:var(--display);font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-lite);margin-top:2px}
+.ref-note{font-size:.75rem;color:var(--text-lite);margin-top:.8rem}
+
 /* Current bill */
 .bill-card{background:rgba(255,255,255,0.9);border:1px solid rgba(184,154,100,0.45);border-radius:22px;padding:1.3rem 1.5rem;margin-bottom:.85rem;box-shadow:var(--shadow)}
 .bill-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.75rem}
@@ -430,6 +444,25 @@ nav:not(.drawer-nav){background:rgba(252,250,245,0.76);backdrop-filter:blur(18px
     <div id="billSection" style="display:none;">
       <div class="section-title">Current Bill</div>
       <div id="billList"></div>
+    </div>
+
+    <div id="referSection" style="display:none;">
+      <div class="section-title">Refer a Friend</div>
+      <div class="ref-card">
+        <div class="ref-head">Give a friend a great lawn &mdash; get $5 off</div>
+        <div class="ref-sub">Share your link. When a friend books and pays for their first mow, you get <strong>$5 off your next bill</strong>. No limit &mdash; every friend counts.</div>
+        <div class="ref-link-row">
+          <div class="ref-link" id="refLink"></div>
+          <button class="ref-btn" id="refCopyBtn" onclick="copyReferralLink()">Copy</button>
+          <button class="ref-btn primary" onclick="shareReferralLink()">Share</button>
+        </div>
+        <div class="ref-stats">
+          <div class="ref-stat"><div class="ref-stat-val" id="refSignedUp">0</div><div class="ref-stat-label">Friends joined</div></div>
+          <div class="ref-stat"><div class="ref-stat-val" id="refAvailable">$0</div><div class="ref-stat-label">Credit ready</div></div>
+          <div class="ref-stat"><div class="ref-stat-val" id="refTotal">$0</div><div class="ref-stat-label">Total earned</div></div>
+        </div>
+        <div class="ref-note" id="refNote">Credit comes off your next bill automatically, after tax.</div>
+      </div>
     </div>
 
     <div class="section-title">Service History</div>
@@ -737,6 +770,7 @@ async function loadClientDashboard(email) {
 
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
+    loadReferralCard();
 
     const firstName = (leads[0].name || '').split(' ')[0];
     document.getElementById('clientFirstName').textContent = firstName;
@@ -1572,6 +1606,55 @@ async function confirmCancelMembership() {
   } catch(e) {
     console.error('Cancel error:', e);
     alert('Something went wrong. Please contact us at team@thatsdoneright.com');
+  }
+}
+
+// ── Refer a friend ──
+const REFERRAL_BASE_URL = 'https://thatsdoneright.com/?ref=';
+let referralUrl = null;
+
+async function loadReferralCard() {
+  try {
+    const { data, error } = await sb.rpc('get_my_referral_info');
+    if (error || !data || !data.code) return;
+    referralUrl = REFERRAL_BASE_URL + data.code;
+    const dollars = c => '$' + (c % 100 ? (c / 100).toFixed(2) : c / 100);
+    document.getElementById('refLink').textContent      = referralUrl.replace('https://', '');
+    document.getElementById('refSignedUp').textContent  = data.signed_up;
+    document.getElementById('refAvailable').textContent = dollars(data.available_cents);
+    document.getElementById('refTotal').textContent     = dollars(data.available_cents + data.applied_cents);
+    if (data.pending > 0) {
+      document.getElementById('refNote').textContent =
+        `${data.pending} friend${data.pending === 1 ? ' is' : 's are'} waiting on a first mow — your $5 unlocks once it's paid. Credit comes off your next bill automatically, after tax.`;
+    }
+    document.getElementById('referSection').style.display = 'block';
+  } catch (e) {
+    console.error('Referral info error:', e);
+  }
+}
+
+async function copyReferralLink() {
+  if (!referralUrl) return;
+  const btn = document.getElementById('refCopyBtn');
+  try {
+    await navigator.clipboard.writeText(referralUrl);
+  } catch (e) {
+    const t = document.createElement('textarea');
+    t.value = referralUrl; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch (_) {}
+    t.remove();
+  }
+  btn.textContent = 'Copied!';
+  setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+}
+
+async function shareReferralLink() {
+  if (!referralUrl) return;
+  const text = "I use That's Done Right for my lawn — get an instant price here:";
+  if (navigator.share) {
+    try { await navigator.share({ title: "That's Done Right", text, url: referralUrl }); } catch (e) {}
+  } else {
+    window.location.href = 'sms:?&body=' + encodeURIComponent(text + ' ' + referralUrl);
   }
 }
 

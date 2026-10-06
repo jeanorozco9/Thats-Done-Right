@@ -13,6 +13,10 @@ const SUPABASE_URL    = "https://djigwfatupycyfozivuu.supabase.co";
 const SUPABASE_KEY    = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRqaWd3ZmF0dXB5Y3lmb3ppdnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwODY2ODEsImV4cCI6MjA4ODY2MjY4MX0.0uXHYTscK4VlX5pFcdR-mfmdMEyoxJocsT_xyAbls4M";
 const SITE_URL        = Deno.env.get("SITE_URL") ?? "https://thatsdoneright.com";
 const ADMIN_EMAIL     = Deno.env.get("ADMIN_EMAIL") ?? "team@thatsdoneright.com";
+// Service-role key is provided automatically to edge functions. Used only for the referrals
+// table, which is locked down so the public site key can't touch credits.
+const SERVICE_KEY     = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const STRIPE_MIN_CHARGE_CENTS = 50; // Stripe can't charge less than $0.50 — a bill is either fully covered or ≥ this
 
 async function stripePost(endpoint: string, params: Record<string, string>) {
   const res = await fetch(`https://api.stripe.com/v1/${endpoint}`, {
@@ -37,6 +41,156 @@ async function sendEmail(to: string, subject: string, html: string) {
   });
   const data = await res.json();
   console.log("Resend response:", JSON.stringify(data));
+}
+
+const money = (cents: number) => (cents / 100).toFixed(2);
+
+// ── REFERRALS ──
+// A customer shares thatsdoneright.com/?ref=CODE. When the friend's first mow is paid, the
+// referrer earns $5 (referrals.status pending → earned), which comes off their next bill after
+// tax via the Stripe customer credit balance (earned → applied).
+
+async function db(path: string, init: RequestInit = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...init,
+    headers: {
+      apikey: SERVICE_KEY,
+      Authorization: `Bearer ${SERVICE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+      ...(init.headers ?? {}),
+    },
+  });
+  if (!res.ok) throw new Error(`db ${init.method ?? "GET"} ${path}: ${res.status} ${await res.text()}`);
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+const normEmail = (e: unknown) => String(e ?? "").trim().toLowerCase();
+const normAddr  = (a: unknown) => String(a ?? "").split(",")[0].toLowerCase()
+  .replace(/\b(street|st|drive|dr|lane|ln|road|rd|avenue|ave|court|ct|circle|cir|boulevard|blvd|way|wy|trail|trl|place|pl)\b/g, "")
+  .replace(/[^a-z0-9]/g, "");
+const likeEscape = (s: string) => s.replace(/[\\%_]/g, (c) => "\\" + c);
+
+// All lead ids belonging to the same customer (one email can have several leads)
+async function customerLeadIds(email: string): Promise<number[]> {
+  const rows = await db(`leads?email=ilike.${encodeURIComponent(likeEscape(normEmail(email)))}&select=id`);
+  return rows.map((r: { id: number }) => r.id);
+}
+
+// Record the referral the first time a referred customer is invoiced. Only brand-new customers
+// count, and never the referrer's own email or address.
+async function registerReferral(lead: any, myLeadIds: number[]) {
+  const code = String(lead.referred_by_code ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (!code) return;
+  const existing = await db(`referrals?referred_lead_id=in.(${myLeadIds.join(",")})&select=id`);
+  if (existing.length) return;
+  const prior = await db(`invoices?lead_id=in.(${myLeadIds.join(",")})&select=id&limit=1`);
+  if (prior.length) return;
+
+  const [referrer] = await db(`leads?referral_code=ilike.${code}&select=id,email,address&limit=1`);
+  if (!referrer) return;
+  if (normEmail(referrer.email) === normEmail(lead.email) || normAddr(referrer.address) === normAddr(lead.address)) {
+    console.log("Referral rejected (same email/address):", code, lead.id);
+    return;
+  }
+  await db("referrals", {
+    method: "POST",
+    body: JSON.stringify({ referrer_lead_id: referrer.id, referred_lead_id: lead.id }),
+  });
+  console.log("Referral registered:", code, "→ lead", lead.id);
+}
+
+// pending → earned, then tell the referrer. Filtered on status so it only ever fires once.
+async function earnReferral(referralId: number, friendName: string) {
+  const rows = await db(`referrals?id=eq.${referralId}&status=eq.pending&select=referrer_lead_id,reward_cents`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "earned", earned_at: new Date().toISOString() }),
+  });
+  if (!rows.length) return;
+  const [referrer] = await db(`leads?id=eq.${rows[0].referrer_lead_id}&select=name,email`);
+  if (!referrer?.email) return;
+  const friend = String(friendName ?? "").split(" ")[0] || "Your friend";
+  await sendEmail(
+    referrer.email,
+    `You just earned $${money(rows[0].reward_cents)} off your next mow 🎉`,
+    `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c;">
+      <div style="background:#2e7d32;padding:24px 32px;border-radius:12px 12px 0 0;text-align:center;">
+        <h1 style="color:#fff;margin:0;font-size:28px;">That's Done Right</h1>
+        <p style="color:rgba(255,255,255,0.7);margin:4px 0 0;font-size:13px;letter-spacing:2px;text-transform:uppercase;">Lawn Service · Houston, TX</p>
+      </div>
+      <div style="background:#fff;padding:32px;border:1px solid #e8e2dc;border-top:none;border-radius:0 0 12px 12px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+        <h2 style="margin:0 0 8px;font-size:22px;">Thanks for the referral, ${String(referrer.name ?? "").split(" ")[0] || "neighbor"}!</h2>
+        <p style="color:#666;margin:0 0 24px;line-height:1.6;">${friend} just had their first mow with us.<br/><strong>$${money(rows[0].reward_cents)}</strong> will come off your next bill automatically.</p>
+        <a href="${SITE_URL}/client.html" style="display:inline-block;background:#2e7d32;color:#fff;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:bold;font-size:15px;">Refer another friend →</a>
+        <p style="color:#999;font-size:12px;margin:24px 0 0;">No limit — every friend whose first mow is paid earns you another $5.</p>
+      </div>
+    </div>`
+  );
+}
+
+// Pay-by-link invoices get paid later on Stripe's page, so before billing anyone, check whether
+// any pending referral involving this customer has a paid invoice by now.
+async function settlePendingReferrals(myLeadIds: number[]) {
+  const ids = myLeadIds.join(",");
+  const pending = await db(
+    `referrals?status=eq.pending&or=(referrer_lead_id.in.(${ids}),referred_lead_id.in.(${ids}))&select=id,referred_lead_id`
+  );
+  for (const ref of pending) {
+    const invs = await db(`invoices?lead_id=eq.${ref.referred_lead_id}&stripe_invoice_id=not.is.null&select=stripe_invoice_id,status&order=id.asc&limit=10`);
+    for (const inv of invs) {
+      const paid = inv.status === "paid" || (await fetch(`https://api.stripe.com/v1/invoices/${inv.stripe_invoice_id}`, {
+        headers: { Authorization: `Bearer ${STRIPE_SECRET}` },
+      }).then((r) => r.json())).status === "paid";
+      if (paid) {
+        const [friend] = await db(`leads?id=eq.${ref.referred_lead_id}&select=name`);
+        await earnReferral(ref.id, friend?.name);
+        break;
+      }
+    }
+  }
+}
+
+// Take earned $5 credits off this bill (after tax) by crediting the Stripe customer balance,
+// which Stripe applies to the invoice total when it's finalized. Must run before finalize.
+// Credits that don't fit this bill stay earned for the next one.
+async function applyReferralCredits(myLeadIds: number[], customerId: string, invoiceId: string, totalCents: number) {
+  const earned = await db(
+    `referrals?referrer_lead_id=in.(${myLeadIds.join(",")})&status=eq.earned&select=id,reward_cents&order=earned_at.asc`
+  );
+  const pick: number[] = [];
+  let sum = 0;
+  for (const r of earned) {
+    const left = totalCents - (sum + r.reward_cents);
+    if (left === 0 || left >= STRIPE_MIN_CHARGE_CENTS) { pick.push(r.id); sum += r.reward_cents; }
+  }
+  if (!pick.length) return 0;
+
+  // Claim atomically — status filter means a credit can't be spent on two bills
+  const claimed = await db(`referrals?id=in.(${pick.join(",")})&status=eq.earned&select=id,reward_cents`, {
+    method: "PATCH",
+    body: JSON.stringify({ status: "applied", applied_at: new Date().toISOString(), applied_stripe_invoice_id: invoiceId }),
+  });
+  const cents = claimed.reduce((s: number, r: { reward_cents: number }) => s + r.reward_cents, 0);
+  if (!cents) return 0;
+
+  const txn = await stripePost(`customers/${customerId}/balance_transactions`, {
+    amount:      String(-cents),
+    currency:    "usd",
+    description: `Referral credit — ${claimed.length} friend${claimed.length === 1 ? "" : "s"}`,
+    "metadata[invoice_id]": invoiceId,
+  });
+  if (txn.error) {
+    console.error("Referral credit failed, releasing credits:", JSON.stringify(txn.error));
+    await db(`referrals?id=in.(${claimed.map((r: { id: number }) => r.id).join(",")})`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "earned", applied_at: null, applied_stripe_invoice_id: null }),
+    });
+    return 0;
+  }
+  console.log(`Applied referral credit: $${money(cents)} to ${invoiceId}`);
+  return cents;
 }
 
 serve(async (req) => {
@@ -65,7 +219,32 @@ serve(async (req) => {
     // Price breakdown (Stripe adds tax on top of base price)
     const basePrice = amount_override ? Number(amount_override) : Number(lead.price);
     const taxAmount    = (basePrice * 0.0825).toFixed(2);
-    const totalWithTax = (basePrice * 1.0825).toFixed(2);
+    const totalCents   = Math.round(basePrice * 100) + Math.round(basePrice * 100 * 0.0825);
+    // Referral credit comes off after tax; set below once credits are applied
+    let creditCents    = 0;
+    let totalWithTax   = money(totalCents);
+
+    // Referral bookkeeping must never block billing — on any error, bill normally
+    let myLeadIds: number[] = [lead.id];
+    try {
+      myLeadIds = await customerLeadIds(lead.email);
+      if (!myLeadIds.includes(lead.id)) myLeadIds.push(lead.id);
+      await registerReferral(lead, myLeadIds);
+      await settlePendingReferrals(myLeadIds);
+    } catch (e) {
+      console.error("Referral pre-check failed:", e);
+    }
+    const applyCredits = async (invoiceId: string) => {
+      try {
+        creditCents = await applyReferralCredits(myLeadIds, customerId, invoiceId, totalCents);
+      } catch (e) {
+        console.error("Referral credit failed:", e);
+      }
+      totalWithTax = money(totalCents - creditCents);
+    };
+    const creditRow = (style: string) => creditCents
+      ? `<p style="${style}color:#2e7d32;"><strong>Referral credit:</strong> −$${money(creditCents)}</p>`
+      : "";
 
     const freqLabel = lead.frequency === "weekly" ? "Weekly mowing"
                     : lead.frequency === "twice"  ? "Twice a month mowing"
@@ -129,12 +308,15 @@ serve(async (req) => {
         description: `${freqLabel} — ${lead.address}`,
       });
 
-      await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/finalize`, {
+      await applyCredits(invoice.id);
+
+      const finalized = await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/finalize`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${STRIPE_SECRET}` },
-      });
+      }).then(r => r.json());
 
-      const paid = await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/pay`, {
+      // A bill fully covered by referral credit is already paid at finalize — nothing to charge
+      const paid = finalized.status === "paid" ? finalized : await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/pay`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${STRIPE_SECRET}` },
       }).then(r => r.json());
@@ -176,21 +358,49 @@ serve(async (req) => {
         description: `${freqLabel} — ${lead.address}`,
       });
 
-      await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/finalize`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${STRIPE_SECRET}` },
-      });
+      await applyCredits(invoice.id);
 
-      const sentInvoice = await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/send`, {
+      const finalized = await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/finalize`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${STRIPE_SECRET}` },
       }).then(r => r.json());
 
-      console.log("Sent invoice:", JSON.stringify(sentInvoice));
+      if (finalized.status === "paid") {
+        // Fully covered by referral credit — nothing to send
+        autoCharged = true;
+        paymentLink = finalized.hosted_invoice_url ?? `https://dashboard.stripe.com/invoices/${finalized.id}`;
+        await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${lead.id}`, {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({ status: "paid" }),
+        });
+      } else {
+        const sentInvoice = await fetch(`https://api.stripe.com/v1/invoices/${invoice.id}/send`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${STRIPE_SECRET}` },
+        }).then(r => r.json());
 
-      paymentLink = sentInvoice.hosted_invoice_url
-        ?? sentInvoice.invoice_pdf
-        ?? `https://invoice.stripe.com/i/${sentInvoice.id}`;
+        console.log("Sent invoice:", JSON.stringify(sentInvoice));
+
+        paymentLink = sentInvoice.hosted_invoice_url
+          ?? sentInvoice.invoice_pdf
+          ?? `https://invoice.stripe.com/i/${sentInvoice.id}`;
+      }
+    }
+
+    // Friend's first mow just got paid → the person who referred them earns their $5
+    if (autoCharged) {
+      try {
+        const [ref] = await db(`referrals?referred_lead_id=eq.${lead.id}&status=eq.pending&select=id`);
+        if (ref) await earnReferral(ref.id, lead.name);
+      } catch (e) {
+        console.error("Referral earn failed:", e);
+      }
     }
 
     // ── EMAILS ──
@@ -213,6 +423,7 @@ serve(async (req) => {
               ${serviceDate ? `<p style="margin:0 0 4px;"><strong>Service Date:</strong> ${serviceDate}</p>` : ""}
               <p style="margin:0 0 4px;"><strong>Service:</strong> $${basePrice.toFixed(2)}</p>
               <p style="margin:0 0 4px;"><strong>Texas Sales Tax (8.25%):</strong> $${taxAmount}</p>
+              ${creditRow("margin:0 0 4px;")}
               <p style="margin:0;font-weight:bold;"><strong>Total charged:</strong> $${totalWithTax}</p>
             </div>
             <p style="color:#999;font-size:12px;margin:0;">That's Done Right · Houston, TX<br/>Questions? Reply to this email anytime.</p>
@@ -233,6 +444,7 @@ serve(async (req) => {
               <tr><td style="padding:8px 0;color:#999;">Address</td><td style="padding:8px 0;">${lead.address}</td></tr>
               <tr><td style="padding:8px 0;color:#999;">Service</td><td style="padding:8px 0;">$${basePrice.toFixed(2)}</td></tr>
               <tr><td style="padding:8px 0;color:#999;">Tax (8.25%)</td><td style="padding:8px 0;">$${taxAmount}</td></tr>
+              ${creditCents ? `<tr><td style="padding:8px 0;color:#999;">Referral credit</td><td style="padding:8px 0;color:#2e7d32;">−$${money(creditCents)}</td></tr>` : ""}
               <tr><td style="padding:8px 0;color:#999;">Total</td><td style="padding:8px 0;font-weight:bold;color:#1b5e20;font-size:18px;">$${totalWithTax}</td></tr>
             </table>
           </div>
@@ -259,6 +471,7 @@ serve(async (req) => {
               <p style="margin:0 0 6px;font-size:14px;"><strong>Service:</strong> ${freqLabel}</p>
               <p style="margin:0 0 6px;font-size:14px;"><strong>Subtotal:</strong> $${basePrice.toFixed(2)}</p>
               <p style="margin:0 0 6px;font-size:14px;"><strong>Texas Sales Tax (8.25%):</strong> $${taxAmount}</p>
+              ${creditRow("margin:0 0 6px;font-size:14px;")}
               <p style="margin:0;font-size:14px;font-weight:bold;"><strong>Total due:</strong> $${totalWithTax}</p>
             </div>
             <div style="margin-bottom:24px;">

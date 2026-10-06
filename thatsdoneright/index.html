@@ -53,6 +53,18 @@
   // ── Read discount from URL (e.g. ?discount=15 set by follow-up emails) ──
   window.discountPct = parseInt(new URLSearchParams(window.location.search).get('discount') || '0', 10) || 0;
 
+  // ── Refer-a-friend: ?ref=CODE from a customer's share link. Remembered for 60 days so the
+  //    friend still gets attributed if they come back later; send-invoice does the validation.
+  window.referralCode = (function () {
+    const fromUrl = (new URLSearchParams(window.location.search).get('ref') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 16);
+    try {
+      if (fromUrl) { localStorage.setItem('tdr_ref', JSON.stringify({ code: fromUrl, ts: Date.now() })); return fromUrl; }
+      const saved = JSON.parse(localStorage.getItem('tdr_ref') || 'null');
+      if (saved && saved.code && Date.now() - saved.ts < 60 * 86400000) return saved.code;
+    } catch (e) {}
+    return fromUrl || null;
+  })();
+
   // ── $39.99 first-mow promo — flier-only: banner appears only for ?promo=first-mow visitors;
   //    the discount is confirmed after the address check (new customers, lawns under 6,000 sqft)
   window.promoLinkVisitor = new URLSearchParams(window.location.search).get('promo') === 'first-mow';
@@ -2553,7 +2565,7 @@ async function submitEarlyContact() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/leads`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=representation' },
-      body: JSON.stringify({ name, email, phone, address, zip: currentZip, status: 'started', auto_scheduled: true, price: 0, frequency: 'N/A' })
+      body: JSON.stringify({ name, email, phone, address, zip: currentZip, status: 'started', auto_scheduled: true, price: 0, frequency: 'N/A', ...(window.referralCode ? { referred_by_code: window.referralCode } : {}) })
     });
     const data = await res.json();
     if (data && data[0]) {
@@ -3059,7 +3071,8 @@ async function submitLead() {
     manual_size_entry: !window.sizeAutoFilled,
     lot_size: lotVal,
     home_size: homeVal,
-    ...(window.firstMowPromo ? { first_mow_promo: true } : {})
+    ...(window.firstMowPromo ? { first_mow_promo: true } : {}),
+    ...(window.referralCode ? { referred_by_code: window.referralCode } : {})
     // job_notes and scheduled_date saved after quick questions in submitDetails()
   };
 
