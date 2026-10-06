@@ -2,6 +2,7 @@
 //   { token, mode: "preview" }                 → who would get it (sends nothing)
 //   { token, mode: "test" }                    → one sample email to ADMIN_EMAIL
 //   { token, mode: "send", confirm: "SEND" }   → emails every current customer once
+//   { token, mode: "send", confirm: "SEND", only: "a@b.com" } → the real email to just that one customer
 //   { mode: "unsubscribe", email, sig }        → opt out of promotional email (from unsubscribe.html)
 // Customers already emailed (leads.referral_launch_sent_at) are skipped, so a re-run never double-sends.
 // Customers who unsubscribed (leads.marketing_unsubscribed_at) are never emailed.
@@ -130,7 +131,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
-    const { token, mode, confirm, email, sig } = await req.json();
+    const { token, mode, confirm, email, sig, only } = await req.json();
 
     // Public: called from unsubscribe.html. The signature proves the link came from our email.
     if (mode === "unsubscribe") {
@@ -164,7 +165,9 @@ serve(async (req) => {
         leadIds: ls.map((l) => l.id),
         alreadySent: ls.some((l) => l.referral_launch_sent_at),
       }));
-    const toSend = recipients.filter((r) => !r.alreadySent);
+    const toSend = recipients
+      .filter((r) => !r.alreadySent)
+      .filter((r) => !only || r.email === String(only).trim().toLowerCase());
 
     if (mode === "preview") {
       return json({
