@@ -2238,6 +2238,7 @@ function openLeadDrawer(id) {
 
   const freqLabel = l.frequency === 'weekly' ? 'Weekly'
                   : l.frequency === 'twice'  ? 'Every 2 Weeks'
+                  : l.frequency === 'once'   ? 'Monthly'
                   : l.frequency || '—';
 
   const statusLabel = l.status === 'booked'          ? 'Booked'
@@ -2274,7 +2275,15 @@ function openLeadDrawer(id) {
     <hr class="drawer-divider"/>
     <div class="drawer-row">
       <div class="drawer-section-label">Service</div>
-      <div class="drawer-value">${freqLabel} · ${l.price ? '$' + l.price + '/visit' : '—'}</div>
+      <div class="drawer-value" style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;">
+        <span>${freqLabel} · ${l.price ? '$' + l.price + '/visit' : '—'}</span>
+        <select onchange="changeFrequency(${l.id}, this.value)"
+          style="font-size:.7rem;padding:.25rem .5rem;border:1px solid var(--border);border-radius:6px;font-family:var(--body);cursor:pointer;background:var(--white);">
+          <option value="weekly" ${l.frequency==='weekly'?'selected':''}>Weekly</option>
+          <option value="twice"  ${l.frequency==='twice'?'selected':''}>Twice/Mo</option>
+          <option value="once"   ${l.frequency==='once'?'selected':''}>Monthly</option>
+        </select>
+      </div>
       <div class="drawer-value" style="color:var(--text-mid);font-size:.8rem;">Status: ${statusLabel}</div>
       <div style="margin-top:.75rem;">
         ${l.first_mow_promo ? `
@@ -2569,6 +2578,10 @@ async function changeFrequency(leadId, newFreq) {
     const lead = allLeads.find(l => l.id === leadId);
     if (lead) lead.frequency = newFreq;
     renderTable(allLeads);
+    // If the drawer is open for this lead, refresh it
+    if (document.getElementById('leadDrawer').classList.contains('open')) {
+      openLeadDrawer(leadId);
+    }
   } catch(e) {
     console.error('Change frequency error:', e);
     alert('Failed to update frequency.');
