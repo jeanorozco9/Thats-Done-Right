@@ -617,9 +617,9 @@ function updateStats() {
   const avg      = prices.length ? Math.round(prices.reduce((a,b)=>a+b,0)/prices.length) : 0;
   const ACTIVE = ['booked', 'rescheduled', 'completed', 'invoiced', 'paid'];
   const monthly = allLeads
-    .filter(l => ACTIVE.includes(l.status) && l.price > 0 && l.frequency !== 'once')
+    .filter(l => ACTIVE.includes(l.status) && l.price > 0)
     .reduce((sum, l) => {
-      const mult = l.frequency === 'weekly' ? 4 : 2;
+      const mult = l.frequency === 'weekly' ? 4 : l.frequency === 'twice' ? 2 : 1;
       return sum + (l.price * mult);
     }, 0);
 
@@ -721,7 +721,17 @@ function renderTable() {
       <td>${l.phone ? `<a href="tel:${l.phone}" style="color:var(--dark);text-decoration:none;">${l.phone}</a>` : '—'}</td>
       <td style="max-width:180px;font-size:.8rem;color:var(--text-mid);">${l.address || '—'}</td>
       <td>${l.zip || '—'}</td>
-      <td><span class="badge ${freqBadge}">${freqLabel}</span></td>
+      <td onclick="event.stopPropagation()">
+        <span class="badge ${freqBadge}">${freqLabel}</span>
+        <div style="margin-top:4px;">
+          <select onchange="changeFrequency(${l.id}, this.value)"
+            style="font-size:.65rem;padding:.2rem .4rem;border:1px solid var(--border);border-radius:5px;font-family:var(--body);cursor:pointer;background:var(--white);">
+            <option value="weekly" ${l.frequency==='weekly'?'selected':''}>Weekly</option>
+            <option value="twice"  ${l.frequency==='twice'?'selected':''}>Twice/Mo</option>
+            <option value="once"   ${l.frequency==='once'?'selected':''}>Monthly</option>
+          </select>
+        </div>
+      </td>
       <td class="price-cell">${l.first_mow_promo
         ? `<span style="color:#d97706;font-weight:700;">$39.99</span><div style="font-size:.65rem;color:#9ca3af;text-decoration:line-through;">${l.price ? '$' + l.price : ''}</div>`
         : (l.price ? '$' + l.price : '—')}</td>
@@ -2152,9 +2162,11 @@ async function cvSubmitPhoto(jobId) {
 
     // 4. Schedule next visit (uses in-memory cvAllJobs — same RLS-safe pattern)
     const jobData = cvAllJobs.find(j => j.id === jobId);
-    if (jobData && jobData.scheduled_date && (jobData.frequency === 'weekly' || jobData.frequency === 'twice')) {
+    if (jobData && jobData.scheduled_date && (jobData.frequency === 'weekly' || jobData.frequency === 'twice' || jobData.frequency === 'once')) {
       const next = new Date(jobData.scheduled_date + 'T12:00:00');
-      next.setDate(next.getDate() + (jobData.frequency === 'weekly' ? 7 : 14));
+      if (jobData.frequency === 'weekly') next.setDate(next.getDate() + 7);
+      else if (jobData.frequency === 'twice') next.setDate(next.getDate() + 14);
+      else next.setMonth(next.getMonth() + 1);
       await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${jobId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
@@ -2547,14 +2559,31 @@ async function adminSubmitPhoto(leadId) {
   }
 }
 
+async function changeFrequency(leadId, newFreq) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, Prefer: 'return=minimal' },
+      body: JSON.stringify({ frequency: newFreq })
+    });
+    const lead = allLeads.find(l => l.id === leadId);
+    if (lead) lead.frequency = newFreq;
+    renderTable(allLeads);
+  } catch(e) {
+    console.error('Change frequency error:', e);
+    alert('Failed to update frequency.');
+  }
+}
+
 async function adminScheduleNextVisit(leadId) {
   try {
     const job = allLeads.find(l => l.id === leadId);
     if (!job || !job.scheduled_date) return;
-    if (job.frequency !== 'weekly' && job.frequency !== 'twice') return;
-    const days = job.frequency === 'weekly' ? 7 : 14;
+    if (job.frequency !== 'weekly' && job.frequency !== 'twice' && job.frequency !== 'once') return;
     const next = new Date(job.scheduled_date + 'T12:00:00');
-    next.setDate(next.getDate() + days);
+    if (job.frequency === 'weekly') next.setDate(next.getDate() + 7);
+    else if (job.frequency === 'twice') next.setDate(next.getDate() + 14);
+    else next.setMonth(next.getMonth() + 1);
     const nextDateStr = next.toISOString().split('T')[0];
     await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${leadId}`, {
       method: 'PATCH',
