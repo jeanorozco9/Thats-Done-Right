@@ -715,8 +715,8 @@ document.addEventListener('DOMContentLoaded', () => {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 });
 
-const FREQ_LABELS       = { weekly: 'Weekly', twice: 'Twice a Month', once: 'One Time' };
-const FREQ_MULTIPLIERS  = { weekly: 1.0, twice: 1.10, once: 1.20 };
+const FREQ_LABELS       = { weekly: 'Weekly', twice: 'Twice a Month', once: 'Monthly' };
+const FREQ_MULTIPLIERS  = { weekly: 1.0, twice: 1.10, once: 1.10 };
 
 let activePlanLeadId        = null;
 let activePlanFreq          = null;
@@ -991,7 +991,7 @@ function renderPlanOptions(currentFreq) {
   const opts = [
     { key: 'weekly', label: 'Weekly',        desc: 'Every week' },
     { key: 'twice',  label: 'Twice a Month', desc: 'Every 2 weeks' },
-    { key: 'once',   label: 'One Time',       desc: 'Single visit' },
+    { key: 'once',   label: 'Monthly',        desc: 'Once a month' },
   ];
   document.getElementById('planOptions').innerHTML = opts.map(o => `
     <button class="plan-opt-btn ${o.key === currentFreq ? 'current' : ''}"
@@ -1231,9 +1231,7 @@ function buildUpcomingSchedule(leads) {
 
   const anchor = dated[0];
   const freq   = anchor.frequency;
-  if (freq === 'once') return [];
-  const days   = freq === 'weekly' ? 7 : 14;
-  const freqLabel = freq === 'weekly' ? 'Weekly service' : 'Every 2 weeks';
+  const freqLabel = freq === 'weekly' ? 'Weekly service' : freq === 'twice' ? 'Every 2 weeks' : 'Monthly service';
 
   const today     = new Date(); today.setHours(0,0,0,0);
   const twoMonths = new Date(today); twoMonths.setMonth(twoMonths.getMonth() + 2);
@@ -1242,14 +1240,21 @@ function buildUpcomingSchedule(leads) {
   const upcoming = [];
 
   // Skip the anchor date itself — it's already shown as "Next Appointment"
-  cursor.setDate(cursor.getDate() + days);
+  if (freq === 'weekly') cursor.setDate(cursor.getDate() + 7);
+  else if (freq === 'twice') cursor.setDate(cursor.getDate() + 14);
+  else cursor.setMonth(cursor.getMonth() + 1);
 
   // Advance past today
-  while (cursor <= today) cursor.setDate(cursor.getDate() + days);
+  const advanceCursor = c => {
+    if (freq === 'weekly') c.setDate(c.getDate() + 7);
+    else if (freq === 'twice') c.setDate(c.getDate() + 14);
+    else c.setMonth(c.getMonth() + 1);
+  };
+  while (cursor <= today) advanceCursor(cursor);
 
   while (cursor <= twoMonths) {
     upcoming.push(new Date(cursor));
-    cursor.setDate(cursor.getDate() + days);
+    advanceCursor(cursor);
   }
 
   if (!upcoming.length) return [];
@@ -1595,9 +1600,10 @@ function openSkipModal() {
   document.getElementById('skipModalSub').textContent   = limitReached ? "You've used both skips for this cycle" : 'Your next service will be moved forward';
 
   if (!limitReached) {
-    const daysToAdd = activePlanFreq === 'weekly' ? 7 : 14;
     const base = activePlanScheduledDate ? new Date(activePlanScheduledDate + 'T12:00:00') : new Date();
-    base.setDate(base.getDate() + daysToAdd);
+    if (activePlanFreq === 'weekly') base.setDate(base.getDate() + 7);
+    else if (activePlanFreq === 'twice') base.setDate(base.getDate() + 14);
+    else base.setMonth(base.getMonth() + 1);
     _skipNextDate = base.toISOString().split('T')[0];
     const label = base.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
     document.getElementById('skipNextDateLabel').textContent = label;

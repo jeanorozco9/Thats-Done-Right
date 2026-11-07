@@ -1260,10 +1260,12 @@ async function scheduleNextVisit(jobId) {
   try {
     const job = allJobs.find(j => j.id === jobId);
     if (!job || !job.scheduled_date) return;
-    if (job.frequency !== 'weekly' && job.frequency !== 'twice') return;
+    if (job.frequency !== 'weekly' && job.frequency !== 'twice' && job.frequency !== 'once') return;
 
     const next = new Date(job.scheduled_date + 'T12:00:00');
-    next.setDate(next.getDate() + (job.frequency === 'weekly' ? 7 : 14));
+    if (job.frequency === 'weekly') next.setDate(next.getDate() + 7);
+    else if (job.frequency === 'twice') next.setDate(next.getDate() + 14);
+    else next.setMonth(next.getMonth() + 1);
     const nextDateStr = next.toISOString().split('T')[0];
 
     // Update the existing lead row instead of creating a new one — avoids
